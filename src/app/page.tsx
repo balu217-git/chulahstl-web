@@ -33,7 +33,7 @@ export default function Home() {
               <div className="info-content text-white">
                 <div className="info-heading mb-4">
                   <p className="info-badge info-badge-light">About us</p>
-                  <h2 className="text-white fw-normal">Our Commitement to Authenticity & <span className="text-brand-orange">Excellence</span></h2>
+                  <h2 className="text-white fw-normal h1">Our Commitement to Authenticity & <span className="text-brand-orange">Excellence</span></h2>
                 </div>
                 <p>At Chulah, we celebrate the warmth of traditional Indian cooking while blending it with a modern bar experience. Every dish is crafted with authentic recipes, fresh ingredients, and timeless techniques that honor our culinary roots. Our goal is to create a dining experience that feels both familiar and extraordinary, where heritage meets hospitality.</p>
 

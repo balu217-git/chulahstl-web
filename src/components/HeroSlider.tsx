@@ -39,26 +39,27 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
   return (
     <Slider {...defaultSettings}>
       {slides.map((slide, index) => (
-        <div
-          key={slide.id ?? index} // ✅ Key on the top-level element
-          className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
-          style={{
-            minHeight: "70vh",
-            background: slide.image
-              ? `url(${slide.image}) center/cover no-repeat`
-              : "var(--brand-green)",
-          }}
-        >
-          <div className="container">
-            {slide.title && (
-              <div className="row">
-                <div className="col-md-8">
-                  <h2 className="display-3 fw-semibold">{slide.title}</h2>
-                  {slide.subtitle && (
-                    <p className="text-lg mt-3 md:mt-5">{slide.subtitle}</p>
-                  )}
-                  {/* Optional CTA button */}
-                  {/* {slide.ctaText && slide.ctaLink && (
+        <div key={slide.id ?? index}>
+          <div
+            // ✅ Key on the top-level element
+            className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
+            style={{
+              minHeight: "70vh",
+              background: slide.image
+                ? `url(${slide.image}) center/cover no-repeat`
+                : "var(--brand-green)",
+            }}
+          >
+            <div className="container">
+              {slide.title && (
+                <div className="row">
+                  <div className="col-md-8">
+                    <h2 className="display-3 fw-semibold">{slide.title}</h2>
+                    {slide.subtitle && (
+                      <p className="text-lg mt-3 md:mt-5">{slide.subtitle}</p>
+                    )}
+                    {/* Optional CTA button */}
+                    {/* {slide.ctaText && slide.ctaLink && (
                     <a
                       href={slide.ctaLink}
                       className="btn btn-brand-yellow mt-4 inline-block"
@@ -66,11 +67,13 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
                       {slide.ctaText}
                     </a>
                   )} */}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
       ))}
     </Slider>
   );
