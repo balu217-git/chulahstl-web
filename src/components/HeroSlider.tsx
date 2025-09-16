@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Slider from "react-slick";
+import Slider, { Settings } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -14,7 +14,7 @@ type Slide = {
 
 type HeroSliderProps = {
   slides: Slide[];
-  settings?: Record<string, any>;
+  settings?: Settings;
 };
 
 
