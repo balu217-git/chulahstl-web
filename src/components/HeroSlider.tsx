@@ -17,6 +17,7 @@ type HeroSliderProps = {
   settings?: Record<string, any>;
 };
 
+
 const HeroSlider: React.FC<HeroSliderProps> = ({ slides = [], settings = {} }) => {
   // Default slider settings (can be overridden via props)
   const defaultSettings = {
