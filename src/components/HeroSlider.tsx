@@ -10,6 +10,8 @@ type Slide = {
   image: string;
   title?: string;
   subtitle?: string;
+  // If you have IDs in your slides, add here for better keys
+  id?: string | number;
 };
 
 type HeroSliderProps = {
@@ -22,7 +24,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
   settings = {},
 }) => {
   // Default slider settings (can be overridden via props)
-  const defaultSettings = {
+  const defaultSettings: Settings = {
     dots: false,
     infinite: true,
     speed: 500,
@@ -37,38 +39,36 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
   return (
     <Slider {...defaultSettings}>
       {slides.map((slide, index) => (
-        <div>
-          <div
-            key={index}
-            className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
-            style={{ minHeight: "70vh",
-              background: slide.image
-                ? `url(${slide.image}) center/cover no-repeat`
-                : "var(--brand-green)",
-            }}
-          >
-            <div className="container">
-              {slide.title && (
-                <div className="row">
-                    <div className="col-md-8">
-                          <h2 className="display-3 fw-semibold">
-                    {slide.title}
-                  </h2>
+        <div
+          key={slide.id ?? index} // ✅ Key on the top-level element
+          className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
+          style={{
+            minHeight: "70vh",
+            background: slide.image
+              ? `url(${slide.image}) center/cover no-repeat`
+              : "var(--brand-green)",
+          }}
+        >
+          <div className="container">
+            {slide.title && (
+              <div className="row">
+                <div className="col-md-8">
+                  <h2 className="display-3 fw-semibold">{slide.title}</h2>
                   {slide.subtitle && (
                     <p className="text-lg mt-3 md:mt-5">{slide.subtitle}</p>
                   )}
+                  {/* Optional CTA button */}
                   {/* {slide.ctaText && slide.ctaLink && (
-              <a
-                href={slide.ctaLink}
-                className="btn btn-brand-yellow mt-4 inline-block"
-              >
-                {slide.ctaText}
-              </a>
-            )} */}
-                    </div>
+                    <a
+                      href={slide.ctaLink}
+                      className="btn btn-brand-yellow mt-4 inline-block"
+                    >
+                      {slide.ctaText}
+                    </a>
+                  )} */}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       ))}
