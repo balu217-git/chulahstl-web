@@ -1,10 +1,10 @@
 // import Hero from "../components/Hero";
 import HeroSlider from "../components/HeroSlider";
-
+import Image from "next/image";
 const slidesData = [
-  { image: "/images/dummy.jpg", title: "Where the tradition meets Spirits", subtitle: "Slide 1 Subtitle" },
-  { image: "/images/dummy.jpg", title: "Explore Features", subtitle: "Slide 2 Subtitle" },
-  { image: "/images/dummy.jpg", title: "Join Us Today", subtitle: "Slide 3 Subtitle" },
+  { image: "/images/dummy.webp", title: "Where the tradition meets Spirits", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
+  { image: "/images/dummy.webp", title: "Explore Features", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
+  { image: "/images/dummy.webp", title: "Join Us Today", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
 ];
 
 
@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
 
-     <HeroSlider slides={slidesData} />
+     <HeroSlider slides={slidesData} headerId="main-header"/>
 
     {/* <Hero
         title="Welcome to Chulauh"
@@ -23,10 +23,18 @@ export default function Home() {
       /> */}
       <section className="info bg-brand-green">
         <div className="container">
-          <div className="row gx-5">
-            <div className="col-md-6">
-              <div className="info-content">
-
+          <div className="row justify-content-between">
+            <div className="col-md-4">
+              <div className="info-content position-relative">
+                <Image
+                    src={'/images/img-about.webp'}
+                    alt={"Our Commitement to Authenticity & Excellence"}
+                    width={600} height={400}
+                    className="img-fluid"
+                  />
+                  <div className="h4 img-badge bg-brand-orange text-white">
+                      <span>Indian way of making <span className="fw-semibold">20+ Years</span></span>
+                  </div>
               </div>
             </div>
             <div className="col-md-5">

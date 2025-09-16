@@ -36,18 +36,29 @@ h6 {
 .bg-brand-green{
   background-color: var(--brand-green) !important;
 }
+.bg-brand-orange{
+  background-color: var(--brand-orange) !important;
+}
 .bg-brand-light{
   background-color: var(--brand-light) !important;
 }
 
 .btn {
+    --bs-btn-padding-x: 1rem;
+    --bs-btn-padding-y: 0.275rem;
     border-radius: 1.5rem;
     -webkit-border-radius: 1.5rem;
     -moz-border-radius: 1.5rem;
     -ms-border-radius: 1.5rem;
     -o-border-radius: 1.5rem;
-    --bs-btn-padding-x: 1rem;
-    --bs-btn-padding-y: 0.275rem;
+    
+}
+
+.btn-group-lg > .btn, .btn-lg {
+    --bs-btn-padding-y: .5rem !important;
+    --bs-btn-padding-x: 1.5rem !important;
+    --bs-btn-font-size: 1.25rem;
+    --bs-btn-border-radius: var(--bs-border-radius-lg);
 }
 
 .btn-brand-yellow {
@@ -184,6 +195,20 @@ header .nav-link:focus, header .nav-link:hover {
 }
 .info-list-icon{
 
+}
+.img-badge{
+    padding: 1.5rem;
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    top: 20%;
+    right: -20%;
+    border-top-right-radius: 5rem;
+    border-bottom-left-radius: 5rem;
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+    text-align: center;
 }
 
 

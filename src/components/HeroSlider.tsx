@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Slider, { Settings } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -10,20 +10,33 @@ type Slide = {
   image: string;
   title?: string;
   subtitle?: string;
-  // If you have IDs in your slides, add here for better keys
+  ctaText?: string;
+  ctaLink?: string;
   id?: string | number;
 };
 
 type HeroSliderProps = {
   slides: Slide[];
   settings?: Settings;
+  headerId?: string; // 👈 pass your header id here (default "site-header")
 };
 
-const HeroSlider: React.FC<HeroSliderProps> = ({
-  slides = [],
-  settings = {},
-}) => {
-  // Default slider settings (can be overridden via props)
+const HeroSlider = ({ slides = [], settings = {}, headerId = "site-header" }: HeroSliderProps) => {
+  const [minHeight, setMinHeight] = useState<string>("95vh");
+
+  useEffect(() => {
+    const updateHeight = () => {
+      const header = document.getElementById(headerId);
+      const headerHeight = header ? header.offsetHeight : 0;
+      setMinHeight(`${window.innerHeight - headerHeight}px`);
+    };
+
+    updateHeight(); // run on mount
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [headerId]);
+
+  // Default slider settings
   const defaultSettings: Settings = {
     dots: false,
     infinite: true,
@@ -41,10 +54,9 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
       {slides.map((slide, index) => (
         <div key={slide.id ?? index}>
           <div
-            // ✅ Key on the top-level element
             className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
             style={{
-              minHeight: "70vh",
+              minHeight, // 👈 now dynamic
               background: slide.image
                 ? `url(${slide.image}) center/cover no-repeat`
                 : "var(--brand-green)",
@@ -54,26 +66,25 @@ const HeroSlider: React.FC<HeroSliderProps> = ({
               {slide.title && (
                 <div className="row">
                   <div className="col-md-8">
-                    <h2 className="display-3 fw-semibold">{slide.title}</h2>
+                    <h1 className="display-2 fw-semibold">{slide.title}</h1>
                     {slide.subtitle && (
                       <p className="text-lg mt-3 md:mt-5">{slide.subtitle}</p>
                     )}
                     {/* Optional CTA button */}
-                    {/* {slide.ctaText && slide.ctaLink && (
+                    {slide.ctaText && slide.ctaLink && (
                     <a
                       href={slide.ctaLink}
-                      className="btn btn-brand-yellow mt-4 inline-block"
+                      className="btn btn-lg btn-brand-yellow mt-4 inline-block"
                     >
                       {slide.ctaText}
                     </a>
-                  )} */}
+                  )}
                   </div>
                 </div>
               )}
             </div>
           </div>
         </div>
-
       ))}
     </Slider>
   );

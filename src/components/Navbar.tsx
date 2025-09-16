@@ -8,7 +8,7 @@ export default function Navbar() {
   //   import('bootstrap/dist/js/bootstrap.bundle.min.js');
   // }, []);
   return (
-    <header>
+    <header id="main-header">
       <nav className="navbar bg-brand navbar-expand-lg border-bottom border-1">
         <div className="container">
           {/* Mobile Logo */}
