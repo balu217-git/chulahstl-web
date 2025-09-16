@@ -1,103 +1,68 @@
 import Image from "next/image";
+import Hero from "../components/Hero";
+import HeroSlider from "../components/HeroSlider";
+
+const slidesData = [
+  { image: "/images/hero1.jpg", title: "Welcome to Our Site", subtitle: "Slide 1 Subtitle" },
+  { image: "/images/hero2.jpg", title: "Explore Features", subtitle: "Slide 2 Subtitle" },
+  { image: "/images/hero3.jpg", title: "Join Us Today", subtitle: "Slide 3 Subtitle" },
+];
+
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+     <HeroSlider slides={slidesData} />
+
+    <Hero
+        title="Welcome to Chulauh"
+        subtitle="Experience the taste of excellence"
+        ctaText="Book a Table"
+        ctaLink="/contact"
+        bgImage="/images/hero-bg.jpg" // optional background image
+      />
+      <section className="info bg-brand-green">
+        <div className="container">
+          <div className="row gx-5">
+            <div className="col-md-6">
+              <div className="info-content">
+
+              </div>
+            </div>
+            <div className="col-md-5">
+              <div className="info-content text-white">
+                <div className="info-heading mb-4">
+                  <p className="info-badge info-badge-light">About us</p>
+                  <h2 className="text-white fw-normal">Our Commitement to Authenticity & <span className="text-brand-orange">Excellence</span></h2>
+                </div>
+                <p>At Chulah, we celebrate the warmth of traditional Indian cooking while blending it with a modern bar experience. Every dish is crafted with authentic recipes, fresh ingredients, and timeless techniques that honor our culinary roots. Our goal is to create a dining experience that feels both familiar and extraordinary, where heritage meets hospitality.</p>
+
+                <ul className="info-list info-list-icon lead fw-normal">
+                  <li>Authenticity in Every Flavor</li>
+                  <li>Excellence in Craftsmanship</li>
+                  <li>Hospitality with Heart</li>
+                </ul>
+
+                <button className="btn btn-brand-yellow mt-3">Know more</button>
+
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </section>
+
+      <section className="info bg-brand-light">
+        <div className="container">
+          <div className="info-heading row justify-content-center text-center">
+            <div className="col-md-6">
+              <h2 className="fw-bold">Try our Special dishes</h2>
+              <p>Discover our chef’s signature creations, designed to delight your senses with every bite.</p>
+            <button className="btn btn-brand-yellow mt-2">View more</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
