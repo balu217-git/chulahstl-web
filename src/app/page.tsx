@@ -1,4 +1,4 @@
-import Hero from "../components/Hero";
+// import Hero from "../components/Hero";
 import HeroSlider from "../components/HeroSlider";
 
 const slidesData = [
