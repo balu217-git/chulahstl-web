@@ -1,6 +1,6 @@
 "use client"; // optional if you use hooks inside
 
-import Image from "next/image";
+// import Image from "next/image";
 
 type HeroProps = {
   title: string;

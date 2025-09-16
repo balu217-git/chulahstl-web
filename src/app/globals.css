@@ -170,7 +170,7 @@ header .nav-link:focus, header .nav-link:hover {
 
 
 .info-badge {
-  padding: 0.3rem 1.2rem;
+  padding: 0.2rem 1.2rem;
   display: inline-block;
   border-radius: 3rem;
 }
@@ -184,4 +184,10 @@ header .nav-link:focus, header .nav-link:hover {
 }
 .info-list-icon{
 
+}
+
+
+.hero-slide{
+  min-height: 75vh;
+  background-color: #0d3335;
 }

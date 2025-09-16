@@ -1,11 +1,10 @@
-// import Image from "next/image";
 import Hero from "../components/Hero";
 import HeroSlider from "../components/HeroSlider";
 
 const slidesData = [
-  { image: "/images/hero1.jpg", title: "Welcome to Our Site", subtitle: "Slide 1 Subtitle" },
-  { image: "/images/hero2.jpg", title: "Explore Features", subtitle: "Slide 2 Subtitle" },
-  { image: "/images/hero3.jpg", title: "Join Us Today", subtitle: "Slide 3 Subtitle" },
+  { image: "/images/dummy.jpg", title: "Where the tradition meets Spirits", subtitle: "Slide 1 Subtitle" },
+  { image: "/images/dummy.jpg", title: "Explore Features", subtitle: "Slide 2 Subtitle" },
+  { image: "/images/dummy.jpg", title: "Join Us Today", subtitle: "Slide 3 Subtitle" },
 ];
 
 
@@ -15,13 +14,13 @@ export default function Home() {
 
      <HeroSlider slides={slidesData} />
 
-    <Hero
+    {/* <Hero
         title="Welcome to Chulauh"
         subtitle="Experience the taste of excellence"
         ctaText="Book a Table"
         ctaLink="/contact"
-        bgImage="/images/hero-bg.jpg" // optional background image
-      />
+        bgImage="/images/dummy.jpg" // optional background image
+      /> */}
       <section className="info bg-brand-green">
         <div className="container">
           <div className="row gx-5">
@@ -60,6 +59,12 @@ export default function Home() {
               <p>Discover our chef’s signature creations, designed to delight your senses with every bite.</p>
             <button className="btn btn-brand-yellow mt-2">View more</button>
             </div>
+          </div>
+
+          <div className="row">
+              <div className="col-md-3">
+
+              </div>
           </div>
         </div>
       </section>
