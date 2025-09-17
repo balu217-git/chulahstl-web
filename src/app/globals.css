@@ -174,7 +174,26 @@ header .nav-link:focus, header .nav-link:hover {
     }
 }
 
+/* Hero section CSS */
+.hero-slide{
+  min-height: 75vh;
+  background-color: #0d3335;
+}
 
+.hero-slide::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(to bottom,
+  rgba(255, 255, 255, 0) 50%,
+  #00282a 100%);
+}
+
+
+/* Info CSS */
 .info{
   padding: 60px 0;
 }
@@ -193,9 +212,32 @@ header .nav-link:focus, header .nav-link:hover {
 .info-list li:not(:last-child){
   margin-bottom: 10px;
 }
-.info-list-icon{
-
+.info-list.info-list-icon{
+    list-style: none;
+    padding: 0;
 }
+.info-list.info-list-icon li{
+    position: relative;
+    padding-left: 30px;
+}
+.info-list.info-list-icon li::before{
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #00494d;
+    background-size: 20px;
+    border-radius: 50rem;
+    background-image: url(/images/tick-icon.png);
+    -webkit-border-radius: 50rem;
+    -moz-border-radius: 50rem;
+    -ms-border-radius: 50rem;
+    -o-border-radius: 50rem;
+}
+
+
 .img-badge{
     padding: 1.5rem;
     position: absolute;
@@ -211,24 +253,7 @@ header .nav-link:focus, header .nav-link:hover {
     text-align: center;
 }
 
-
-.hero-slide{
-  min-height: 75vh;
-  background-color: #0d3335;
-}
-
-.hero-slide::before{
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-image: linear-gradient(to bottom,
-  rgba(255, 255, 255, 0) 50%,
-  #00282a 100%);
-}
-
+/* Dish Grid CSS */
 .dishes-grid .dishes-grid-item{
     position: relative;
 }
@@ -272,4 +297,20 @@ header .nav-link:focus, header .nav-link:hover {
 .dishes-grid .dishes-grid-item:hover .text-pane {
     filter: alpha(enabled=false);
     opacity: 1;
+}
+
+
+.nav-brand-pills .nav-link {
+    padding: .3rem 1.5rem;
+    font-size: .9rem;
+    color: var(--bs-white);
+    border-radius: 3rem;
+    -webkit-border-radius: 3rem;
+    -moz-border-radius: 3rem;
+    -ms-border-radius: 3rem;
+    -o-border-radius: 3rem;
+}
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: var(--bs-nav-pills-link-active-color);
+    background-color: var(--brand-orange);
 }

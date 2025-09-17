@@ -1,10 +1,15 @@
+// mark as client to allow DOM APIs
+// "use client";
+
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
+// import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "./globals.css";
 import Navbar from "../components/Navbar";
-// import Footer from "../components/Footer";
+
+import BootstrapClient from "../components/BootstrapClient";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -24,12 +29,15 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+
   return (
     <html lang="en">
       <body className={`${montserrat.variable} ${playfair.variable}`}>
         <Navbar />
         <main>{children}</main>
         {/* <Footer /> */}
+        <BootstrapClient />
       </body>
     </html>
   );
