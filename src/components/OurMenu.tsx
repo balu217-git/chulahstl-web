@@ -10,15 +10,15 @@ function OurMenu({ bgImage }: OurMenuProps) {
   const categories = Object.keys(menuData.menu) as Array<keyof Menu>;
   const [activeTab, setActiveTab] = useState<keyof Menu>(categories[0]);
 
-  const renderMenuItems = (items: any) => {
-    // If nested object, render subcategories
-    if (typeof items === "object" && !Array.isArray(items)) {
+  const renderMenuItems = (items: MenuItem[] | Record<string, MenuItem[]>) => {
+    // If nested object (like Alcohol), render subcategories
+    if (!Array.isArray(items)) {
       return Object.keys(items).map((subCat) => (
         <div key={subCat} className="col-md-6">
           <h4 className="text-white mb-4 fw-semibold">{subCat}</h4>
           <table className="table table-sm table-borderless text-white">
             <tbody>
-              {items[subCat as keyof typeof items].map((item: MenuItem) => (
+              {(items[subCat] as MenuItem[]).map((item) => (
                 <tr key={item.name}>
                   <td>{item.name}</td>
                   <td>{item.price}</td>
@@ -48,7 +48,8 @@ function OurMenu({ bgImage }: OurMenuProps) {
   };
 
   return (
-    <section className="info bg-brand bg-brand-overlay"
+    <section
+      className="info bg-brand bg-brand-overlay"
       style={{
         minHeight: "70vh",
         background: bgImage
@@ -67,7 +68,10 @@ function OurMenu({ bgImage }: OurMenuProps) {
         <div className="row justify-content-center mt-5">
           <div className="col-md-10">
             {/* Tabs */}
-            <ul className="nav nav-brand-pills border-bottom  nav-pills pb-4 justify-content-evenly" role="tablist">
+            <ul
+              className="nav nav-brand-pills border-bottom nav-pills pb-4 justify-content-evenly"
+              role="tablist"
+            >
               {categories.map((category) => (
                 <li className="nav-item" role="presentation" key={category}>
                   <button
