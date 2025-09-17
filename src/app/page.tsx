@@ -2,9 +2,9 @@
 import HeroSlider from "../components/HeroSlider";
 import Image from "next/image";
 const slidesData = [
-  { image: "/images/dummy.webp", title: "Where the tradition meets Spirits", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
-  { image: "/images/dummy.webp", title: "Explore Features", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
-  { image: "/images/dummy.webp", title: "Join Us Today", subtitle: "", ctaText:"Explore Menu", ctaLink:"/contact"},
+  { image: "/images/dummy.webp", title: "Where the tradition meets Spirits", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
+  { image: "/images/dummy.webp", title: "Explore Features", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
+  { image: "/images/dummy.webp", title: "Join Us Today", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
 ];
 
 
@@ -12,9 +12,9 @@ export default function Home() {
   return (
     <>
 
-     <HeroSlider slides={slidesData} headerId="main-header"/>
+      <HeroSlider slides={slidesData} headerId="main-header" />
 
-    {/* <Hero
+      {/* <Hero
         title="Welcome to Chulauh"
         subtitle="Experience the taste of excellence"
         ctaText="Book a Table"
@@ -27,14 +27,14 @@ export default function Home() {
             <div className="col-md-4">
               <div className="info-content position-relative">
                 <Image
-                    src={'/images/img-about.webp'}
-                    alt={"Our Commitement to Authenticity & Excellence"}
-                    width={600} height={400}
-                    className="img-fluid"
-                  />
-                  <div className="h4 img-badge bg-brand-orange text-white">
-                      <span>Indian way of making <span className="fw-semibold">20+ Years</span></span>
-                  </div>
+                  src={'/images/img-about.webp'}
+                  alt={"Our Commitement to Authenticity & Excellence"}
+                  width={600} height={400}
+                  className="img-fluid"
+                />
+                <div className="h4 img-badge bg-brand-orange text-white">
+                  <span>Indian way of making <span className="fw-semibold">20+ Years</span></span>
+                </div>
               </div>
             </div>
             <div className="col-md-5">
@@ -65,14 +65,71 @@ export default function Home() {
             <div className="col-md-6">
               <h2 className="fw-bold">Try our Special dishes</h2>
               <p>Discover our chef’s signature creations, designed to delight your senses with every bite.</p>
-            <button className="btn btn-brand-yellow mt-2">View more</button>
+              <button className="btn btn-brand-yellow mt-2">View more</button>
             </div>
           </div>
 
-          <div className="row">
-              <div className="col-md-3">
-
+          <div className="dishes-grid row mt-5">
+            <div className="col-md-3">
+              <div className="dishes-grid-item" style={{
+                backgroundImage: "url('/images/img-dish-01.webp')",
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+              }}>
+                <div className="text-pane text-white">
+                  <div className="centered">
+                    <h3 className="title">Title</h3>
+                    <p className="text">Text</p>
+                  </div>
+                </div>
               </div>
+            </div>
+            <div className="col-md-3">
+              <div className="dishes-grid-item" style={{
+                backgroundImage: "url('/images/img-dish-02.webp')",
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+              }}>
+                <div className="text-pane text-white">
+                  <div className="centered">
+                    <h3 className="title">Title</h3>
+                    <p className="text">Text</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <div className="dishes-grid-item" style={{
+                backgroundImage: "url('/images/img-dish-03.webp')",
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+              }}>
+                <div className="text-pane text-white">
+                  <div className="centered">
+                    <h3 className="title">Title</h3>
+                    <p className="text">Text</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <div className="dishes-grid-item" style={{
+                backgroundImage: "url('/images/img-dish-01.webp')",
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+              }}>
+                <div className="text-pane text-white">
+                  <div className="centered">
+                    <h3 className="title">Title</h3>
+                    <p className="text">Text</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

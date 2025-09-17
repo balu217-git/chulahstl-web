@@ -53,8 +53,7 @@ const HeroSlider = ({ slides = [], settings = {}, headerId = "site-header" }: He
     <Slider {...defaultSettings}>
       {slides.map((slide, index) => (
         <div key={slide.id ?? index}>
-          <div
-            className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
+          <div className="hero-slide position-relative d-flex align-items-center justify-content-start text-white"
             style={{
               minHeight, // 👈 now dynamic
               background: slide.image
@@ -62,7 +61,7 @@ const HeroSlider = ({ slides = [], settings = {}, headerId = "site-header" }: He
                 : "var(--brand-green)",
             }}
           >
-            <div className="container">
+            <div className="container position-relative">
               {slide.title && (
                 <div className="row">
                   <div className="col-md-8">

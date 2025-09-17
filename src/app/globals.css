@@ -216,3 +216,60 @@ header .nav-link:focus, header .nav-link:hover {
   min-height: 75vh;
   background-color: #0d3335;
 }
+
+.hero-slide::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(to bottom,
+  rgba(255, 255, 255, 0) 50%,
+  #00282a 100%);
+}
+
+.dishes-grid .dishes-grid-item{
+    position: relative;
+}
+.dishes-grid .dishes-grid-item:after {
+    content: '';
+    display: block;
+    padding-top: 130%;
+}
+
+.dishes-grid .dishes-grid-item .text-pane {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: color-mix(in srgb, var(--brand-orange) 75%, transparent);
+    filter: alpha(Opacity=0);
+    opacity: 0;
+    -moz-transition: all .3s ease-in-out;
+    -o-transition: all .3s ease-in-out;
+    -webkit-transition: all .3s ease-in-out;
+    transition: all .3s ease-in-out;
+    text-align: center;
+    padding: 21px;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-box-align: center;
+    -moz-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.dishes-grid .dishes-grid-item:hover .text-pane {
+    filter: alpha(enabled=false);
+    opacity: 1;
+}
