@@ -36,8 +36,8 @@ export default function Navbar() {
               <div className="nav-section-left">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
-                    <Link className="nav-link" href="/">
-                      Home
+                    <Link className="nav-link" href="/chulah-menu.pdf">
+                      Menu
                     </Link>
                   </li>
                   <li className="nav-item">
@@ -46,8 +46,8 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="nav-link" href="/chulah-menu.pdf" target="_blank">
-                      Menu
+                    <Link className="nav-link" href="/" target="_blank">
+                      Catering
                     </Link>
                   </li>
                 </ul>
@@ -71,13 +71,18 @@ export default function Navbar() {
               <div className="nav-section-right">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
+                    <Link className="nav-link" href="/">
+                      Reservation
+                    </Link>
+                  </li>
+                  <li className="nav-item">
                     <Link className="nav-link" href="/contact">
                       Contact
                     </Link>
                   </li>
                   <li className="nav-item">
                     <Link className="btn btn-brand-orange ms-md-2" href="/book-table">
-                      Book Table
+                      Order Online
                     </Link>
                   </li>
                 </ul>
