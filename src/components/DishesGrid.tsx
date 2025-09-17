@@ -45,7 +45,7 @@ const DishCard = ({ dish }: { dish: DishItem }) => {
         {dish.title && (
           <div className="text-pane text-white">
             <div className="centered">
-              <h3 className="title">{dish.title}</h3>
+              <h4 className="title">{dish.title}</h4>
               {dish.description && <p className="text">{dish.description}</p>}
             </div>
           </div>
