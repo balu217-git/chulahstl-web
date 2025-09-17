@@ -346,11 +346,11 @@ header .nav-link:hover {
     position: relative;
 }
 
-.dishes-grid .dishes-grid-item:after {
+/* .dishes-grid .dishes-grid-item:after {
     content: '';
     display: block;
     padding-top: 130%;
-}
+} */
 
 .dishes-grid .dishes-grid-item .text-pane {
     display: block;

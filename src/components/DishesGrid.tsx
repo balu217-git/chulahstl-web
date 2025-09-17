@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState  } from "react";
+import Image from "next/image";
 
 // Define DishItem type
 type DishItem = {
@@ -24,24 +25,25 @@ const DishesGrid = ({ dishes = [] }: DishesGridProps) => {
 };
 
 const DishCard = ({ dish }: { dish: DishItem }) => {
-  const [bgImage, setBgImage] = useState<string>("");
+  // const [bgImage, setBgImage] = useState<string>("");
 
-  useEffect(() => {
-    setBgImage(`url(${dish.image})`);
-  }, [dish.image]);
+  // useEffect(() => {
+  //   setBgImage(`url(${dish.image})`);
+  // }, [dish.image]);
 
   return (
     <div className="col-md-3">
       <div
         className="dishes-grid-item"
-        style={{
-          backgroundImage: bgImage, // empty on SSR, filled on client
-          backgroundPosition: "center center",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          minHeight: "250px",
-        }}
+        // style={{
+        //   backgroundImage: bgImage, // empty on SSR, filled on client
+        //   backgroundPosition: "center center",
+        //   backgroundRepeat: "no-repeat",
+        //   backgroundSize: "cover",
+        //   minHeight: "250px",
+        // }}
       >
+        <Image className="img-fluid" src={dish.image} alt="chulauh" width={600} height={800} priority/>
         {dish.title && (
           <div className="text-pane text-white">
             <div className="centered">
