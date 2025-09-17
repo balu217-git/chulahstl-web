@@ -15,13 +15,13 @@ function OurMenu({ bgImage }: OurMenuProps) {
     if (!Array.isArray(items)) {
       return Object.keys(items).map((subCat) => (
         <div key={subCat} className="col-lg-6">
-          <h4 className="text-white mb-4 fw-semibold">{subCat}</h4>
+          <h4 className="text-white mb-md-4 mb-3 fw-semibold">{subCat}</h4>
           <table className="table table-sm table-borderless text-white">
             <tbody>
               {(items[subCat] as MenuItem[]).map((item) => (
                 <tr key={item.name}>
                   <td>{item.name}</td>
-                  <td className="text-end">{item.price}</td>
+                  <td className="text-end fw-semibold text-brand-yellow">{item.price}</td>
                 </tr>
               ))}
             </tbody>
@@ -38,7 +38,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
             {(items as MenuItem[]).map((item) => (
               <tr key={item.name}>
                 <td>{item.name}</td>
-                <td className="text-end">{item.price}</td>
+                <td className="text-end fw-semibold text-brand-yellow">{item.price}</td>
               </tr>
             ))}
           </tbody>
@@ -93,7 +93,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
                   className={`tab-pane fade ${activeTab === category ? "show active" : ""}`}
                   role="tabpanel"
                 >
-                  <div className="row g-md-4 g-3">
+                  <div className="row gy-md-4 gx-md-5  g-3">
                     {renderMenuItems(menuData.menu[category])}
                   </div>
                 </div>
