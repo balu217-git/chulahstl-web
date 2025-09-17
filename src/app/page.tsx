@@ -4,6 +4,7 @@ import HeroSlider from "../components/HeroSlider";
 import DishesGrid from "../components/DishesGrid";
 import OurMenu from "../components/OurMenu";
 import ContactIcons from "../components/ContactIcons";
+import Footer from "../components/Footer";
 import Image from "next/image";
 const slidesData = [
   {
@@ -211,6 +212,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Footer/>
     </>
   );
 }

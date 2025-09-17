@@ -1,6 +1,7 @@
 
 :root {
     --brand-green: #00282a;
+    --brand-green-light: #093f42;
     --brand-yellow: #F5C542;
     --brand-orange: #e8841e;
     --brand-light: #fff4e9;
@@ -31,6 +32,10 @@ h6 {
 
 .bg-brand {
     background-color: var(--brand-green) !important;
+}
+
+.bg-brand-green-light {
+    background-color: var(--brand-green-light) !important;
 }
 .bg-brand.bg-brand-overlay{
     position: relative;
