@@ -1,7 +1,9 @@
 // import Hero from "../components/Hero";
+
 import HeroSlider from "../components/HeroSlider";
 import DishesGrid from "../components/DishesGrid";
 import OurMenu from "../components/OurMenu";
+import ContactIcons from "../components/ContactIcons";
 import Image from "next/image";
 const slidesData = [
   {
@@ -49,7 +51,6 @@ const dishesData = [
     description: "Description",
   },
 ];
-
 
 export default function Home() {
   return (
@@ -108,14 +109,14 @@ export default function Home() {
                   <li>Hospitality with Heart</li>
                 </ul>
 
-                <button className="btn btn-brand-yellow mt-3">Know more</button>
+                <button className="btn btn-brand-orange mt-3">Know more</button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="info bg-brand-light">
+      <section className="info bg-brand-light bg-brand-element">
         <div className="container">
           <div className="info-heading row justify-content-center text-center">
             <div className="col-md-6">
@@ -124,176 +125,88 @@ export default function Home() {
                 Discover our chef’s signature creations, designed to delight
                 your senses with every bite.
               </p>
-              <button className="btn btn-brand-yellow mt-2">View more</button>
+              <button className="btn btn-brand-orange mt-2">View more</button>
             </div>
           </div>
           <DishesGrid dishes={dishesData} />
         </div>
       </section>
 
-      {/* <section className="info bg-brand">
-        <div className="container">
-          <div className="info-heading row justify-content-center text-center">
-            <div className="col-md-6">
-              <p className="info-badge info-badge-light">Our Menu</p>
-              <h2 className="fw-bold text-white">Choose Your Special Menu</h2>
-            </div>
-          </div>
-          <div className="row justify-content-center mt-5">
-            <div className="col-md-10">
-              <ul
-                className="nav nav-brand-pills nav-pills mb-3 justify-content-evenly"
-                id="pills-tab"
-                role="tablist"
-              >
-                <li className="nav-item" role="presentation">
-                  <button
-                    className="nav-link active"
-                    id="pills-Starters-tab"
-                    data-bs-toggle="pill"
-                    data-bs-target="#pills-Starters"
-                    type="button"
-                    role="tab"
-                    aria-controls="pills-Starters"
-                    aria-selected="true"
-                  >
-                    Starters
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    className="nav-link"
-                    id="pills-MainCourse-tab"
-                    data-bs-toggle="pill"
-                    data-bs-target="#pills-MainCourse"
-                    type="button"
-                    role="tab"
-                    aria-controls="pills-MainCourse"
-                    aria-selected="false"
-                  >
-                    Main Course
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    className="nav-link"
-                    id="pills-Alcohol-tab"
-                    data-bs-toggle="pill"
-                    data-bs-target="#pills-Alcohol"
-                    type="button"
-                    role="tab"
-                    aria-controls="pills-Alcohol"
-                    aria-selected="false"
-                  >
-                    Alcohol
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    className="nav-link"
-                    id="pills-Cocktails-tab"
-                    data-bs-toggle="pill"
-                    data-bs-target="#pills-Cocktails"
-                    type="button"
-                    role="tab"
-                    aria-controls="pills-Cocktails"
-                    aria-selected="false"
-                  >
-                    Cocktails
-                  </button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button
-                    className="nav-link"
-                    id="pills-Dessert-tab"
-                    data-bs-toggle="pill"
-                    data-bs-target="#pills-Dessert"
-                    type="button"
-                    role="tab"
-                    aria-controls="pills-Dessert"
-                    aria-selected="false"
-                  >
-                    Dessert
-                  </button>
-                </li>
-              </ul>
-              <div className="tab-content border-top" id="pills-tabContent">
-                <div
-                  className="tab-pane fade show active"
-                  id="pills-Starters"
-                  role="tabpanel"
-                  aria-labelledby="pills-Starters-tab"
-                >
-                  Starters
-                </div>
-                <div
-                  className="tab-pane fade"
-                  id="pills-MainCourse"
-                  role="tabpanel"
-                  aria-labelledby="pills-MainCourse-tab"
-                >
-                  MainCourse
-                </div>
-                <div
-                  className="tab-pane fade"
-                  id="pills-Alcohol"
-                  role="tabpanel"
-                  aria-labelledby="pills-Alcohol-tab"
-                >
-                  Alcohol
-                </div>
-                <div
-                  className="tab-pane fade"
-                  id="pills-Cocktails"
-                  role="tabpanel"
-                  aria-labelledby="pills-Cocktails-tab"
-                >
-                  Cocktails
-                </div>
-                <div
-                  className="tab-pane fade"
-                  id="pills-Dessert"
-                  role="tabpanel"
-                  aria-labelledby="pills-Dessert-tab"
-                >
-                  Dessert
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
-      <OurMenu bgImage="/images/img-ourmenu-bg.webp"/>
+      <OurMenu bgImage="/images/img-ourmenu-bg.webp" />
 
       <section className="info bg-brand-light">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">
-<div className="row justify-content-between gx-5">
-            <div className="col-md-5">
-              <div className="info-content">
-                <h2 className="fw-bold">
-                  Indulge in an unforgettable Culinary Experience
-                </h2>
-              </div>
-            </div>
-            <div className="col-md-7">
-              <div className="info-content">
-                <p>
-                  At Chulah, every meal is more than just dining—it’s a journey
-                  through authentic flavors and warm hospitality. Whether it’s
-                  an intimate dinner, a lively evening with friends, or a
-                  special celebration, our table is set to welcome you. Reserve
-                  your spot today and let us create memories as delightful as
-                  our dishes.
-                </p>
-                <button className="btn btn-brand-yellow mt-2">
-                  Reserve table
-                </button>
+              <div className="row justify-content-between gx-5">
+                <div className="col-md-5">
+                  <div className="info-content">
+                    <h2 className="fw-bold">
+                      Indulge in an unforgettable Culinary Experience
+                    </h2>
+                  </div>
+                </div>
+                <div className="col-md-7">
+                  <div className="info-content">
+                    <p>
+                      At Chulah, every meal is more than just dining—it’s a
+                      journey through authentic flavors and warm hospitality.
+                      Whether it’s an intimate dinner, a lively evening with
+                      friends, or a special celebration, our table is set to
+                      welcome you. Reserve your spot today and let us create
+                      memories as delightful as our dishes.
+                    </p>
+                    <button className="btn btn-brand-orange mt-2">
+                      Reserve table
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="info bg-brand">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-10">
+              <div className="row justify-content-between">
+                <div className="col-md-4">
+                  <div className="info-content text-white small">
+                    <div className="info-heading mb-4">
+                      <h2 className="fw-semibold">Contact Us</h2>
+                      <p>
+                        At Chulah, every meal is more than just dining—it’s a
+                        journey through authentic flavors and warm hospitality
+                      </p>
+                    </div>
+                     <ContactIcons />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="info-content">
+                    <div className="form-container">
+                      <form action="" method="post">
+                        <div className="from-group mb-3">
+                            <input type="text" name="name" className="form-control" id="" placeholder="Your Name" />
+                        </div>
+                        <div className="from-group mb-3">
+                            <input type="email" name="email" className="form-control" id="" placeholder="Your Email"/>
+                        </div>
+                        <div className="from-group mb-3">
+                            <div className="mb-3">
+                              <textarea className="form-control" name="" id="" rows={4} placeholder="Message"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" className="btn btn-sm btn-brand-orange px-4">Submit</button>
+
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

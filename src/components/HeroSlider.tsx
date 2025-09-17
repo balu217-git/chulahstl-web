@@ -73,7 +73,7 @@ const HeroSlider = ({ slides = [], settings = {}, headerId = "site-header" }: He
                     {slide.ctaText && slide.ctaLink && (
                     <a
                       href={slide.ctaLink}
-                      className="btn btn-lg btn-brand-yellow mt-4 inline-block"
+                      className="btn btn-lg btn-brand-orange mt-4 inline-block"
                     >
                       {slide.ctaText}
                     </a>

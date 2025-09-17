@@ -31,7 +31,7 @@ export default function Hero({
         <h1 className="display-3 fw-bold">{title}</h1>
         {subtitle && <p className="lead">{subtitle}</p>}
         {ctaText && ctaLink && (
-          <a href={ctaLink} className="btn btn-brand-yellow mt-3">
+          <a href={ctaLink} className="btn btn-brand-orange mt-3">
             {ctaText}
           </a>
         )}

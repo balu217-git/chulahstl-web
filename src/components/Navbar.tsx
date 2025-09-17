@@ -76,7 +76,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="btn btn-brand-yellow ms-md-2" href="/book-table">
+                    <Link className="btn btn-brand-orange ms-md-2" href="/book-table">
                       Book Table
                     </Link>
                   </li>
