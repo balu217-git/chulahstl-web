@@ -51,52 +51,6 @@ const dishesData = [
 ];
 
 
-const menuData = {
-  menu: {
-    Starters: [
-      { name: "Veg Spring Rolls", price: "000/-" },
-      { name: "Chicken Tikka", price: "000/-" },
-      { name: "Paneer Chilli", price: "000/-" }
-    ],
-    "Main Course": [
-      { name: "Paneer Butter Masala", price: "000/-" },
-      { name: "Chicken Biryani", price: "000/-" },
-      { name: "Dal Tadka", price: "000/-" }
-    ],
-    Alcohol: {
-      Beers: [
-        { name: "Kingfisher Premium / Ultra", price: "000/-" },
-        { name: "Bira 91 Blonde / White", price: "000/-" },
-        { name: "Heineken", price: "000/-" }
-      ],
-      Wines: [
-        { name: "Sula Rasa Shiraz (India)", price: "000/-" },
-        { name: "Grover Zampa La Réserve (India)", price: "000/-" }
-      ],
-      "Whiskey / Bourbon": [
-        { name: "Royal Challenge", price: "000/-" },
-        { name: "Chivas Regal 12YO", price: "000/-" }
-      ],
-      "Sparkling & Champagne": [
-        { name: "Sula Brut (India)", price: "000/-" },
-        { name: "Moët & Chandon Brut (France)", price: "000/-" }
-      ]
-    },
-    Cocktails: [
-      { name: "Mojito", price: "000/-" },
-      { name: "Long Island Iced Tea", price: "000/-" },
-      { name: "Cosmopolitan", price: "000/-" }
-    ],
-    Dessert: [
-      { name: "Chocolate Brownie", price: "000/-" },
-      { name: "Gulab Jamun", price: "000/-" },
-      { name: "Ice Cream", price: "000/-" }
-    ]
-  }
-};
-
-
-
 export default function Home() {
   return (
     <>
