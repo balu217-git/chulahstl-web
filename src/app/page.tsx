@@ -1,10 +1,18 @@
 // import Hero from "../components/Hero";
 import HeroSlider from "../components/HeroSlider";
+import DishesGrid from "../components/DishesGrid";
 import Image from "next/image";
 const slidesData = [
   { image: "/images/dummy.webp", title: "Where the tradition meets Spirits", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
   { image: "/images/dummy.webp", title: "Explore Features", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
   { image: "/images/dummy.webp", title: "Join Us Today", subtitle: "", ctaText: "Explore Menu", ctaLink: "/contact" },
+];
+
+const dishesData = [
+  { image: "/images/img-dish-01.webp", title: "Where the tradition meets Spirits", description: "Description"},
+  { image: "/images/img-dish-02.webp", title: "Explore Features", description: "Description"},
+  { image: "/images/img-dish-03.webp", title: "Join Us Today", description: "Description"},
+  { image: "/images/img-dish-01.webp", title: "Join Us Today", description: "Description"}
 ];
 
 
@@ -32,8 +40,8 @@ export default function Home() {
                   width={600} height={400}
                   className="img-fluid"
                 />
-                <div className="h4 img-badge bg-brand-orange text-white">
-                  <span>Indian way of making <span className="fw-semibold">20+ Years</span></span>
+                <div className="h4 img-badge bg-brand-orange fw-normal text-white">
+                  <span>Indian way of making <span className="fw-bold">20+ Years</span></span>
                 </div>
               </div>
             </div>
@@ -69,68 +77,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="dishes-grid row mt-5">
-            <div className="col-md-3">
-              <div className="dishes-grid-item" style={{
-                backgroundImage: "url('/images/img-dish-01.webp')",
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-              }}>
-                <div className="text-pane text-white">
-                  <div className="centered">
-                    <h3 className="title">Title</h3>
-                    <p className="text">Text</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="dishes-grid-item" style={{
-                backgroundImage: "url('/images/img-dish-02.webp')",
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-              }}>
-                <div className="text-pane text-white">
-                  <div className="centered">
-                    <h3 className="title">Title</h3>
-                    <p className="text">Text</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="dishes-grid-item" style={{
-                backgroundImage: "url('/images/img-dish-03.webp')",
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-              }}>
-                <div className="text-pane text-white">
-                  <div className="centered">
-                    <h3 className="title">Title</h3>
-                    <p className="text">Text</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="dishes-grid-item" style={{
-                backgroundImage: "url('/images/img-dish-01.webp')",
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-              }}>
-                <div className="text-pane text-white">
-                  <div className="centered">
-                    <h3 className="title">Title</h3>
-                    <p className="text">Text</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DishesGrid dishes={dishesData}/>
+
+
         </div>
       </section>
     </>

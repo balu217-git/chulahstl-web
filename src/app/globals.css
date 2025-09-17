@@ -51,7 +51,7 @@ h6 {
     -moz-border-radius: 1.5rem;
     -ms-border-radius: 1.5rem;
     -o-border-radius: 1.5rem;
-    
+
 }
 
 .btn-group-lg > .btn, .btn-lg {
@@ -245,7 +245,7 @@ header .nav-link:focus, header .nav-link:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: color-mix(in srgb, var(--brand-orange) 75%, transparent);
+    background: color-mix(in srgb, var(--brand-orange) 90%, transparent);
     filter: alpha(Opacity=0);
     opacity: 0;
     -moz-transition: all .3s ease-in-out;
