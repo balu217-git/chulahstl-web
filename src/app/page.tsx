@@ -175,8 +175,8 @@ export default function Home() {
               <div className="row justify-content-between">
                 <div className="col-md-4">
                   <div className="info-content text-white small">
-                    <div className="info-heading mb-4">
-                      <h2 className="fw-semibold">Contact Us</h2>
+                    <div className="info-heading mb-5">
+                      <h2 className="fw-semibold mb-3">Contact Us</h2>
                       <p>
                         At Chulah, every meal is more than just dining—it’s a
                         journey through authentic flavors and warm hospitality
