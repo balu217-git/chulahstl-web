@@ -14,14 +14,14 @@ function OurMenu({ bgImage }: OurMenuProps) {
     // If nested object (like Alcohol), render subcategories
     if (!Array.isArray(items)) {
       return Object.keys(items).map((subCat) => (
-        <div key={subCat} className="col-md-6">
+        <div key={subCat} className="col-lg-6">
           <h4 className="text-white mb-4 fw-semibold">{subCat}</h4>
           <table className="table table-sm table-borderless text-white">
             <tbody>
               {(items[subCat] as MenuItem[]).map((item) => (
                 <tr key={item.name}>
                   <td>{item.name}</td>
-                  <td>{item.price}</td>
+                  <td className="text-end">{item.price}</td>
                 </tr>
               ))}
             </tbody>
@@ -38,7 +38,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
             {(items as MenuItem[]).map((item) => (
               <tr key={item.name}>
                 <td>{item.name}</td>
-                <td>{item.price}</td>
+                <td className="text-end">{item.price}</td>
               </tr>
             ))}
           </tbody>
@@ -48,8 +48,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
   };
 
   return (
-    <section
-      className="info bg-brand bg-brand-overlay"
+    <section className="info bg-brand bg-brand-overlay"
       style={{
         minHeight: "70vh",
         background: bgImage
@@ -61,7 +60,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
         <div className="info-heading row justify-content-center text-center">
           <div className="col-md-6">
             <p className="info-badge info-badge-light">Our Menu</p>
-            <h2 className="fw-bold text-white">Choose Your Special Menu</h2>
+            <h2 className="fw-bold text-white h1">Choose Your Special Menu</h2>
           </div>
         </div>
 
@@ -87,14 +86,14 @@ function OurMenu({ bgImage }: OurMenuProps) {
             </ul>
 
             {/* Tab Content */}
-            <div className="tab-content p-5 bg-brand mt-4 rounded-5">
+            <div className="tab-content p-lg-5 p-md-4 px-3 py-4 bg-brand mt-4 rounded-5">
               {categories.map((category) => (
                 <div
                   key={category}
                   className={`tab-pane fade ${activeTab === category ? "show active" : ""}`}
                   role="tabpanel"
                 >
-                  <div className="row g-4">
+                  <div className="row g-md-4 g-3">
                     {renderMenuItems(menuData.menu[category])}
                   </div>
                 </div>

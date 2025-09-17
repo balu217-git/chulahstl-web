@@ -69,8 +69,8 @@ export default function Home() {
       <section className="info bg-brand-green">
         <div className="container">
           <div className="row justify-content-between">
-            <div className="col-md-4">
-              <div className="info-content position-relative">
+            <div className="col-lg-4">
+              <div className="info-content position-relative mb-md-0 mb-5">
                 <Image
                   src={"/images/img-about.webp"}
                   alt={"Our Commitement to Authenticity & Excellence"}
@@ -86,7 +86,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="col-md-6">
+            <div className="col-lg-6">
               <div className="info-content text-white">
                 <div className="info-heading mb-4">
                   <p className="info-badge info-badge-light">About us</p>
@@ -121,7 +121,7 @@ export default function Home() {
         <div className="container">
           <div className="info-heading row justify-content-center text-center">
             <div className="col-md-6">
-              <h2 className="fw-bold">Try our Special dishes</h2>
+              <h2 className="fw-bold h1">Try our Special dishes</h2>
               <p>
                 Discover our chef’s signature creations, designed to delight
                 your senses with every bite.
@@ -142,7 +142,7 @@ export default function Home() {
               <div className="row justify-content-between gx-5">
                 <div className="col-md-5">
                   <div className="info-content">
-                    <h2 className="fw-bold">
+                    <h2 className="fw-bold h1">
                       Indulge in an unforgettable Culinary Experience
                     </h2>
                   </div>
@@ -168,15 +168,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="info bg-brand">
+      <section className="info bg-brand footer-logo-space">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">
-              <div className="row justify-content-between">
+              <div className="row justify-content-between g-md-0 gy-3">
                 <div className="col-md-4">
                   <div className="info-content text-white small">
                     <div className="info-heading mb-5">
-                      <h2 className="fw-semibold mb-3">Contact Us</h2>
+                      <h2 className="fw-semibold mb-3 h1">Contact Us</h2>
                       <p>
                         At Chulah, every meal is more than just dining—it’s a
                         journey through authentic flavors and warm hospitality
