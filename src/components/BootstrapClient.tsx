@@ -1,13 +1,17 @@
-// src/components/BootstrapClient.tsx
-"use client"; // makes this a client component
+"use client";
 
 import { useEffect } from "react";
 
 export default function BootstrapClient() {
   useEffect(() => {
-    // dynamically import Bootstrap JS only in browser
-   const bootstrap = require ("bootstrap/dist/js/bootstrap.bundle.min.js");
+    // dynamically import Bootstrap JS in the browser
+    import("bootstrap/dist/js/bootstrap.bundle.min.js")
+      .then((bootstrap) => {
+        // You can use bootstrap here if needed
+        console.log("Bootstrap loaded", bootstrap);
+      })
+      .catch((err) => console.error("Bootstrap failed to load", err));
   }, []);
 
-  return null; // nothing is rendered, it just triggers the effect
+  return null; // nothing to render
 }
