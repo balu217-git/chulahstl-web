@@ -14,7 +14,6 @@ export default function Navbar() {
           {/* Mobile Logo */}
           <Link className="navbar-brand d-lg-none" href="/">
           <Image className="navbar-brand-logo" src="/chulauh-logo.png" alt="Next.js logo" width={120} height={40} priority/>
-
           </Link>
 
           {/* Mobile Toggle */}
@@ -57,12 +56,13 @@ export default function Navbar() {
               {/* Center Logo (Desktop Only) */}
               <div className="navbar-brand-center d-none d-lg-block">
                 <Link className="navbar-brand m-0" href="/">
-                  <img
+                  <Image
                     src="/chulauh-logo.png"
                     alt="Logo"
                     className="navbar-brand-logo"
                     width={180}
                     height={90}
+                    priority
                   />
                 </Link>
               </div>
