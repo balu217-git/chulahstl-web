@@ -90,6 +90,10 @@ h6 {
     -o-border-radius: 1.5rem;
 
 }
+.btn-wide{
+    --bs-btn-padding-x: 1.5rem;
+    --bs-btn-padding-y: .3rem;
+}
 
 .btn:hover {
     box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.3);
@@ -138,8 +142,6 @@ h6 {
     --bs-btn-disabled-border-color: var(--brand-yellow);
 }
 
-
-
 /* Navigation Bar */
 
 header .nav-link,
@@ -160,7 +162,7 @@ header .nav-link:hover {
 }
 
 .navbar-brand {
-    max-width: 90px;
+    max-width: 75px;
     width: 100%;
     position: relative;
     z-index: 10;

@@ -59,7 +59,7 @@ function OurMenu({ bgImage }: OurMenuProps) {
       <div className="container position-relative">
         <div className="info-heading row justify-content-center text-center">
           <div className="col-md-6">
-            <p className="info-badge info-badge-light">Our Menu</p>
+            <p className="info-badge small info-badge-light">Our Menu</p>
             <h2 className="fw-bold text-white h1">Choose Your Special Menu</h2>
           </div>
         </div>

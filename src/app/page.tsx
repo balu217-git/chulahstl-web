@@ -3,6 +3,7 @@
 import HeroSlider from "../components/HeroSlider";
 import DishesGrid from "../components/DishesGrid";
 import OurMenu from "../components/OurMenu";
+import ContactForm from "../components/ContactForm";
 import ContactIcons from "../components/ContactIcons";
 import Footer from "../components/Footer";
 import Image from "next/image";
@@ -89,7 +90,7 @@ export default function Home() {
             <div className="col-lg-6">
               <div className="info-content text-white">
                 <div className="info-heading mb-4">
-                  <p className="info-badge info-badge-light">About us</p>
+                  <p className="info-badge small info-badge-light">About us</p>
                   <h2 className="text-white fw-normal h1">
                     Our Commitement to Authenticity &{" "}
                     <span className="text-brand-orange">Excellence</span>
@@ -139,7 +140,7 @@ export default function Home() {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">
-              <div className="row justify-content-between gx-5">
+              <div className="row justify-content-between align-items-center gx-5">
                 <div className="col-md-5">
                   <div className="info-content">
                     <h2 className="fw-bold h1">
@@ -187,24 +188,7 @@ export default function Home() {
                 </div>
                 <div className="col-md-6">
                   <div className="info-content">
-                    <div className="form-container">
-                      <form action="" method="post">
-                        <div className="from-group mb-3">
-                            <input type="text" name="name" className="form-control" id="" placeholder="Your Name" />
-                        </div>
-                        <div className="from-group mb-3">
-                            <input type="email" name="email" className="form-control" id="" placeholder="Your Email"/>
-                        </div>
-                        <div className="from-group mb-3">
-                            <div className="mb-3">
-                              <textarea className="form-control" name="" id="" rows={4} placeholder="Message"></textarea>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn btn-sm btn-brand-orange px-4">Submit</button>
-
-                      </form>
-                    </div>
+                    <ContactForm />
                   </div>
                 </div>
               </div>

@@ -15,13 +15,13 @@ export default function Footer() {
                         <Image className="img-fluid footer-logo" src="/chulauh-logo.png" alt="chulauh" width={180} height={300} priority/>
                     </div>
                 </div>
-                <div className="col-md-3 order-md-first">
+                <div className="col-md-4 order-md-first">
                     <div className="footer-content text-white text-md-start text-center">
                         <p className="small">At Chulah, every meal is more than
 just dining—it’s a journey through </p>
                     </div>
                 </div>
-               
+
                 <div className="col-md-4">
                     <div className="footer-content text-center text-white">
                         <p>Connect With us now</p>
