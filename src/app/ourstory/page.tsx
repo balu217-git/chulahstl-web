@@ -1,6 +1,7 @@
 import HeroContainer from "../../components/HeroContainer";
 import Footer from "../../components/Footer";
 import Image from "next/image";
+
 export default function Ourstory() {
     return (
         <>
@@ -16,13 +17,16 @@ export default function Ourstory() {
                 <div className="container">
                     <div className="row justify-content-between align-items-center">
                         <div className="col-lg-5">
-                            <Image className="img-fluid"
-                                src="https://dummyimage.com/600x800/000/#000.jpg"
-                                alt=""
-                                width={600}
-                                height={800}
-                                priority
-                            />
+                            <div className="info-content mb-md-0 mb-4">
+                                <Image className="img-fluid"
+                                    src="https://dummyimage.com/600x800/000/#000.jpg"
+                                    alt=""
+                                    width={600}
+                                    height={800}
+                                    priority
+                                />
+                            </div>
+
                         </div>
                         <div className="col-lg-6">
                            <div className="info-content">
@@ -30,7 +34,6 @@ export default function Ourstory() {
                                 <p>Chulah, named after the traditional Indian clay stove, is a symbol of warmth, community, and authentic cooking. It inspires everything we do — from the spices we choose to the care we put into every dish.</p>
                                 <h2 className="fw-bold mt-5">The Hearth of Tradition</h2>
                                 <p>Chulah, named after the traditional Indian clay stove, is a symbol of warmth, community, and authentic cooking. It inspires everything we do — from the spices we choose to the care we put into every dish.</p>
-
                            </div>
                         </div>
                     </div>

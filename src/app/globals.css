@@ -1,7 +1,7 @@
 :root {
     --brand-green: #00282a;
     --brand-green-light: #093f42;
-    --brand-yellow: #F5C542;
+    --brand-yellow: #f6cd24;
     --brand-orange: #e8841e;
     --brand-light: #fff4e9;
     --badge-opacity: .3
@@ -126,14 +126,14 @@ h6 {
 }
 
 .btn-brand-yellow {
-    --bs-btn-color: var(--bs-white);
+    --bs-btn-color: var(--brand-green);
     --bs-btn-bg: var(--brand-yellow);
     --bs-btn-border-color: var(--brand-yellow);
-    --bs-btn-hover-color: var(--brand-yellow);
+    --bs-btn-hover-color: var(--brand-green);
     --bs-btn-hover-bg: var(--bs-white);
     --bs-btn-hover-border-color: var(--bs-white);
     --bs-btn-focus-shadow-rgb: 49, 132, 253;
-    --bs-btn-active-color: #fff;
+    --bs-btn-active-color: var(--brand-green);
     --bs-btn-active-bg: var(--brand-yellow);
     --bs-btn-active-border-color: var(--brand-yellow);
     --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
@@ -421,6 +421,9 @@ header .nav-link:hover {
     background-color: transparent;
     color: var(--bs-white);
 }
+.form-container .form-label{
+    font-size: .85rem;
+}
 
 .form-container ::placeholder {
     color: color-mix(in srgb, var(--bs-white) 80%, transparent);
@@ -466,7 +469,7 @@ header .nav-link:hover {
 
 @media (max-width:767px) {
     .info, .hero-slide {
-        padding: 30px 10px;
+        padding: 50px 10px;
     }
     .footer-logo-space {
     padding-bottom: 100px;
@@ -479,4 +482,45 @@ header .nav-link:hover {
     .navbar-brand{
         width: 75px;
     }
+}
+
+
+
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.slider-wrapper input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  position: absolute;
+  pointer-events: none; /* so thumbs overlap */
+}
+
+.slider-wrapper input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  pointer-events: all; /* enable drag */
+  position: relative;
+  z-index: 2;
+}
+
+.slider-wrapper input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand-orange);
+  cursor: pointer;
+  z-index: 2;
 }

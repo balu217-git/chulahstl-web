@@ -46,7 +46,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="nav-link" href="/" target="_blank">
+                    <Link className="nav-link" href="/catering">
                       Catering
                     </Link>
                   </li>
@@ -71,7 +71,7 @@ export default function Navbar() {
               <div className="nav-section-right">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
-                    <Link className="nav-link" href="/">
+                    <Link className="nav-link" href="/private-dining">
                       Reservation
                     </Link>
                   </li>

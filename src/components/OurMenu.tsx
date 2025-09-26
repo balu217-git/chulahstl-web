@@ -6,7 +6,8 @@ interface OurMenuProps {
   bgImage?: string; // optional background image
 }
 
-function OurMenu({ bgImage }: OurMenuProps) {
+export default function OurMenu({ bgImage }: OurMenuProps) {
+
   const categories = Object.keys(menuData.menu) as Array<keyof Menu>;
   const [activeTab, setActiveTab] = useState<keyof Menu>(categories[0]);
 
@@ -21,7 +22,9 @@ function OurMenu({ bgImage }: OurMenuProps) {
               {(items[subCat] as MenuItem[]).map((item) => (
                 <tr key={item.name}>
                   <td>{item.name}</td>
-                  <td className="text-end fw-semibold text-brand-yellow">{item.price}</td>
+                  <td className="text-end fw-semibold text-brand-yellow">
+                    {item.price}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -38,7 +41,9 @@ function OurMenu({ bgImage }: OurMenuProps) {
             {(items as MenuItem[]).map((item) => (
               <tr key={item.name}>
                 <td>{item.name}</td>
-                <td className="text-end fw-semibold text-brand-yellow">{item.price}</td>
+                <td className="text-end fw-semibold text-brand-yellow">
+                  {item.price}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -48,7 +53,8 @@ function OurMenu({ bgImage }: OurMenuProps) {
   };
 
   return (
-    <section className="info bg-brand bg-brand-overlay"
+    <section
+      className="info bg-brand bg-brand-overlay"
       style={{
         minHeight: "70vh",
         background: bgImage
@@ -74,7 +80,9 @@ function OurMenu({ bgImage }: OurMenuProps) {
               {categories.map((category) => (
                 <li className="nav-item" role="presentation" key={category}>
                   <button
-                    className={`nav-link ${activeTab === category ? "active" : ""}`}
+                    className={`nav-link ${
+                      activeTab === category ? "active" : ""
+                    }`}
                     type="button"
                     role="tab"
                     onClick={() => setActiveTab(category)}
@@ -90,7 +98,9 @@ function OurMenu({ bgImage }: OurMenuProps) {
               {categories.map((category) => (
                 <div
                   key={category}
-                  className={`tab-pane fade ${activeTab === category ? "show active" : ""}`}
+                  className={`tab-pane fade ${
+                    activeTab === category ? "show active" : ""
+                  }`}
                   role="tabpanel"
                 >
                   <div className="row gy-md-4 gx-md-5  g-3">
@@ -105,5 +115,3 @@ function OurMenu({ bgImage }: OurMenuProps) {
     </section>
   );
 }
-
-export default OurMenu;
