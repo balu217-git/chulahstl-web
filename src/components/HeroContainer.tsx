@@ -20,17 +20,15 @@ export default function HeroContainer({
   heroImageAlt = "Hero image",
 }: HeroContainerProps) {
   return (
-    <section className="info bg-brand-green text-center text-white d-flex align-items-center justify-content-center"
-      style={{ minHeight: "70vh", background: "var(--brand-green)" }}
-    >
+    <section className="hero bg-brand-multy-color  text-center text-white d-flex align-items-center justify-content-center">
       <div className="container">
-        <h1 className="display-6 fw-semibold mb-4">{title}</h1>
+        <h1 className="display-6 fw-semibold text-brand-green mb-4">{title}</h1>
         {heroImage && (
           <Image
             className="img-fluid rounded rounded-5 mb-4"
             src={heroImage}
             alt={heroImageAlt}
-            width={1000}
+            width={1200}
             height={600}
             priority
           />

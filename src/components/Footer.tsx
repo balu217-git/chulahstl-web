@@ -7,12 +7,12 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-green-light py-5">
+    <footer className="bg-brand-brown py-5">
         <div className="container">
             <div className="row justify-content-between align-items-center">
                  <div className="col-md">
                     <div className="footer-content text-center">
-                        <Image className="img-fluid footer-logo" src="/chulauh-logo.png" alt="chulauh" width={180} height={300} priority/>
+                        <Image className="img-fluid footer-logo" src="/chulah-logo-green.png" alt="chulauh" width={180} height={300} priority/>
                     </div>
                 </div>
                 <div className="col-md-4 order-md-first">

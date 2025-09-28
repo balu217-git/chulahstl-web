@@ -67,7 +67,7 @@ export default function Home() {
         bgImage="/images/dummy.jpg" // optional background image
       /> */}
 
-      <section className="info bg-brand-green">
+      <section className="info bg-brand-orange">
         <div className="container">
           <div className="row justify-content-between">
             <div className="col-lg-4">
@@ -79,7 +79,7 @@ export default function Home() {
                   height={400}
                   className="img-fluid"
                 />
-                <div className="h4 img-badge bg-brand-orange fw-normal text-white">
+                <div className="h4 img-badge bg-brand-light fw-normal text-green">
                   <span>
                     Indian way of making{" "}
                     <span className="fw-bold">20+ Years</span>
@@ -93,7 +93,7 @@ export default function Home() {
                   <p className="info-badge small info-badge-light">About us</p>
                   <h2 className="text-white fw-normal h1">
                     Our Commitement to Authenticity &{" "}
-                    <span className="text-brand-orange">Excellence</span>
+                    <span className="text-brand-green">Excellence</span>
                   </h2>
                 </div>
                 <p>
@@ -111,7 +111,7 @@ export default function Home() {
                   <li>Hospitality with Heart</li>
                 </ul>
 
-                <button className="btn btn-brand-orange mt-3">Know more</button>
+                <button className="btn btn-wide btn-brand-green mt-3">Know more</button>
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function Home() {
                 Discover our chef’s signature creations, designed to delight
                 your senses with every bite.
               </p>
-              <button className="btn btn-brand-orange mt-2">View more</button>
+              <button className="btn btn-wide btn-brand-green mt-2">View more</button>
             </div>
           </div>
           <DishesGrid dishes={dishesData} />
@@ -158,7 +158,7 @@ export default function Home() {
                       welcome you. Reserve your spot today and let us create
                       memories as delightful as our dishes.
                     </p>
-                    <button className="btn btn-brand-orange mt-2">
+                    <button className="btn btn-wide btn-brand-green mt-2">
                       Reserve table
                     </button>
                   </div>
@@ -169,7 +169,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="info bg-brand footer-logo-space">
+      <section className="info bg-brand-orange footer-logo-space">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">

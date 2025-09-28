@@ -147,7 +147,7 @@ export default function PrivateDining_BookingForm() {
         </div>
 
         {/* Submit */}
-        <button type="submit" className="btn btn-lg btn-wide w-100 btn-brand-yellow fw-bold text-uppercase mt-3">
+        <button type="submit" className="btn btn-lg btn-wide w-100 btn-brand-green fw-bold text-uppercase mt-3">
           Submit
         </button>
       </form>

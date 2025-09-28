@@ -12,10 +12,10 @@ export default function Contact() {
       subtitle="At Chulah, we celebrate the warmth of traditional Indian cooking while blending it with a modern bar experience. Every dish is crafted with authentic recipes, fresh ingredients, and timeless techniques that honor our culinary roots. Our goal is to create a dining experience that feels both familiar and extraordinary, where heritage meets hospitality."
       ctaText="Book a Table"
       ctaLink="/contact"
-      heroImage="https://dummyimage.com/1000x300/000/#000.jpg" // optional background image
+      heroImage="https://dummyimage.com/1200x500/fff/#000.jpg" // optional background image
       heroImageAlt="dddd" />
 
-      <section className="info bg-brand footer-logo-space">
+      <section className="info bg-brand-orange footer-logo-space">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">

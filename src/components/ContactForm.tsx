@@ -17,7 +17,7 @@ export default function ContactForm() {
             </div>
         </div>
 
-        <button type="submit" className="btn btn-sm btn-brand-orange px-4">Submit</button>
+        <button type="submit" className="btn btn-wide btn-brand-green px-4">Submit</button>
 
         </form>
     </div>

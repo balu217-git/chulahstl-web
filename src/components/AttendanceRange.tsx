@@ -43,8 +43,8 @@ export default function AttendanceRange() {
             background: `linear-gradient(
               to right,
               #ddd ${minPercent}%,
-              var(--brand-orange) ${minPercent}%,
-              var(--brand-orange) ${maxPercent}%,
+              var(--brand-green) ${minPercent}%,
+              var(--brand-green) ${maxPercent}%,
               #ddd ${maxPercent}%
             )`,
           }}
@@ -62,8 +62,8 @@ export default function AttendanceRange() {
             background: `linear-gradient(
               to right,
               #ddd ${minPercent}%,
-              orange ${minPercent}%,
-              orange ${maxPercent}%,
+              var(--brand-green) ${minPercent}%,
+              var(--brand-green) ${maxPercent}%,
               #ddd ${maxPercent}%
             )`,
           }}

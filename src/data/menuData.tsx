@@ -1,6 +1,8 @@
 export type MenuItem = {
   name: string;
+  description: string;
   price: string;
+  image: string;
 };
 
 export type AlcoholMenu = {
@@ -21,43 +23,43 @@ export type Menu = {
 export const menuData: { menu: Menu } = {
   menu: {
     Starters: [
-      { name: "Veg Spring Rolls", price: "000/-" },
-      { name: "Chicken Tikka", price: "000/-" },
-      { name: "Paneer Chilli", price: "000/-" }
+      { name: "Veg Spring Rolls", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Chicken Tikka", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg"},
+      { name: "Paneer Chilli", description: "Smoky grilled paneer",price: "000/-", image: "/img/paneer.jpg"}
     ],
     "Main Course": [
-      { name: "Paneer Butter Masala", price: "000/-" },
-      { name: "Chicken Biryani", price: "000/-" },
-      { name: "Dal Tadka", price: "000/-" }
+      { name: "Paneer Butter Masala", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Chicken Biryani", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg"  },
+      { name: "Dal Tadka", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg"}
     ],
     Alcohol: {
       Beers: [
-        { name: "Kingfisher Premium / Ultra", price: "000/-" },
-        { name: "Bira 91 Blonde / White", price: "000/-" },
-        { name: "Heineken", price: "000/-" }
+        { name: "Kingfisher Premium / Ultra", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+        { name: "Bira 91 Blonde / White", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+        { name: "Heineken", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
       ],
       Wines: [
-        { name: "Sula Rasa Shiraz (India)", price: "000/-" },
-        { name: "Grover Zampa La Réserve (India)", price: "000/-" }
+        { name: "Sula Rasa Shiraz (India)", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+        { name: "Grover Zampa La Réserve (India)", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
       ],
       "Whiskey / Bourbon": [
-        { name: "Royal Challenge", price: "000/-" },
-        { name: "Chivas Regal 12YO", price: "000/-" }
+        { name: "Royal Challenge", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+        { name: "Chivas Regal 12YO", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
       ],
       "Sparkling & Champagne": [
-        { name: "Sula Brut (India)", price: "000/-" },
-        { name: "Moët & Chandon Brut (France)", price: "000/-" }
+        { name: "Sula Brut (India)", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+        { name: "Moët & Chandon Brut (France)", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
       ]
     },
     Cocktails: [
-      { name: "Mojito", price: "000/-" },
-      { name: "Long Island Iced Tea", price: "000/-" },
-      { name: "Cosmopolitan", price: "000/-" }
+      { name: "Mojito", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Long Island Iced Tea", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Cosmopolitan", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
     ],
     Dessert: [
-      { name: "Chocolate Brownie", price: "000/-" },
-      { name: "Gulab Jamun", price: "000/-" },
-      { name: "Ice Cream", price: "000/-" }
+      { name: "Chocolate Brownie", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Gulab Jamun", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" },
+      { name: "Ice Cream", description: "Smoky grilled paneer", price: "000/-", image: "/img/paneer.jpg" }
     ]
   }
 };

@@ -9,11 +9,11 @@ export default function Navbar() {
   // }, []);
   return (
     <header id="main-header" className="sticky-top">
-      <nav className="navbar bg-brand navbar-expand-lg border-bottom border-1">
+      <nav className="navbar bg-white navbar-expand-lg border-bottom border-1">
         <div className="container">
           {/* Mobile Logo */}
           <Link className="navbar-brand d-lg-none" href="/">
-          <Image className="navbar-brand-logo" src="/chulauh-logo.png" alt="Next.js logo" width={120} height={40} priority/>
+          <Image className="navbar-brand-logo" src="/chulah-logo-green.png" alt="Next.js logo" width={120} height={40} priority/>
           </Link>
 
           {/* Mobile Toggle */}
@@ -36,7 +36,7 @@ export default function Navbar() {
               <div className="nav-section-left">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
-                    <Link className="nav-link" href="/chulah-menu.pdf">
+                    <Link className="nav-link" href="/menu">
                       Menu
                     </Link>
                   </li>
@@ -57,7 +57,7 @@ export default function Navbar() {
               <div className="navbar-brand-center d-none d-lg-block">
                 <Link className="navbar-brand m-0" href="/">
                   <Image
-                    src="/chulauh-logo.png"
+                    src="/chulah-logo-green.png"
                     alt="Logo"
                     className="navbar-brand-logo"
                     width={180}
@@ -81,7 +81,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="btn btn-brand-orange ms-md-2" href="/book-table">
+                    <Link className="btn btn-brand-green ms-md-2" href="/book-table">
                       Order Online
                     </Link>
                   </li>
