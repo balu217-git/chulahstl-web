@@ -233,16 +233,13 @@ const menuItems = [
     },
 ];
 
-// ✅ Normalization function
-const normalizeId = (text: string) =>
-  text.toLowerCase().replace(/\s+/g, "_"); // "Amrut Specials" -> "amrut_specials"
 
 export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("Popular");
   const [cart, setCart] = useState<any[]>([]);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  const normalizeId = (str: string) => str.replace(/\s+/g, "_");
+  const normalizeId = (str: string): string => str.replace(/\s+/g, "_");
 
   // Add to cart
   const addToCart = (item: any) => {
