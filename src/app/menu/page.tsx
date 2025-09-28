@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import Footer from "../../components/Footer";
+import Image from "next/image";
 
 // Mock categories and menu items (replace later with DB/API)
 const categories = [
@@ -324,10 +325,12 @@ export default function MenuPage() {
                           <div className="row g-0">
                             <div className="col-lg-4 col-4">
                                 <div className="position-relative h-100 w-100">
-                                    <img
+                                    <Image className="img-fluid rounded-start img-cart"
                                         src={item.image}
-                                        className="img-fluid rounded-start img-cart"
                                         alt={item.name}
+                                        width={600}
+                                        height={600}
+                                        priority
                                     />
                                 </div>
                             </div>
