@@ -237,15 +237,15 @@ const menuItems = [
 
 export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("Popular");
-  const [cart, setCart] = useState<any[]>([]);
+//   const [cart, setCart] = useState<any[]>([]);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const normalizeId = (str: string): string => str.replace(/\s+/g, "_");
 
   // Add to cart
-  const addToCart = (item: any) => {
-    setCart((prev) => [...prev, item]);
-  };
+//   const addToCart = (item: any) => {
+//     setCart((prev) => [...prev, item]);
+//   };
 
   // Scroll spy effect
   useEffect(() => {
