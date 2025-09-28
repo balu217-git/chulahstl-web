@@ -237,15 +237,15 @@ const menuItems = [
 
 export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("Popular");
-//   const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[]>([]);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const normalizeId = (str: string): string => str.replace(/\s+/g, "_");
 
   // Add to cart
-//   const addToCart = (item: any) => {
-//     setCart((prev) => [...prev, item]);
-//   };
+  const addToCart = (item: any) => {
+    setCart((prev) => [...prev, item]);
+  };
 
   // Scroll spy effect
   useEffect(() => {
@@ -368,6 +368,23 @@ export default function MenuPage() {
               );
             })}
           </main>
+           {/* Cart Sidebar */}
+      <aside className="w-64 p-4 border-l border-gray-700">
+        <h2 className="font-bold mb-4">Cart ({cart.length})</h2>
+        <ul className="space-y-2">
+          {cart.map((item, idx) => (
+            <li key={idx} className="flex justify-between">
+              <span>{item.name}</span>
+              <span>${item.price.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+        {cart.length > 0 && (
+          <button className="mt-4 w-full bg-green-600 py-2 rounded hover:bg-green-700">
+            Checkout
+          </button>
+        )}
+      </aside>
         </div>
       </div>
     </section>
