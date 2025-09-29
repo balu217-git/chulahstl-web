@@ -3,6 +3,7 @@
 import AttendanceRange from "./AttendanceRange";
 import React, { useState } from "react";
 
+
 export default function PrivateDining_BookingForm() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -127,6 +128,7 @@ export default function PrivateDining_BookingForm() {
             />
           </div>
         </div>
+        
 
         {/* Attendance */}
         <AttendanceRange />

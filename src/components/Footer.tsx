@@ -12,7 +12,7 @@ export default function Footer() {
             <div className="row justify-content-between align-items-center">
                  <div className="col-md">
                     <div className="footer-content text-center">
-                        <Image className="img-fluid footer-logo" src="/chulah-logo-green.png" alt="chulauh" width={180} height={300} priority/>
+                        <Image className="img-fluid footer-logo" src="/chulah-logo-green.png" alt="chulauh" width={150} height={300} priority/>
                     </div>
                 </div>
                 <div className="col-md-4 order-md-first">

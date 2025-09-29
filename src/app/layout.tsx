@@ -9,6 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import BootstrapClient from "../components/BootstrapClient";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -34,8 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${montserrat.variable} ${playfair.variable}`}>
         <Navbar />
-        <main>{children}</main>
-        {/* <Footer /> */}
+        <main>
+          {children}
+          
+        </main>
+        <Footer />
         <BootstrapClient />
       </body>
     </html>

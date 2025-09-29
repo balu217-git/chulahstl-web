@@ -1,6 +1,7 @@
+
 import PrivateDining_BookingForm from "../../components/PrivateDining_BookingForm";
-import Footer from "../../components/Footer";
 import Image from "next/image";
+
 export default function Ourstory() {
     return (
         <>
@@ -32,7 +33,6 @@ export default function Ourstory() {
                 </div>
             </div>
         </section>
-        <Footer/>
         </>
     )
 }

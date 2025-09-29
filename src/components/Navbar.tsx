@@ -13,7 +13,7 @@ export default function Navbar() {
         <div className="container">
           {/* Mobile Logo */}
           <Link className="navbar-brand d-lg-none" href="/">
-          <Image className="navbar-brand-logo" src="/chulah-logo-green.png" alt="Next.js logo" width={120} height={40} priority/>
+            <Image className="navbar-brand-logo" src="/chulah-logo-green.png" alt="Next.js logo" width={120} height={40} priority/>
           </Link>
 
           {/* Mobile Toggle */}

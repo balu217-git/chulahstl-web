@@ -1,7 +1,6 @@
 import HeroContainer from "../../components/HeroContainer";
 import ContactForm from "../../components/ContactForm";
 import ContactIcons from "../../components/ContactIcons";
-import Footer from "../../components/Footer";
 // import Image from "next/image";
 
 export default function Contact() {
@@ -42,7 +41,6 @@ export default function Contact() {
           </div>
         </div>
       </section>
-      <Footer/>
     </>
   );
 }

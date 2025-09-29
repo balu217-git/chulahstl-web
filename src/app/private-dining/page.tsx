@@ -32,7 +32,6 @@ export default function Ourstory() {
                 </div>
             </div>
         </section>
-        <Footer/>
         </>
     )
 }
