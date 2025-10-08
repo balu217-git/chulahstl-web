@@ -62,7 +62,7 @@ export default function CateringForm() {
       setIsSubmitting(true);
       setStatus("Submitting...");
 
-      const res = await fetch("/api/submit-catering-form", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/submit-catering-form`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
