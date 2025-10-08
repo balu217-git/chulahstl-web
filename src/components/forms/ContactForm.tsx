@@ -48,9 +48,8 @@ export default function ContactForm() {
     try {
       setIsSubmitting(true); // disable button
       setStatus("Submitting...");
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-      const res = await fetch(`${baseUrl}/submit-contact-form`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/submit-contact-form`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
