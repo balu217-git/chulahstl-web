@@ -1,6 +1,6 @@
-import HeroContainer from "../../components/HeroContainer";
-import ContactForm from "../../components/ContactForm";
-import ContactIcons from "../../components/ContactIcons";
+import HeroContainer from "@/components/HeroContainer";
+import ContactForm from "@/components/forms/ContactForm";
+import ContactIcons from "@/components/ContactIcons";
 // import Image from "next/image";
 
 export default function Contact() {

@@ -1,5 +1,4 @@
-import PrivateDining_BookingForm from "../../components/PrivateDining_BookingForm";
-import Footer from "../../components/Footer";
+import CateringForm from "@/components/forms/CateringForm";
 import Image from "next/image";
 export default function Ourstory() {
     return (
@@ -25,7 +24,7 @@ export default function Ourstory() {
                                 <p className="small">Please complete the form below to send us a catering request.</p>
                             </div>
                             <div className="form-container mt-md-5 mt-3">
-                                <PrivateDining_BookingForm/>
+                                <CateringForm/>
                             </div>
                         </div>
                     </div>

@@ -5,8 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 // import DeliveryLocation from "../../components/DeliveryLocation";
-import { menuItems, MenuItem } from "../../data/menuCartData";
-import { categories } from "../../data/categoriesData";
+import { menuItems, MenuItem } from "@/data/menuCartData";
+import { categories } from "@/data/categoriesData";
 import Image from "next/image";
 
 
@@ -172,4 +172,3 @@ export default function MenuPage() {
         </>
     );
 }
-

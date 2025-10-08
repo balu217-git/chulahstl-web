@@ -1,33 +1,30 @@
 "use client";
 
-import { useState } from "react";
-// import "./range.css";
+interface AttendanceRangeProps {
+  min: number;
+  max: number;
+  onChange: (min: number, max: number) => void;
+}
 
-export default function AttendanceRange() {
-  const [range, setRange] = useState({ min: 20, max: 60 });
-
+export default function AttendanceRange({ min, max, onChange }: AttendanceRangeProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setRange((prev) => {
-      const newVal = Number(value);
-      if (name === "min" && newVal <= prev.max) {
-        return { ...prev, min: newVal };
-      }
-      if (name === "max" && newVal >= prev.min) {
-        return { ...prev, max: newVal };
-      }
-      return prev;
-    });
+    const newVal = Number(value);
+
+    if (name === "min" && newVal <= max) {
+      onChange(newVal, max);
+    } else if (name === "max" && newVal >= min) {
+      onChange(min, newVal);
+    }
   };
 
-  // Calculate percentage for background
-  const minPercent = (range.min / 100) * 100;
-  const maxPercent = (range.max / 100) * 100;
+  const minPercent = (min / 100) * 100;
+  const maxPercent = (max / 100) * 100;
 
   return (
     <div className="mb-4">
       <label className="form-label mb-3">
-        Attendance* ({range.min} – {range.max})
+        Attendance* ({min} – {max})
       </label>
       <div className="slider-wrapper">
         <input
@@ -36,7 +33,7 @@ export default function AttendanceRange() {
           min="0"
           max="100"
           step="5"
-          value={range.min}
+          value={min}
           onChange={handleChange}
           className="thumb thumb-left"
           style={{
@@ -55,7 +52,7 @@ export default function AttendanceRange() {
           min="0"
           max="100"
           step="5"
-          value={range.max}
+          value={max}
           onChange={handleChange}
           className="thumb thumb-right"
           style={{

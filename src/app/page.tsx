@@ -1,12 +1,12 @@
 // import Hero from "../components/Hero";
 
-import HeroSlider from "../components/HeroSlider";
-import DishesGrid from "../components/DishesGrid";
-import OurMenu from "../components/OurMenu";
-import ContactForm from "../components/ContactForm";
-import ContactIcons from "../components/ContactIcons";
-import LazyVideo from "../components/LazyVideo";
-import Footer from "../components/Footer";
+import HeroSlider from "@/components/HeroSlider";
+import DishesGrid from "@/components/DishesGrid";
+import OurMenu from "@/components/OurMenu";
+import ContactForm from "@/components/forms/ContactForm";
+import ContactIcons from "@/components/ContactIcons";
+import LazyVideo from "@/components/LazyVideo";
+import Footer from "@/components/Footer";
 import Image from "next/image";
 const slidesData = [
   {
