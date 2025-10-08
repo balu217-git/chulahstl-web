@@ -48,9 +48,7 @@ export default function ContactForm() {
     try {
       setIsSubmitting(true); // disable button
       setStatus("Submitting...");
-      const baseUrl =
-      process.env.NEXT_PUBLIC_NETLIFY_FUNCTIONS_URL ||
-      "/api"; // fallback for localhost
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
       const res = await fetch(`${baseUrl}/submit-contact-form`, {
         method: "POST",
