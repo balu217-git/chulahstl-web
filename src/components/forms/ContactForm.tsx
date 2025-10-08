@@ -48,8 +48,11 @@ export default function ContactForm() {
     try {
       setIsSubmitting(true); // disable button
       setStatus("Submitting...");
+      const baseUrl =
+      process.env.NEXT_PUBLIC_NETLIFY_FUNCTIONS_URL ||
+      "/api"; // fallback for localhost
 
-      const res = await fetch("/api/submit-contact-form", {
+      const res = await fetch(`${baseUrl}/submit-contact-form`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
