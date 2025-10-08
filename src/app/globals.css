@@ -549,18 +549,28 @@ header .nav-link:hover {
     text-decoration: none;
 }
 
-.bg-brand-orange a {
-    color: var(--bs-white);
+/* ---------------------------
+   Brand Orange Background
+---------------------------- */
+.bg-brand-orange a:not(.btn) {
+  color: var(--bs-white);
 }
-.bg-brand-orange a:hover{
-    color: var(--brand-green);
+
+.bg-brand-orange a:not(.btn):hover {
+  color: var(--brand-green);
 }
-.bg-brand-light a {
-    color: var(--brand-green);
+
+/* ---------------------------
+   Brand Light Background
+---------------------------- */
+.bg-brand-light a:not(.btn) {
+  color: var(--brand-green);
 }
-.bg-brand-light a:hover{
-    color: var(--brand-orange);
+
+.bg-brand-light a:not(.btn):hover {
+  color: var(--brand-orange);
 }
+
 
 /* .list-icons li a:hover {
     color: var(--brand-orange);
