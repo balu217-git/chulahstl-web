@@ -36,8 +36,14 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: "Form submitted successfully!" });
-  } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ message: "Error submitting form", error: error.message }, { status: 500 });
+  }
+  catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error submitting form:", error.message);
+      return NextResponse.json({ message: "Error submitting form", error: error.message }, { status: 500 });
+    } else {
+      console.error("Unexpected error:", error);
+      return NextResponse.json({ message: "Error submitting form", error: "Unknown error" }, { status: 500 });
+    }
   }
 }
