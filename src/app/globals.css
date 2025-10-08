@@ -251,6 +251,16 @@ header .nav-link:hover {
     background-color: var(--brand-yellow);
 }
 
+
+.nav-link.active,
+.dropdown-item.active {
+  color: var(--brand-orange) !important;
+}
+.dropdown-item.active, .dropdown-item:active{
+    background-color: var(--brand-orange);
+    color: var(--bs-white) !important;
+}
+
 /* Slide-in effect for dropdown on desktop */
 @media (min-width: 992px) {
     .nav-item.dropdown .dropdown-menu {
@@ -520,7 +530,7 @@ header .nav-link:hover {
 .bg-brand-light .form-container ::-ms-input-placeholder {
     /* Edge 12 -18 */
     color: color-mix(in srgb, var(--brand-green) 80%, transparent);
-    
+
 }
 .bg-brand-light .form-container .form-control{
     border-color: color-mix(in srgb, var(--brand-green) 50%, transparent) !important;
@@ -653,7 +663,7 @@ header .nav-link:hover {
 
 
 .line-clamp-2 {
-    
+
 }
 .card-text {
     -webkit-box-orient: vertical;

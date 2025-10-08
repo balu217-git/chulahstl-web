@@ -1,12 +1,18 @@
 "use client";
 import { useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 
 export default function Navbar() {
   useEffect(() => {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
   }, []);
+
+  const pathname = usePathname();
+
+  // helper function for active link
+  const isActive = (path: string) => pathname === path;
 
   return (
     <header id="main-header" className="sticky-top">
@@ -17,7 +23,7 @@ export default function Navbar() {
             <Image
               className="navbar-brand-logo"
               src="/chulah-logo-green.png"
-              alt="Next.js logo"
+              alt="Chulah Logo"
               width={120}
               height={40}
               priority
@@ -43,11 +49,15 @@ export default function Navbar() {
               {/* Left Navigation Section */}
               <div className="nav-section-left">
                 <ul className="navbar-nav d-flex align-items-center">
-
                   {/* Dropdown Menu */}
                   <li className="nav-item dropdown">
                     <Link
-                      className="nav-link dropdown-toggle"
+                      className={`nav-link dropdown-toggle ${
+                        pathname.startsWith("/quick-service") ||
+                        pathname.startsWith("/alcohol")
+                          ? "active"
+                          : ""
+                      }`}
                       href="#"
                       id="menuDropdown"
                       role="button"
@@ -56,19 +66,37 @@ export default function Navbar() {
                     >
                       Menu
                     </Link>
-                    <ul className="dropdown-menu" aria-labelledby="menuDropdown">
+
+                    <ul
+                      className="dropdown-menu"
+                      aria-labelledby="menuDropdown"
+                    >
                       <li>
-                        <Link className="dropdown-item" href="/menu/quick-service">
+                        <Link
+                          className={`dropdown-item ${
+                            pathname === "/quick-service" ? "active" : ""
+                          }`}
+                          href="/quick-service"
+                        >
                           Quick Service
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" href="/menu/alcohol">
+                        <Link
+                          className={`dropdown-item ${
+                            pathname === "/alcohol" ? "active" : ""
+                          }`}
+                          href="/alcohol"
+                        >
                           Alcohol
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" target="_blank" href="/chulah-dinner-menu.pdf">
+                        <Link
+                          className="dropdown-item"
+                          target="_blank"
+                          href="/chulah-dinner-menu.pdf"
+                        >
                           Dining
                         </Link>
                       </li>
@@ -76,12 +104,22 @@ export default function Navbar() {
                   </li>
 
                   <li className="nav-item">
-                    <Link className="nav-link" href="/ourstory">
+                    <Link
+                      className={`nav-link ${
+                        isActive("/ourstory") ? "active" : ""
+                      }`}
+                      href="/ourstory"
+                    >
                       Our Story
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="nav-link" href="/catering">
+                    <Link
+                      className={`nav-link ${
+                        isActive("/catering") ? "active" : ""
+                      }`}
+                      href="/catering"
+                    >
                       Catering
                     </Link>
                   </li>
@@ -93,7 +131,7 @@ export default function Navbar() {
                 <Link className="navbar-brand m-0" href="/">
                   <Image
                     src="/chulah-logo-green.png"
-                    alt="Logo"
+                    alt="Chulah Logo"
                     className="navbar-brand-logo"
                     width={180}
                     height={90}
@@ -106,18 +144,30 @@ export default function Navbar() {
               <div className="nav-section-right">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
-                    <Link className="nav-link" href="/private-dining">
+                    <Link
+                      className={`nav-link ${
+                        isActive("/private-dining") ? "active" : ""
+                      }`}
+                      href="/private-dining"
+                    >
                       Reservation
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="nav-link" href="/contact">
+                    <Link
+                      className={`nav-link ${
+                        isActive("/contact") ? "active" : ""
+                      }`}
+                      href="/contact"
+                    >
                       Contact
                     </Link>
                   </li>
                   <li className="nav-item">
                     <Link
-                      className="btn btn-brand-green ms-md-2"
+                      className={`btn btn-brand-green ms-md-2 ${
+                        isActive("/book-table") ? "active" : ""
+                      }`}
                       href="/book-table"
                     >
                       Order Online
