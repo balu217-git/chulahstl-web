@@ -5,7 +5,7 @@ import DishesGrid from "../components/DishesGrid";
 import OurMenu from "../components/OurMenu";
 import ContactForm from "../components/ContactForm";
 import ContactIcons from "../components/ContactIcons";
-import LazyVideo from "@/components/LazyVideo";
+import LazyVideo from "../components/LazyVideo";
 import Footer from "../components/Footer";
 import Image from "next/image";
 const slidesData = [
@@ -137,7 +137,7 @@ export default function Home() {
 
       <OurMenu bgImage="/images/img-ourmenu-bg.webp" />
 
-      <section className="info bg-brand-light">
+      <section className="info bg-brand-multy-color">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">
@@ -168,7 +168,7 @@ export default function Home() {
               <div className="info-iframe-conteiner mt-5">
                 <LazyVideo videoId="pNiuADBVDrQ" title="Restaurant Story Video" />
               </div>
-                   
+
             </div>
           </div>
         </div>

@@ -90,8 +90,8 @@ h6 {
   background: linear-gradient(
     356deg,
     var(--brand-orange) 0%,
-    var(--brand-orange) 60%,
-  var(--brand-light) 60%,
+    var(--brand-orange) 30%,
+  var(--brand-light) 30%,
     var(--brand-light) 100%
   );
 }
