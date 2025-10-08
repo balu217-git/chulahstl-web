@@ -5,25 +5,26 @@ import DishesGrid from "../components/DishesGrid";
 import OurMenu from "../components/OurMenu";
 import ContactForm from "../components/ContactForm";
 import ContactIcons from "../components/ContactIcons";
+import LazyVideo from "@/components/LazyVideo";
 import Footer from "../components/Footer";
 import Image from "next/image";
 const slidesData = [
   {
-    image: "/images/dummy.webp",
+    image: "/images/img-home-hero-banner-01.webp",
     title: "Where the tradition meets Spirits",
     subtitle: "",
     ctaText: "Explore Menu",
     ctaLink: "/contact",
   },
   {
-    image: "/images/dummy.webp",
+    image: "/images/img-home-hero-banner-02.webp",
     title: "Explore Features",
     subtitle: "",
     ctaText: "Explore Menu",
     ctaLink: "/contact",
   },
   {
-    image: "/images/dummy.webp",
+    image: "/images/img-home-hero-banner-03.webp",
     title: "Join Us Today",
     subtitle: "",
     ctaText: "Explore Menu",
@@ -164,6 +165,10 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              <div className="info-iframe-conteiner mt-5">
+                <LazyVideo videoId="pNiuADBVDrQ" title="Restaurant Story Video" />
+              </div>
+                   
             </div>
           </div>
         </div>

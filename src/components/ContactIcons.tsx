@@ -8,11 +8,11 @@ export default function ContactIcons() {
   return (
     <ul className="list-unstyled list-icons">
         <li>
-            <FontAwesomeIcon icon={faPhone} className="text-white list-icon" />
-            <a href="tel:+16367511337" className="text-white">+1 (636) 751-1337</a>
+            <FontAwesomeIcon icon={faPhone} className="text-brand list-icon" />
+            <a href="tel:+16367511337">+1 (636) 751-1337</a>
         </li>
         <li>
-            <FontAwesomeIcon icon={faLocationDot} className="text-white list-icon" />
+            <FontAwesomeIcon icon={faLocationDot} className="text-brand list-icon" />
             16721 MAIN ST, WILDWOOD, MO 63040
         </li>
     </ul>

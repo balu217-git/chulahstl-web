@@ -1,19 +1,27 @@
-// "use client";
-// import { useEffect } from "react";
+"use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Navbar() {
-  //  useEffect(() => {
-  //   import('bootstrap/dist/js/bootstrap.bundle.min.js');
-  // }, []);
+  useEffect(() => {
+    import("bootstrap/dist/js/bootstrap.bundle.min.js");
+  }, []);
+
   return (
     <header id="main-header" className="sticky-top">
       <nav className="navbar bg-white navbar-expand-lg border-bottom border-1">
         <div className="container">
           {/* Mobile Logo */}
           <Link className="navbar-brand d-lg-none" href="/">
-            <Image className="navbar-brand-logo" src="/chulah-logo-green.png" alt="Next.js logo" width={120} height={40} priority/>
+            <Image
+              className="navbar-brand-logo"
+              src="/chulah-logo-green.png"
+              alt="Next.js logo"
+              width={120}
+              height={40}
+              priority
+            />
           </Link>
 
           {/* Mobile Toggle */}
@@ -35,11 +43,38 @@ export default function Navbar() {
               {/* Left Navigation Section */}
               <div className="nav-section-left">
                 <ul className="navbar-nav d-flex align-items-center">
-                  <li className="nav-item">
-                    <Link className="nav-link" href="/menu">
+                  
+                  {/* Dropdown Menu */}
+                  <li className="nav-item dropdown">
+                    <Link
+                      className="nav-link dropdown-toggle"
+                      href="#"
+                      id="menuDropdown"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
                       Menu
                     </Link>
+                    <ul className="dropdown-menu" aria-labelledby="menuDropdown">
+                      <li>
+                        <Link className="dropdown-item" href="/menu/quick-service">
+                          Quick Service
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" href="/menu/alcohol">
+                          Alcohol
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" href="/menu/dining">
+                          Dining
+                        </Link>
+                      </li>
+                    </ul>
                   </li>
+
                   <li className="nav-item">
                     <Link className="nav-link" href="/ourstory">
                       Our Story
@@ -81,7 +116,10 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link className="btn btn-brand-green ms-md-2" href="/book-table">
+                    <Link
+                      className="btn btn-brand-green ms-md-2"
+                      href="/book-table"
+                    >
                       Order Online
                     </Link>
                   </li>

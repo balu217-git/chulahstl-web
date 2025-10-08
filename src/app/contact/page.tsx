@@ -11,16 +11,16 @@ export default function Contact() {
       subtitle="At Chulah, we celebrate the warmth of traditional Indian cooking while blending it with a modern bar experience. Every dish is crafted with authentic recipes, fresh ingredients, and timeless techniques that honor our culinary roots. Our goal is to create a dining experience that feels both familiar and extraordinary, where heritage meets hospitality."
       ctaText="Book a Table"
       ctaLink="/contact"
-      heroImage="https://dummyimage.com/1200x500/fff/#000.jpg" // optional background image
+      // heroImage="https://dummyimage.com/1200x500/fff/#000.jpg" // optional background image
       heroImageAlt="dddd" />
 
-      <section className="info bg-brand-orange footer-logo-space">
+      <section className="info bg-brand-light bg-brand-element footer-logo-space">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-10">
               <div className="row justify-content-between g-md-0 gy-3">
                 <div className="col-md-4">
-                  <div className="info-content text-white small">
+                  <div className="info-content text-brand small">
                     <div className="info-heading mb-5">
                       <h2 className="fw-semibold mb-3 h1">Contact Us</h2>
                       <p>

@@ -487,6 +487,16 @@ header .nav-link:hover {
 }
 
 
+.info-iframe button:hover .bg-dark {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+.btn-player{
+    width: 100px;
+    height: 100px;
+}
+
 .table> :not(caption)>*>* {
     color: var(--bs-white);
     background-color: transparent;
@@ -503,11 +513,25 @@ header .nav-link:hover {
     font-size: .85rem;
 }
 
-.form-container ::placeholder {
+.bg-brand-light .form-container ::placeholder {
+    color: color-mix(in srgb, var(--brand-green) 80%, transparent);
+}
+
+.bg-brand-light .form-container ::-ms-input-placeholder {
+    /* Edge 12 -18 */
+    color: color-mix(in srgb, var(--brand-green) 80%, transparent);
+    
+}
+.bg-brand-light .form-container .form-control{
+    border-color: color-mix(in srgb, var(--brand-green) 50%, transparent) !important;
+    color: var(--brand-green);
+}
+
+.bg-brand-orange .form-container ::placeholder {
     color: color-mix(in srgb, var(--bs-white) 80%, transparent);
 }
 
-.form-container ::-ms-input-placeholder {
+.bg-brand-orange .form-container ::-ms-input-placeholder {
     /* Edge 12 -18 */
     color: color-mix(in srgb, var(--bs-white) 80%, transparent);
 }
@@ -525,19 +549,32 @@ header .nav-link:hover {
     text-decoration: none;
 }
 
-.list-icons li a:hover {
+.bg-brand-orange a {
+    color: var(--bs-white);
+}
+.bg-brand-orange a:hover{
+    color: var(--brand-green);
+}
+.bg-brand-light a {
+    color: var(--brand-green);
+}
+.bg-brand-light a:hover{
     color: var(--brand-orange);
 }
+
+/* .list-icons li a:hover {
+    color: var(--brand-orange);
+} */
 
 .list-icons .list-icon {
     position: absolute;
     left: 0;
     top: 3px;
 }
-
-
 .footer-logo {
     margin-top: -125px;
+    z-index: 10;
+    position: relative;
     /* background-color: var(--brand-green); */
 }
 
