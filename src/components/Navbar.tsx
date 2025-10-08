@@ -68,7 +68,7 @@ export default function Navbar() {
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" href="/chulah-dinner-menu.pdf">
+                        <Link className="dropdown-item" target="_blank" href="/chulah-dinner-menu.pdf">
                           Dining
                         </Link>
                       </li>
