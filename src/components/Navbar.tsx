@@ -43,7 +43,7 @@ export default function Navbar() {
               {/* Left Navigation Section */}
               <div className="nav-section-left">
                 <ul className="navbar-nav d-flex align-items-center">
-                  
+
                   {/* Dropdown Menu */}
                   <li className="nav-item dropdown">
                     <Link
@@ -68,7 +68,7 @@ export default function Navbar() {
                         </Link>
                       </li>
                       <li>
-                        <Link className="dropdown-item" href="/menu/dining">
+                        <Link className="dropdown-item" href="/chulah-dinner-menu.pdf">
                           Dining
                         </Link>
                       </li>
