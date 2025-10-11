@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     */
 
     return NextResponse.json({
-      message: "Form submitted successfully! (Email sending disabled for now)",
+      message: "Form submitted successfully!",
     });
   } catch (error: unknown) {
     console.error("Error submitting form:", error);
