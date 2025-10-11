@@ -27,13 +27,16 @@ export async function POST(req: Request) {
     });
 
     // === 2️⃣ Send Email via Gmail (using App Password) ===
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER, // e.g. your Gmail address
-        pass: process.env.GMAIL_PASS, // App password (not your actual Gmail password)
-      },
-    });
+   const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
 
   const mailOptions = {
   from: `"Website Contact" <${process.env.GMAIL_USER}>`,
