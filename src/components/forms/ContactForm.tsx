@@ -49,7 +49,7 @@ export default function ContactForm() {
       setIsSubmitting(true); // disable button
       setStatus("Submitting...");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/submit-contact-form`, {
+      const res = await fetch(`/api/submit-contact-form`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
