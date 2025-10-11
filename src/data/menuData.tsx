@@ -21,9 +21,12 @@ export type Menu = {
 export const menuData: { menu: Menu } = {
   menu: {
     Starters: [
-      { name: "Veg Spring Rolls", price: "000/-" },
-      { name: "Chicken Tikka", price: "000/-" },
-      { name: "Paneer Chilli", price: "000/-" }
+      { name: "Onion Samosa (5pc)", price: "$6.99" },
+      { name: "Chicken Tikkaa Samosa (5pc)", price: "$9.99" },
+      { name: "Punjabi Samos (2pc)", price: "$7.99" },
+      { name: "Chulah Fries (cajun) (served with mint chutney)", price: "$9.99" },
+      { name: "Gobi Fritters", price: "$9.99" },
+      { name: "Railway Cutlet", price: "$9.99" }
     ],
     "Main Course": [
       { name: "Paneer Butter Masala", price: "000/-" },

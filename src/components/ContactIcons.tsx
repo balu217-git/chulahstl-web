@@ -9,7 +9,7 @@ export default function ContactIcons() {
     <ul className="list-unstyled list-icons">
         <li>
             <FontAwesomeIcon icon={faPhone} className="text-brand list-icon" />
-            <a href="tel:+16367511337">+1 (636) 751-1337</a>
+            <a href="tel:+16364221168">+1 (636) 422-1168</a>
         </li>
         <li>
             <FontAwesomeIcon icon={faLocationDot} className="text-brand list-icon" />

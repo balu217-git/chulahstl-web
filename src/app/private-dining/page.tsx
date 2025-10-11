@@ -9,7 +9,7 @@ export default function Ourstory() {
                     <div className="col-md-5">
                         <div className="info-content mb-md-0 mb-4">
                             <Image className="img-fluid"
-                                src="https://dummyimage.com/600x600/fff/#000.jpg"
+                                src="/images/img-private-dining.webp"
                                 alt=""
                                 width={600}
                                 height={600}

@@ -80,10 +80,10 @@ export default function Home() {
                   height={400}
                   className="img-fluid"
                 />
-                <div className="h4 img-badge bg-brand-light fw-normal text-green">
+                <div className="h5 img-badge bg-brand-light fw-normal text-green">
                   <span>
-                    Indian way of making{" "}
-                    <span className="fw-bold">20+ Years</span>
+                    Rooted in Tradition | Re-Imagined for Today
+                    {/* <span className="fw-bold">20+ Years</span> */}
                   </span>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export default function Home() {
                   <li>Hospitality with Heart</li>
                 </ul>
 
-                <button className="btn btn-wide btn-brand-green mt-3">Know more</button>
+                <a href="/ourstory" className="btn btn-wide btn-brand-green mt-3">Know more</a>
               </div>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function Home() {
                 Discover our chef’s signature creations, designed to delight
                 your senses with every bite.
               </p>
-              <button className="btn btn-wide btn-brand-green mt-2">View more</button>
+              <a href="/chulah-dinner-menu.pdf" className="btn btn-wide btn-brand-green mt-2">View more</a>
             </div>
           </div>
           <DishesGrid dishes={dishesData} />
@@ -159,9 +159,9 @@ export default function Home() {
                       welcome you. Reserve your spot today and let us create
                       memories as delightful as our dishes.
                     </p>
-                    <button className="btn btn-wide btn-brand-green mt-2">
+                    <a href="/private-dining" className="btn btn-wide btn-brand-green mt-2">
                       Reserve table
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
