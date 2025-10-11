@@ -3,8 +3,28 @@
 import AttendanceRange from "../AttendanceRange";
 import { useState } from "react";
 
+interface FormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  attendance: number;
+  notes: string;
+}
+
+interface FormErrors {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  date?: string;
+  time?: string;
+  attendance?: string;
+  notes?: string;
+}
+
 export default function CateringForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     phone: "",
@@ -14,25 +34,16 @@ export default function CateringForm() {
     notes: "",
   });
 
-  const [status, setStatus] = useState("");
-  const [errors, setErrors] = useState<{
-    fullName?: string;
-    email?: string;
-    phone?: string;
-    date?: string;
-    time?: string;
-    attendance?: string;
-    notes?: string;
-  }>({});
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<string>("");
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" });
+    setErrors({ ...errors, [name]: undefined });
   };
 
   const validateEmail = (email: string) =>
@@ -43,7 +54,7 @@ export default function CateringForm() {
     setStatus("");
 
     // Validation
-    const newErrors: typeof errors = {};
+    const newErrors: FormErrors = {};
     if (!formData.fullName || formData.fullName.trim().length < 2)
       newErrors.fullName = "Name must be at least 2 characters.";
     if (!formData.email || !validateEmail(formData.email))
@@ -62,24 +73,29 @@ export default function CateringForm() {
       setIsSubmitting(true);
       setStatus("Submitting...");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/submit-catering-form`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/submit-catering-form`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
-      const data = await res.json();
-      setStatus(data.message);
+      const data: { message: string } = await res.json(); // typed response
+      setStatus(data.message || "Submitted successfully!");
+
       setFormData({
         fullName: "",
         email: "",
         phone: "",
         date: "",
         time: "",
-        attendance: 50,
+        attendance: 10,
         notes: "",
       });
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setStatus("Something went wrong!");
     } finally {
       setIsSubmitting(false);
@@ -103,7 +119,9 @@ export default function CateringForm() {
             value={formData.fullName}
             onChange={handleChange}
           />
-          {errors.fullName && <p className="text-brand-green">{errors.fullName}</p>}
+          {errors.fullName && (
+            <p className="text-brand-green">{errors.fullName}</p>
+          )}
         </div>
 
         {/* Email */}
@@ -174,14 +192,10 @@ export default function CateringForm() {
 
         {/* Attendance */}
         <AttendanceRange
-          min={0}        // optional, just for display
+          min={0}
           max={formData.attendance}
-          onChange={(min, max) =>
-            setFormData({ ...formData, attendance: max })
-          }
+          onChange={(_, max) => setFormData({ ...formData, attendance: max })}
         />
-
-
 
         {/* Notes */}
         <div className="mb-3">
