@@ -3,11 +3,23 @@ import { google } from "googleapis";
 import { JWT } from "google-auth-library";
 import nodemailer from "nodemailer";
 
+interface CateringFormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  attendance: number;
+  notes: string;
+}
+
 export async function POST(req: Request) {
   try {
-    const { fullName, email, phone, date, time, attendance, notes } = await req.json();
+    // Type the request body
+    const data: CateringFormData = await req.json();
+    const { fullName, email, phone, date, time, attendance, notes } = data;
 
-    // ✅ Use JWT for Google Sheets authentication (recommended)
+    // Google Sheets authentication
     const auth = new JWT({
       email: process.env.GOOGLE_CLIENT_EMAIL,
       key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
@@ -16,40 +28,42 @@ export async function POST(req: Request) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // ✅ Append data to Google Sheet
+    // Append to Google Sheet
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: "Catering Services!A:K",
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       requestBody: {
-        values: [[
-          fullName,
-          email,
-          phone,
-          date,
-          time,
-          attendance,
-          notes,
-          new Date().toLocaleString("en-US", {
-            timeZone: "America/New_York",
-            month: "2-digit",
-            day: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          }),
-        ]],
+        values: [
+          [
+            fullName,
+            email,
+            phone,
+            date,
+            time,
+            attendance,
+            notes,
+            new Date().toLocaleString("en-US", {
+              timeZone: "America/New_York",
+              month: "2-digit",
+              day: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+          ],
+        ],
       },
     });
 
-    // ✅ Send Email Notification using Gmail (App Password)
+    // Send email notification
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS, // must be App Password, not your regular Gmail password
+        pass: process.env.GMAIL_PASS,
       },
     });
 
@@ -75,11 +89,17 @@ export async function POST(req: Request) {
 
     await transporter.sendMail(mailOptions);
 
-    return NextResponse.json({ message: "Form submitted and email sent successfully!" });
-  } catch (error: any) {
+    return NextResponse.json({
+      message: "Form submitted and email sent successfully!",
+    });
+  } catch (error: unknown) {
     console.error("Error submitting form:", error);
+
+    // Narrow unknown to Error
+    const message = error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
-      { message: "Error submitting form", error: error.message },
+      { message: "Error submitting form", error: message },
       { status: 500 }
     );
   }
