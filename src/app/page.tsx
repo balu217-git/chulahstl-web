@@ -18,14 +18,14 @@ const slidesData = [
   },
   {
     image: "/images/img-home-hero-banner-02.webp",
-    title: "Explore Features",
+    title: "Where the tradition meets Spirits",
     subtitle: "",
     ctaText: "Explore Menu",
     ctaLink: "/chulah-dinner-menu.pdf",
   },
   {
     image: "/images/img-home-hero-banner-03.webp",
-    title: "Join Us Today",
+    title: "Where the tradition meets Spirits",
     subtitle: "",
     ctaText: "Explore Menu",
     ctaLink: "/chulah-dinner-menu.pdf",
