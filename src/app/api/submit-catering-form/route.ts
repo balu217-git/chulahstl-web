@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { JWT } from "google-auth-library";
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer"; // temporarily disabled
 
 interface CateringFormData {
   fullName: string;
@@ -15,7 +15,6 @@ interface CateringFormData {
 
 export async function POST(req: Request) {
   try {
-    // Type the request body
     const data: CateringFormData = await req.json();
     const { fullName, email, phone, date, time, attendance, notes } = data;
 
@@ -58,49 +57,34 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send email notification
+    // --- Temporarily disable email sending ---
+    /*
     const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
-
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
 
     const mailOptions = {
       from: `"Catering Request" <${process.env.GMAIL_USER}>`,
       to: process.env.GMAIL_TO || process.env.GMAIL_USER,
       subject: `New Catering Request from ${fullName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border-radius: 8px; background-color: #f9f9f9;">
-          <h2 style="color:#333;">New Catering Request</h2>
-          <p><strong>Name:</strong> ${fullName}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone}</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Time:</strong> ${time}</p>
-          <p><strong>Expected Attendance:</strong> ${attendance}</p>
-          <p><strong>Notes:</strong> ${notes}</p>
-          <hr style="margin:20px 0;">
-          <p style="font-size:12px;color:#777;">Submitted on ${new Date().toLocaleString()}</p>
-        </div>
-      `,
+      html: `<p>New request from ${fullName}</p>`,
     };
 
     await transporter.sendMail(mailOptions);
+    */
 
     return NextResponse.json({
-      message: "Form submitted and email sent successfully!",
+      message: "Form submitted successfully! (Email sending disabled for now)",
     });
   } catch (error: unknown) {
     console.error("Error submitting form:", error);
-
-    // Narrow unknown to Error
     const message = error instanceof Error ? error.message : "Unknown error";
-
     return NextResponse.json(
       { message: "Error submitting form", error: message },
       { status: 500 }
