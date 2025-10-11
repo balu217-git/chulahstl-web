@@ -3,37 +3,55 @@ import { useState } from "react";
 import { menuData, Menu, MenuItem } from "../data/menuData";
 
 interface OurMenuProps {
-  bgImage?: string; // optional background image
+  bgImage?: string;
 }
 
 export default function OurMenu({ bgImage }: OurMenuProps) {
-
   const categories = Object.keys(menuData.menu) as Array<keyof Menu>;
   const [activeTab, setActiveTab] = useState<keyof Menu>(categories[0]);
 
-  const renderMenuItems = (items: MenuItem[] | Record<string, MenuItem[]>) => {
-    // If nested object (like Alcohol), render subcategories
-    if (!Array.isArray(items)) {
-      return Object.keys(items).map((subCat) => (
-        <div key={subCat} className="col-lg-6">
-          <h4 className="text-white mb-md-4 mb-3 fw-semibold">{subCat}</h4>
-          <table className="table table-sm table-borderless text-white">
-            <tbody>
-              {(items[subCat] as MenuItem[]).map((item) => (
-                <tr key={item.name}>
-                  <td>{item.name}</td>
-                  <td className="text-end fw-semibold text-brand-yellow">
-                    {item.price}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  const renderMenuItems = (
+    items: MenuItem[] | Record<string, MenuItem[] | string> | string
+  ) => {
+    if (typeof items === "string") {
+      return (
+        <div className="col-12 text-center text-white fw-semibold">
+          {items}
         </div>
-      ));
+      );
     }
 
-    // Otherwise, render simple array
+    if (!Array.isArray(items)) {
+      return Object.keys(items).map((subCat) => {
+        const subItems = items[subCat];
+        return (
+          <div key={subCat} className="col-lg-6">
+            <h4 className="text-white mb-md-4 mb-3 fw-semibold">{subCat}</h4>
+            <table className="table table-sm table-borderless text-white">
+              <tbody>
+                {Array.isArray(subItems) ? (
+                  subItems.map((item) => (
+                    <tr key={item.name}>
+                      <td>{item.name}</td>
+                      <td className="text-end fw-semibold text-brand-yellow">
+                        {item.price}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="text-center text-white fw-semibold">
+                      {subItems}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      });
+    }
+
     return (
       <div className="col-12">
         <table className="table table-sm table-borderless text-white">
@@ -95,19 +113,25 @@ export default function OurMenu({ bgImage }: OurMenuProps) {
 
             {/* Tab Content */}
             <div className="tab-content p-lg-5 p-md-4 px-3 py-4 bg-brand mt-4 rounded-5">
-              {categories.map((category) => (
-                <div
-                  key={category}
-                  className={`tab-pane fade ${
-                    activeTab === category ? "show active" : ""
-                  }`}
-                  role="tabpanel"
-                >
-                  <div className="row gy-md-4 gx-md-5  g-3">
-                    {renderMenuItems(menuData.menu[category])}
+              {categories.map((category) => {
+                const section = menuData.menu[category];
+                return (
+                  <div
+                    key={category}
+                    className={`tab-pane fade ${
+                      activeTab === category ? "show active" : ""
+                    }`}
+                    role="tabpanel"
+                  >
+                    {section.description && (
+                      <p className="text-white mb-4 text-center">{section.description}</p>
+                    )}
+                    <div className="row gy-md-4 gx-md-5 g-3">
+                      {renderMenuItems(section.content)}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
