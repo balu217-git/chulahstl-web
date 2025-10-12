@@ -1,6 +1,7 @@
 "use client";
+
 import { useState } from "react";
-import { menuData, Menu, MenuItem } from "../data/menuData";
+import { menuData, Menu, MenuSection, MenuItem } from "../data/menuData";
 
 interface OurMenuProps {
   bgImage?: string;
@@ -10,64 +11,53 @@ export default function OurMenu({ bgImage }: OurMenuProps) {
   const categories = Object.keys(menuData.menu) as Array<keyof Menu>;
   const [activeTab, setActiveTab] = useState<keyof Menu>(categories[0]);
 
-  const renderMenuItems = (
-    items: MenuItem[] | Record<string, MenuItem[] | string> | string
-  ) => {
-    if (typeof items === "string") {
+  // 🧩 Helper to render menu items
+  const renderMenuItems = (items: MenuItem[]) => (
+    <table className="table table-sm table-borderless text-white">
+      <tbody>
+        {items.map((item) => (
+          <tr key={item.name}>
+            <td>{item.name}</td>
+            <td className="text-end fw-semibold text-brand-yellow">
+              {item.price}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  // 🧠 Main renderer for a section (handles both array and grouped content)
+  const renderSectionContent = (section: MenuSection) => {
+    if (typeof section.content === "string") {
       return (
         <div className="col-12 text-center text-white fw-semibold">
-          {items}
+          {section.content}
         </div>
       );
     }
 
-    if (!Array.isArray(items)) {
-      return Object.keys(items).map((subCat) => {
-        const subItems = items[subCat];
-        return (
-          <div key={subCat} className="col-lg-6">
-            <h4 className="text-white mb-md-4 mb-3 fw-semibold">{subCat}</h4>
-            <table className="table table-sm table-borderless text-white">
-              <tbody>
-                {Array.isArray(subItems) ? (
-                  subItems.map((item) => (
-                    <tr key={item.name}>
-                      <td>{item.name}</td>
-                      <td className="text-end fw-semibold text-brand-yellow">
-                        {item.price}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={2} className="text-center text-white fw-semibold">
-                      {subItems}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        );
-      });
+    // If the content is a flat list of MenuItems
+    if (Array.isArray(section.content) && section.content.length > 0 && "name" in section.content[0]) {
+      return (
+        <div className="col-12">
+          {renderMenuItems(section.content as MenuItem[])}
+        </div>
+      );
     }
 
-    return (
-      <div className="col-12">
-        <table className="table table-sm table-borderless text-white">
-          <tbody>
-            {(items as MenuItem[]).map((item) => (
-              <tr key={item.name}>
-                <td>{item.name}</td>
-                <td className="text-end fw-semibold text-brand-yellow">
-                  {item.price}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    // Otherwise, it's an array of subcategories
+    const subcategories = section.content as {
+      subcategory: string;
+      items: MenuItem[];
+    }[];
+
+    return subcategories.map((sub) => (
+      <div key={sub.subcategory} className="col-lg-6 col-md-6 col-sm-12">
+        <h4 className="text-white mb-md-4 mb-3 fw-semibold">{sub.subcategory}</h4>
+        {renderMenuItems(sub.items)}
       </div>
-    );
+    ));
   };
 
   return (
@@ -92,7 +82,7 @@ export default function OurMenu({ bgImage }: OurMenuProps) {
           <div className="col-md-10">
             {/* Tabs */}
             <ul
-              className="nav nav-brand-pills border-bottom nav-pills pb-4 justify-content-evenly"
+              className="nav nav-brand-pills border-bottom nav-pills pb-4 justify-content-evenly flex-wrap"
               role="tablist"
             >
               {categories.map((category) => (
@@ -124,10 +114,12 @@ export default function OurMenu({ bgImage }: OurMenuProps) {
                     role="tabpanel"
                   >
                     {section.description && (
-                      <p className="text-white mb-4 text-center">{section.description}</p>
+                      <p className="text-white mb-4 text-center">
+                        {section.description}
+                      </p>
                     )}
                     <div className="row gy-md-4 gx-md-5 g-3">
-                      {renderMenuItems(section.content)}
+                      {renderSectionContent(section)}
                     </div>
                   </div>
                 );
