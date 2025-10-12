@@ -79,7 +79,7 @@ export default function OurMenu({ bgImage }: OurMenuProps) {
         </div>
 
         <div className="row justify-content-center mt-5">
-          <div className="col-md-10">
+          <div className="col-md-12">
             {/* Tabs */}
             <ul
               className="nav nav-brand-pills border-bottom nav-pills pb-4 justify-content-evenly flex-wrap"
