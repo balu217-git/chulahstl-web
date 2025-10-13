@@ -53,8 +53,8 @@ export default function Navbar() {
                   <li className="nav-item dropdown">
                     <Link
                       className={`nav-link dropdown-toggle ${
-                        pathname.startsWith("/quick-service") ||
-                        pathname.startsWith("/alcohol")
+                        pathname.startsWith("/quick-service-lunches") ||
+                        pathname.startsWith("/alcohols")
                           ? "active"
                           : ""
                       }`}
@@ -74,11 +74,11 @@ export default function Navbar() {
                       <li>
                         <Link
                           className={`dropdown-item ${
-                            pathname === "/quick-service" ? "active" : ""
+                            pathname === "/quick-service-lunches" ? "active" : ""
                           }`}
-                          href="/quick-service"
+                          href="/quick-service-lunches"
                         >
-                          Quick Service
+                          Quick Service Lunches
                         </Link>
                       </li>
                       <li>
@@ -86,9 +86,9 @@ export default function Navbar() {
                           className={`dropdown-item ${
                             pathname === "/alcohol" ? "active" : ""
                           }`}
-                          href="/alcohol"
+                          href="/alcohols"
                         >
-                          Alcohol
+                          Alcohols
                         </Link>
                       </li>
                       <li>

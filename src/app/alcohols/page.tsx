@@ -13,10 +13,10 @@ export default function ComingSoon() {
     >
         <div className="container">
             <div className="hero-content">
-                <h1 className="fw-bold text-dark mb-3">We’re Cooking Something Exciting!</h1>
-      <p className="text-muted mb-4">
-        Our website is getting a delicious makeover. Stay tuned!
-      </p>
+                <h1 className="fw-bold text-dark mb-3 fs-2">Exquisite Cocktails, mocktails, bourbons, wines, whiskies, beers and more - Coming Soon.</h1>
+              {/* <p className="text-muted mb-4">
+                Our website is getting a delicious makeover. Stay uned!
+              </p> */}
             </div>
         </div>
     </section>
