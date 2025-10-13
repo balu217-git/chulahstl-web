@@ -166,9 +166,9 @@ export default function Navbar() {
                   <li className="nav-item">
                     <Link
                       className={`btn btn-brand-green ms-md-2 ${
-                        isActive("/quick-service") ? "active" : ""
+                        isActive("/quick-service-lunches") ? "active" : ""
                       }`}
-                      href="/quick-service"
+                      href="/quick-service-lunches"
                     >
                       Order Online
                     </Link>
