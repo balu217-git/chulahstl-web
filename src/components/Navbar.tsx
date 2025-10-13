@@ -31,8 +31,7 @@ export default function Navbar() {
           </Link>
 
           {/* Mobile Toggle */}
-          <button
-            className="navbar-toggler"
+          <button className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#mainNavbar"
@@ -51,8 +50,7 @@ export default function Navbar() {
                 <ul className="navbar-nav d-flex align-items-center">
                   {/* Dropdown Menu */}
                   <li className="nav-item dropdown">
-                    <Link
-                      className={`nav-link dropdown-toggle ${
+                    <Link className={`nav-link dropdown-toggle ${
                         pathname.startsWith("/quick-service-lunches") ||
                         pathname.startsWith("/alcohols")
                           ? "active"
@@ -67,13 +65,11 @@ export default function Navbar() {
                       Menu
                     </Link>
 
-                    <ul
-                      className="dropdown-menu"
+                    <ul className="dropdown-menu"
                       aria-labelledby="menuDropdown"
                     >
                       <li>
-                        <Link
-                          className={`dropdown-item ${
+                        <Link className={`dropdown-item ${
                             pathname === "/quick-service-lunches" ? "active" : ""
                           }`}
                           href="/quick-service-lunches"
@@ -82,8 +78,7 @@ export default function Navbar() {
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          className={`dropdown-item ${
+                        <Link className={`dropdown-item ${
                             pathname === "/alcohol" ? "active" : ""
                           }`}
                           href="/alcohols"
@@ -92,8 +87,7 @@ export default function Navbar() {
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          className="dropdown-item"
+                        <Link className="dropdown-item"
                           target="_blank"
                           href="/chulah-dinner-menu.pdf"
                         >
@@ -104,8 +98,7 @@ export default function Navbar() {
                   </li>
 
                   <li className="nav-item">
-                    <Link
-                      className={`nav-link ${
+                    <Link className={`nav-link ${
                         isActive("/ourstory") ? "active" : ""
                       }`}
                       href="/ourstory"
@@ -114,8 +107,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link
-                      className={`nav-link ${
+                    <Link className={`nav-link ${
                         isActive("/catering") ? "active" : ""
                       }`}
                       href="/catering"
@@ -144,8 +136,7 @@ export default function Navbar() {
               <div className="nav-section-right">
                 <ul className="navbar-nav d-flex align-items-center">
                   <li className="nav-item">
-                    <Link
-                      className={`nav-link ${
+                    <Link className={`nav-link ${
                         isActive("/private-dining") ? "active" : ""
                       }`}
                       href="/private-dining"
@@ -154,8 +145,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link
-                      className={`nav-link ${
+                    <Link className={`nav-link ${
                         isActive("/contact") ? "active" : ""
                       }`}
                       href="/contact"
@@ -164,8 +154,7 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li className="nav-item">
-                    <Link
-                      className={`btn btn-brand-green ms-md-2 ${
+                    <Link className={`btn btn-brand-green ms-md-2 ${
                         isActive("/quick-service-lunches") ? "active" : ""
                       }`}
                       href="/quick-service-lunches"
