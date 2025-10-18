@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { JWT } from "google-auth-library";
-// import nodemailer from "nodemailer"; // temporarily disabled
+import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
   try {
@@ -22,46 +22,70 @@ export async function POST(req: Request) {
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       requestBody: {
-        values: [[
-          name, 
-          email, 
-          message, 
-          new Date().toLocaleString("en-US", { hour12: true })
-        ]],
+        values: [
+          [
+            name,
+            email,
+            message,
+            new Date().toLocaleString("en-US", { hour12: true }),
+          ],
+        ],
       },
     });
 
-    // === 2️⃣ Email sending temporarily disabled ===
-    /*
+    // === 2️⃣ Send Email via iCloud SMTP ===
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      host: "smtp.mail.me.com",
+      port: 587, // or 465 if you prefer SSL
+      secure: false, // true if using port 465
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
+        user: process.env.ICLOUD_USER,
+        pass: process.env.ICLOUD_PASS, // App-specific password
+      },
+      tls: {
+        rejectUnauthorized: false, // helps during local dev
       },
     });
 
+    // === 3️⃣ Verify SMTP connection ===
+    await transporter
+      .verify()
+      .then(() => console.log("✅ iCloud SMTP connection verified"))
+      .catch((err) => console.error("❌ SMTP verification failed:", err));
+
+    // === 4️⃣ Compose email ===
     const mailOptions = {
-      from: `"Website Contact" <${process.env.GMAIL_USER}>`,
-      to: process.env.GMAIL_TO || process.env.GMAIL_USER,
+      from: `"Website Contact" <${process.env.ICLOUD_USER}>`,
+      to: process.env.ICLOUD_TO || process.env.ICLOUD_USER,
       subject: `New Contact Form Submission from ${name}`,
-      html: `<p>New contact form submission from ${name} (${email}): ${message}</p>`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+        <hr/>
+        <p>Submitted on ${new Date().toLocaleString("en-US", { hour12: true })}</p>
+      `,
     };
 
+    // === 5️⃣ Send the email ===
     await transporter.sendMail(mailOptions);
-    */
 
+    // === ✅ Success Response ===
     return NextResponse.json({
       success: true,
       message: "Form submitted successfully!",
     });
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: any) {
+    console.error("❌ Error submitting form:", error);
     return NextResponse.json(
-      { success: false, message: "Error submitting form", error: message },
+      {
+        success: false,
+        message: "Error submitting form",
+        error: error?.message || JSON.stringify(error),
+        stack: error?.stack || "no stack trace",
+      },
       { status: 500 }
     );
   }
