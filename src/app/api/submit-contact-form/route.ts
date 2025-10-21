@@ -54,20 +54,72 @@ export async function POST(req: Request) {
       .catch((err) => console.error("❌ SMTP verification failed:", err));
 
     // === 4️⃣ Compose email ===
-    const mailOptions = {
-      from: `"Website Contact" <${process.env.ICLOUD_USER}>`,
-      to: process.env.ICLOUD_TO || process.env.ICLOUD_USER,
-      subject: `New Contact Form Submission from ${name}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-        <hr/>
-        <p>Submitted on ${new Date().toLocaleString("en-US", { hour12: true })}</p>
-      `,
-    };
+const mailOptions = {
+  from: `"Website Contact" <${process.env.ICLOUD_USER}>`,
+  to: process.env.ICLOUD_TO || process.env.ICLOUD_USER,
+  subject: `📬 New Contact Form Submission from ${name}`,
+  html: `
+  <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9f9; padding: 40px 0;">
+    <table align="center" width="600" cellpadding="0" cellspacing="0" 
+      style="background-color: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid #e0e0e0;">
+      
+      <!-- Header with Logo -->
+      <tr>
+        <td style="text-align: center; padding: 30px 20px; background-color: #00282a;">
+          <img src="https://chulahstl.com/chulah-logo-green.png" alt="Brand Logo" width="90" style="margin-bottom: 10px;" />
+          <h2 style="color: #ffffff; margin: 10px 0 0; font-size: 22px; font-weight: 600;">New Contact Form Submission</h2>
+        </td>
+      </tr>
+
+      <!-- Content Section -->
+      <tr>
+        <td style="padding: 30px 40px;">
+          <p style="font-size: 16px; color: #00282a; margin: 0 0 15px;">
+            Hello,
+          </p>
+          <p style="font-size: 15px; color: #00282a; margin: 0 0 25px;">
+            You’ve received a new message from your website contact form. Here are the details:
+          </p>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-size: 15px;">
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Name</strong></td>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; color: #00282a;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Email</strong></td>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; color: #00282a;">${email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Message</strong></td>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; color: #00282a;">${message}</td>
+            </tr>
+          </table>
+
+          <p style="font-size: 14px; color: #00282a; margin-top: 20px;">
+            Sent on: <strong>${new Date().toLocaleString("en-US", { hour12: true })}</strong>
+          </p>
+
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="mailto:${email}" style="background-color: #00282a; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-size: 15px; display: inline-block;">
+              Reply to ${name}
+            </a>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background-color: #f1f3f3; text-align: center; padding: 15px; font-size: 13px; color: #00282a;">
+          © ${new Date().getFullYear()} Your Brand Name. All rights reserved.
+        </td>
+      </tr>
+    </table>
+  </div>
+  `,
+};
+
+
 
     // === 5️⃣ Send the email ===
     await transporter.sendMail(mailOptions);
