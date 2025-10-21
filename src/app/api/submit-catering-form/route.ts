@@ -169,11 +169,12 @@ export async function POST(req: Request) {
     return NextResponse.json({
       message: "Form submitted and email notification sent successfully!",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Error submitting form:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { message: "Error submitting form", error: error.message || "Unknown error" },
-      { status: 500 }
+      { message: "Error submitting form", error: message },
+    { status: 500 }
     );
   }
 }
