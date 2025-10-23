@@ -1,4 +1,4 @@
-import CateringForm from "@/components/forms/CateringForm";
+import ReservationForm from "@/components/forms/ReservationForm";
 import Image from "next/image";
 export default function Ourstory() {
     return (
@@ -20,11 +20,11 @@ export default function Ourstory() {
                     <div className="col-md-5 order-lg-first">
                         <div className="info-content">
                             <div className="info-heading text-white">
-                                <h2 className="fw-semibold mb-3">Reserve our exclusive Private Dining space (25 guests) or tailor-made tables today <span className="text-brand-green">Comfort & Flavor.</span></h2>
+                                <h2 className="fw-semibold mb-3">Reserve our exclusive Private Dining space (25 guests) or tailor-made tables today<span className="text-brand-green d-block">Comfort & Flavor.</span></h2>
                                 {/* <p className="small">Please complete the form below to send us a catering request.</p> */}
                             </div>
                             <div className="form-container mt-md-5 mt-3">
-                                <CateringForm/>
+                                <ReservationForm/>
                             </div>
                         </div>
                     </div>

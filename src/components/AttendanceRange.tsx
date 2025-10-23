@@ -4,9 +4,17 @@ interface AttendanceRangeProps {
   min: number;
   max: number;
   onChange: (min: number, max: number) => void;
+  rangeLimit?: number; // new prop (default 100)
+  step?: number; // optional step customization (default 5)
 }
 
-export default function AttendanceRange({ min, max, onChange }: AttendanceRangeProps) {
+export default function AttendanceRange({
+  min,
+  max,
+  onChange,
+  rangeLimit = 100, // default limit
+  step = 5, // default step
+}: AttendanceRangeProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const newVal = Number(value);
@@ -18,8 +26,18 @@ export default function AttendanceRange({ min, max, onChange }: AttendanceRangeP
     }
   };
 
-  const minPercent = (min / 100) * 100;
-  const maxPercent = (max / 100) * 100;
+  const minPercent = (min / rangeLimit) * 100;
+  const maxPercent = (max / rangeLimit) * 100;
+
+  const sliderStyle = {
+    background: `linear-gradient(
+      to right,
+      #ddd ${minPercent}%,
+      var(--brand-green) ${minPercent}%,
+      var(--brand-green) ${maxPercent}%,
+      #ddd ${maxPercent}%
+    )`,
+  };
 
   return (
     <div className="mb-4">
@@ -31,39 +49,23 @@ export default function AttendanceRange({ min, max, onChange }: AttendanceRangeP
           type="range"
           name="min"
           min="0"
-          max="100"
-          step="5"
+          max={rangeLimit}
+          step={step}
           value={min}
           onChange={handleChange}
           className="thumb thumb-left"
-          style={{
-            background: `linear-gradient(
-              to right,
-              #ddd ${minPercent}%,
-              var(--brand-green) ${minPercent}%,
-              var(--brand-green) ${maxPercent}%,
-              #ddd ${maxPercent}%
-            )`,
-          }}
+          style={sliderStyle}
         />
         <input
           type="range"
           name="max"
           min="0"
-          max="100"
-          step="5"
+          max={rangeLimit}
+          step={step}
           value={max}
           onChange={handleChange}
           className="thumb thumb-right"
-          style={{
-            background: `linear-gradient(
-              to right,
-              #ddd ${minPercent}%,
-              var(--brand-green) ${minPercent}%,
-              var(--brand-green) ${maxPercent}%,
-              #ddd ${maxPercent}%
-            )`,
-          }}
+          style={sliderStyle}
         />
       </div>
     </div>

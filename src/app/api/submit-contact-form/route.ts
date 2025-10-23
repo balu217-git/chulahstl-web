@@ -116,7 +116,7 @@ const mailOptions = {
       <!-- Footer -->
       <tr>
         <td style="background-color: #f1f3f3; text-align: center; padding: 15px; font-size: 13px; color: #00282a;">
-          © ${new Date().getFullYear()} Your Brand Name. All rights reserved.
+          © ${new Date().getFullYear()} Chulah STL. All rights reserved.
         </td>
       </tr>
     </table>

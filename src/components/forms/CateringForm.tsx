@@ -194,12 +194,13 @@ export default function CateringForm() {
           </div>
         </div>
 
-        {/* Attendance */}
-        <AttendanceRange
-          min={0}
-          max={formData.attendance}
-          onChange={(_, max) => setFormData({ ...formData, attendance: max })}
-        />
+         <AttendanceRange
+                  min={5}
+                  max={formData.attendance}
+                  rangeLimit={100}
+                  step={5}
+                  onChange={(_, max) => setFormData({ ...formData, attendance: max })}
+                />
 
         {/* Notes */}
         <div className="mb-3">

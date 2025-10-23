@@ -198,8 +198,11 @@ export default function ReservationForm() {
         <AttendanceRange
           min={0}
           max={formData.attendance}
+          rangeLimit={25}
+          step={1}
           onChange={(_, max) => setFormData({ ...formData, attendance: max })}
         />
+
 
         {/* Notes */}
         <div className="mb-3">
