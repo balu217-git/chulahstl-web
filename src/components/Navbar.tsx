@@ -69,10 +69,16 @@ export default function Navbar() {
                       aria-labelledby="menuDropdown"
                     >
                       <li>
-                        <Link className={`dropdown-item ${
+                        {/* <Link className={`dropdown-item ${
                             pathname === "/quick-service-lunches" ? "active" : ""
                           }`}
                           href="/quick-service-lunches"
+                        >
+                          Quick Service Lunches
+                        </Link> */}
+                        <Link className="dropdown-item"
+                          target="_blank"
+                          href="/chulah-lunch-tv-poster.pdf"
                         >
                           Quick Service Lunches
                         </Link>
