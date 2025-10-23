@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, message } = await req.json();
+    const { name, email, phone, message } = await req.json();
 
     // === 1️⃣ Store data in Google Sheets ===
     const auth = new JWT({
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Contact Form!A:D",
+      range: "Contact Form!A:E",
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       requestBody: {
@@ -26,6 +26,7 @@ export async function POST(req: Request) {
           [
             name,
             email,
+            phone,
             message,
             new Date().toLocaleString("en-US", { hour12: true }),
           ],
@@ -60,9 +61,9 @@ const mailOptions = {
   subject: `📬 New Contact Form Submission from ${name}`,
   html: `
   <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9f9; padding: 40px 0;">
-    <table align="center" width="600" cellpadding="0" cellspacing="0" 
+    <table align="center" width="600" cellpadding="0" cellspacing="0"
       style="background-color: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid #e0e0e0;">
-      
+
       <!-- Header with Logo -->
       <tr>
         <td style="text-align: center; padding: 30px 20px; background-color: #00282a;">
@@ -89,6 +90,10 @@ const mailOptions = {
             <tr>
               <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Email</strong></td>
               <td style="padding: 12px; border: 1px solid #e0e0e0; color: #00282a;">${email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Phone</strong></td>
+              <td style="padding: 12px; border: 1px solid #e0e0e0; color: #00282a;">${phone}</td>
             </tr>
             <tr>
               <td style="padding: 12px; border: 1px solid #e0e0e0; background-color: #f4f9f9; color: #00282a;"><strong>Message</strong></td>
