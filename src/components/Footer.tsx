@@ -18,6 +18,13 @@ export default function Footer() {
                 <div className="col-md-4 order-md-first">
                     <div className="footer-content text-white text-md-start text-center">
                         <p className="small">Rooted in Tradition | Re-Imagined for Today</p>
+                        <p className="mb-1"><strong className="d-block">Timings:</strong></p>
+                            <ul className="list-unstyled small">
+                                <li>Tue - Thu  11 am - 9 pm</li>
+                                <li>Fri - Sat  11 am - 10 pm</li>
+                                <li>Sun 11 am - 9 pm</li>
+                                <li><i>( We are closed on Monday )</i></li>
+                            </ul>
                     </div>
                 </div>
 
