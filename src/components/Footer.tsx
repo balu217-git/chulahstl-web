@@ -31,17 +31,17 @@ export default function Footer() {
                 <div className="col-md-4">
                     <div className="footer-content text-center text-white">
                         <p>Connect With us now</p>
-                            <div className="d-flex justify-content-center gap-4 mt-3 text-small text-white">
-                                <a href="https://www.facebook.com/profile.php?id=61580549355810" target="_blank" className="text-decoration-none text-white fs-3">
-                                    <FontAwesomeIcon icon={faFacebook} className="text-white" />
-                                </a>
-                                <a href="https://www.youtube.com/@ChulahSTL" target="_blank" className="text-decoration-none text-white fs-3">
-                                    <FontAwesomeIcon icon={faYoutube} className="text-white" />
-                                </a>
-                                <a href="https://www.instagram.com/chulahstl/" target="_blank" className="text-decoration-none text-white fs-3">
-                                    <FontAwesomeIcon icon={faInstagram} className="text-white" />
-                                </a>
-                            </div>
+                        <div className="d-flex justify-content-center gap-4 mt-3 text-small text-white">
+                            <a href="https://www.facebook.com/profile.php?id=61580549355810" target="_blank" className="text-decoration-none text-white fs-3">
+                                <FontAwesomeIcon icon={faFacebook} className="text-white" />
+                            </a>
+                            <a href="https://www.youtube.com/@ChulahSTL" target="_blank" className="text-decoration-none text-white fs-3">
+                                <FontAwesomeIcon icon={faYoutube} className="text-white" />
+                            </a>
+                            <a href="https://www.instagram.com/chulahstl/" target="_blank" className="text-decoration-none text-white fs-3">
+                                <FontAwesomeIcon icon={faInstagram} className="text-white" />
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
