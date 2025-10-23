@@ -17,8 +17,7 @@ export default function Footer() {
                 </div>
                 <div className="col-md-4 order-md-first">
                     <div className="footer-content text-white text-md-start text-center">
-                        <p className="small">At Chulah, every meal is more than
-just dining—it’s a journey through </p>
+                        <p className="small">Rooted in Tradition | Re-Imagined for Today</p>
                     </div>
                 </div>
 

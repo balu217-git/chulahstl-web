@@ -6,6 +6,7 @@ export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     message: "",
   });
 
@@ -13,6 +14,7 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
+    phone?: string;
     message?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false); // new state for button
@@ -37,6 +39,8 @@ export default function ContactForm() {
       newErrors.name = "Name must be at least 2 characters.";
     if (!formData.email || !validateEmail(formData.email))
       newErrors.email = "Please enter a valid email.";
+    if (!formData.phone || formData.phone.trim().length < 10)
+      newErrors.phone = "Please enter a valid phone number.";
     if (!formData.message || formData.message.trim().length < 5)
       newErrors.message = "Message must be at least 5 characters.";
 
@@ -57,7 +61,7 @@ export default function ContactForm() {
 
       const data = await res.json();
       setStatus(data.message);
-      setFormData({ name: "", email: "", message: "" }); // reset form
+      setFormData({ name: "", email: "", phone: "", message: "" }); // reset form
     } catch (error) {
       setStatus("Something went wrong!");
     } finally {
@@ -68,23 +72,27 @@ export default function ContactForm() {
   return (
     <div className="form-container">
       <form onSubmit={handleSubmit}>
+
+        {/* Name */}
         <div className="form-group mb-3">
           <input
             type="text"
             name="name"
             className="form-control"
-            placeholder="Your Name"
+            placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
           />
           {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
         </div>
+
+        {/* Email */}
         <div className="form-group mb-3">
           <input
             type="email"
             name="email"
             className="form-control"
-            placeholder="Your Email"
+            placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
           />
@@ -92,12 +100,27 @@ export default function ContactForm() {
             <p className="text-red-500 text-sm">{errors.email}</p>
           )}
         </div>
+
+        {/* Phone */}
+        <div className="mb-3">
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            className="form-control"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+          />
+          {errors.phone && <p className="text-brand-green">{errors.phone}</p>}
+        </div>
+
         <div className="form-group mb-3">
           <textarea
             className="form-control"
             name="message"
             rows={4}
-            placeholder="Message"
+            placeholder="Questions / Concerns / Message"
             value={formData.message}
             onChange={handleChange}
             required

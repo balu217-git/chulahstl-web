@@ -30,7 +30,7 @@ export default function CateringForm() {
     phone: "",
     date: "",
     time: "",
-    attendance: 10,
+    attendance: 5,
     notes: "",
   });
 
@@ -63,6 +63,8 @@ export default function CateringForm() {
       newErrors.phone = "Please enter a valid phone number.";
     if (!formData.date) newErrors.date = "Please select a date.";
     if (!formData.time) newErrors.time = "Please select a time.";
+     if (!formData.notes || formData.notes.trim().length < 5)
+      newErrors.notes = "Details must be at least 5 characters.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -91,7 +93,7 @@ export default function CateringForm() {
         phone: "",
         date: "",
         time: "",
-        attendance: 10,
+        attendance: 5,
         notes: "",
       });
     } catch (err) {
@@ -169,11 +171,13 @@ export default function CateringForm() {
               id="date"
               name="date"
               className="form-control"
+              min={new Date().toISOString().split("T")[0]} // ✅ Prevent back dates
               value={formData.date}
               onChange={handleChange}
             />
             {errors.date && <p className="text-brand-green">{errors.date}</p>}
           </div>
+
           <div className="col-md-6">
             <label htmlFor="time" className="form-label">
               Select Time*
@@ -200,7 +204,7 @@ export default function CateringForm() {
         {/* Notes */}
         <div className="mb-3">
           <label htmlFor="notes" className="form-label">
-            Additional Instructions / Notes
+            Please Fill in your Detailed Order / Instructions / Notes
           </label>
           <textarea
             id="notes"
@@ -211,6 +215,7 @@ export default function CateringForm() {
             value={formData.notes}
             onChange={handleChange}
           />
+          {errors.notes && <p className="text-brand-green">{errors.notes}</p>}
         </div>
 
         {/* Submit */}
