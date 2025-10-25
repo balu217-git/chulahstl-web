@@ -1,10 +1,5 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { GraphQLClient } from "graphql-request";
 
-const client = new ApolloClient({
-  link: new HttpLink({
-    uri: "http://localhost/wp-chulahstl/graphql",
-  }),
-  cache: new InMemoryCache(),
-});
+const client = new GraphQLClient(process.env.NEXT_PUBLIC_WORDPRESS_GRAPHQL_URL!);
 
 export default client;

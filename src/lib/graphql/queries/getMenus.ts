@@ -1,51 +1,82 @@
 import { gql } from "@apollo/client";
 
-
-interface MenuItem {
+export interface MenuItem {
   id: string;
-  slug: string;
   title: string;
-  featuredImage?: {
-    node: {
-      sourceUrl: string;
-    };
-  };
   menuFields: {
-    menu_price: number;
-    menu_category: string;
-    menu_image?: string;
-    menu_description: string;
     isavailable: boolean;
+    menuPrice: number;
+    menuDescription: string;
+    menuCategory: {
+      nodes: {
+        id: string;
+        name: string;
+        slug: string;
+        parent?: {
+          node: {
+            id: string;
+            name: string;
+            slug: string;
+          };
+        };
+      }[];
+    };
+    menuImage: {
+      node: {
+        altText: string;
+        sourceUrl: string;
+      };
+    };
   };
 }
 
-interface MenuQueryResult {
-  menus: {
+export interface MenuQueryResult {
+  foodMenus: {
     nodes: MenuItem[];
   };
 }
 
-
 export const GET_MENUS = gql`
-  query GetMenus {
-    menus(first: 20) {
-      nodes {
-        id
-        slug
-        title
-        featuredImage {
-          node {
-            sourceUrl
+query GetMenus {
+  foodMenus(first: 20) {
+    nodes {
+      id
+      title
+      menuFields {
+        isavailable
+        menuPrice
+        menuDescription
+        menuCategory(first: 10) {
+          nodes {
+            name
+            slug
+            id
+            ... on Category {
+              id
+              name
+              parent {
+                node {
+                  id
+                  name
+                  slug
+                  count
+                }
+              }
+              count
+            }
+            count
           }
         }
-        menuFields {
-          menu_price
-          menu_category
-          menu_image
-          menu_description
-          isavailable
+        menuImage {
+          node {
+            altText
+            id
+            sourceUrl
+            title
+          }
         }
       }
     }
   }
+}
 `;

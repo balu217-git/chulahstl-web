@@ -22,15 +22,25 @@ h6 {
     font-family: var(--font-playfair), serif;
 }
 
+.font-family-body{
+    font-family: var(--font-montserrat), sans-serif;
+}
+
 .text-brand-green {
     color: var(--brand-green) !important;
 }
 .text-brand-yellow {
     color: var(--brand-yellow) !important;
 }
-
 .text-brand-orange {
     color: var(--brand-orange) !important;
+}
+.text-brand-green-light {
+    color: var(--brand-green-light) !important;
+}
+
+.text-brand-brown{
+    color: var(--brand-brown) !important;
 }
 
 .bg-brand {
@@ -114,12 +124,21 @@ h6 {
     border-radius: .5rem;
     --bs-btn-padding-x: .3rem;
     --bs-btn-padding-y: .3rem;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+}
+
+@media (max-width:600px) {
+    .btn.btn-cart {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
+    }
 }
 
 .btn:hover {
@@ -450,6 +469,12 @@ header .nav-link:hover {
 }
 
 
+.aside-sticky-top{
+    z-index: 999;
+    top: 90px;
+}
+
+
 .nav-brand-pills .nav-link {
     padding: .3rem 1.5rem !important;
     font-size: .9rem;
@@ -487,7 +512,7 @@ header .nav-link:hover {
 }
 .nav-pills .nav-link.active,
 .nav-pills .show>.nav-link {
-    color: var(--bs-nav-pills-link-active-color);
+    color: var(--bs-nav-pills-link-active-color) !important;
     background-color: var(--brand-orange);
 }
 .nav-pills .nav-link.active:hover,
@@ -592,7 +617,7 @@ header .nav-link:hover {
     top: 3px;
 }
 .footer-logo {
-    margin-top: -125px;
+    /* margin-top: -125px; */
     z-index: 10;
     position: relative;
     /* background-color: var(--brand-green); */

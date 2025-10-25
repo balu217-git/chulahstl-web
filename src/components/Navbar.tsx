@@ -1,8 +1,14 @@
 "use client";
 import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import CartIcon from "@/components/CartIcon";
+import { useCart } from "@/context/CartContext";
+
+
 
 export default function Navbar() {
   useEffect(() => {
@@ -10,6 +16,10 @@ export default function Navbar() {
   }, []);
 
   const pathname = usePathname();
+
+  const { cart } = useCart();
+
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // helper function for active link
   const isActive = (path: string) => pathname === path;
@@ -168,6 +178,23 @@ export default function Navbar() {
                       Order Online
                     </Link>
                   </li>
+                    {/* <li className="nav-item">
+                        <CartIcon />
+                    </li> */}
+                    <li className="nav-item">
+                    <Link href="#" className="position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer">
+                      <FontAwesomeIcon
+                          icon={faShoppingCart}
+                          className="text-dark"
+                          style={{ fontSize: "24px" }}
+                        />
+                          {totalItems > 0 && (
+                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                              {totalItems}
+                            </span>
+                          )}            
+                    </Link>
+                    </li>
                 </ul>
               </div>
             </div>

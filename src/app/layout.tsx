@@ -4,12 +4,14 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
+import { CartProvider } from "@/context/CartContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 // import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import BootstrapClient from "../components/BootstrapClient";
+import BootstrapClient from "@/components/BootstrapClient";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import CartDrawer from "@/components/CartDrawer";
 import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -29,18 +31,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
-
   return (
     <html lang="en">
       <body className={`${montserrat.variable} ${playfair.variable}`}>
-        <Navbar />
-        <main>
-          {children}
-          
-        </main>
-        <Footer />
-        <BootstrapClient />
+        <CartProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+           {/* This appears when user clicks the cart button */}
+      <CartDrawer />
+          <BootstrapClient />
+        </CartProvider>
       </body>
     </html>
   );
