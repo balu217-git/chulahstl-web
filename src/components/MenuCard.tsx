@@ -4,13 +4,13 @@ import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "@/context/CartContext";
+import { MenuItem } from "@/types/menu";
 
 interface MenuCardProps {
-  menu: any;
+  menu: MenuItem;
 }
 
 export default function MenuCard({ menu }: MenuCardProps) {
-
   const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
   const fields = menu.menuFields;
   const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
@@ -24,7 +24,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
         <div className="col-lg-4 col-4">
           <div className="position-relative h-100 w-100">
             <Image
-              className="img-fluid position-absalute w-100 h-100"
+              className="img-fluid position-absolute w-100 h-100"
               src={imageUrl}
               alt={menu.title || "Placeholder image"}
               width={600}
@@ -42,9 +42,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
             )}
 
             <div className="mt-auto d-flex justify-content-between align-items-center">
-              <span className="fw-semibold">
-                ${fields?.menuPrice || "0.00"}
-              </span>
+              <span className="fw-semibold">${fields?.menuPrice || "0.00"}</span>
 
               {!cartItem ? (
                 <button
@@ -65,9 +63,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
                 <div className="d-flex align-items-center gap-2">
                   <button
                     className="btn btn-sm btn-cart btn-outline-secondary"
-                    onClick={() =>
-                      updateQuantity(menu.id, cartItem.quantity - 1)
-                    }
+                    onClick={() => updateQuantity(menu.id, cartItem.quantity - 1)}
                     disabled={cartItem.quantity <= 1}
                   >
                     <FontAwesomeIcon icon={faMinus} />
@@ -77,9 +73,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
                   <button
                     className="btn btn-sm btn-cart btn-outline-secondary"
-                    onClick={() =>
-                      updateQuantity(menu.id, cartItem.quantity + 1)
-                    }
+                    onClick={() => updateQuantity(menu.id, cartItem.quantity + 1)}
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </button>
