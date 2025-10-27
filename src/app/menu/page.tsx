@@ -53,7 +53,7 @@ export default async function MenuPage() {
       <div className="container">
         <h1 className="text-3xl font-bold mb-6">Our Menu</h1>
 
-        <div className="info-container mt-5">
+        <div className="info-container mt-4">
           <div className="row g-4">
             {/* Sidebar */}
             <MenuCategoriesAside categories={allCategories} />

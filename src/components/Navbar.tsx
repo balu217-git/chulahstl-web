@@ -178,22 +178,11 @@ export default function Navbar() {
                       Order Online
                     </Link>
                   </li>
-                    {/* <li className="nav-item">
-                        <CartIcon />
-                    </li> */}
                     <li className="nav-item">
-                    <Link href="#" className="position-relative" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer">
-                      <FontAwesomeIcon
-                          icon={faShoppingCart}
-                          className="text-dark"
-                          style={{ fontSize: "24px" }}
-                        />
-                          {totalItems > 0 && (
-                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                              {totalItems}
-                            </span>
-                          )}            
-                    </Link>
+                      <CartIcon mode="page" />
+                    </li>
+                    <li className="nav-item">
+                      <CartIcon mode="drawer" drawerTarget="#cartDrawer" />
                     </li>
                 </ul>
               </div>

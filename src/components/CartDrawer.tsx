@@ -67,12 +67,12 @@ export default function CartDrawer() {
             <>
               {/* Store Info */}
               <div className="border-bottom pb-3 mb-3">
-                <h5 className="mb-1 fw-semibold text-dark">Chesterfield</h5>
+                <h5 className="mb-1 fw-semibold text-dark">Chulah</h5>
                 <small className="text-muted d-block mb-1">
                   <i className="bi bi-clock me-1"></i> Opens 11:00 AM CDT
                 </small>
                 <small className="text-muted d-block">
-                  17392 Chesterfield Airport Rd
+                  16721 MAIN ST, WILDWOOD, MO 63040
                 </small>
               </div>
 
