@@ -9,25 +9,54 @@ export default function CheckoutPage() {
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   const handleCheckout = async () => {
+    if (cart.length === 0) return alert("Your cart is empty.");
+
     setLoading(true);
+
     try {
+      const total = getTotalPrice();
+
+      // 1️⃣ Create Order in WordPress first (status: pending)
+      const orderRes = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Guest User", // Later replace with actual logged-in user
+          phone: "9999999999",
+          items: cart,
+          total,
+          paymentStatus: "pending",
+        }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderData.success) {
+        console.error("Order creation failed:", orderData);
+        alert("Failed to create order. Please try again.");
+        return;
+      }
+
+      // 2️⃣ Get Square Payment Link
       const res = await fetch("/api/square", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: getTotalPrice(),
+          amount: total,
           items: cart,
+          orderId: orderData.order.id, // pass WordPress order ID to Square
         }),
       });
 
       const data = await res.json();
       if (data.checkoutUrl) {
         setPaymentUrl(data.checkoutUrl);
-        window.location.href = data.checkoutUrl;
+        window.location.href = data.checkoutUrl; // redirect to payment
+      } else {
+        alert("Failed to initialize payment.");
       }
     } catch (error) {
-      console.error(error);
-      alert("Payment failed to initialize.");
+      console.error("Checkout error:", error);
+      alert("Something went wrong during checkout.");
     } finally {
       setLoading(false);
     }
@@ -51,7 +80,12 @@ export default function CheckoutPage() {
           ))}
         </ul>
 
-        <h4 >Total: <span className="font-family-body fw-bold">₹{getTotalPrice().toFixed(2)}</span></h4>
+        <h4>
+          Total:{" "}
+          <span className="font-family-body fw-bold">
+            ₹{getTotalPrice().toFixed(2)}
+          </span>
+        </h4>
 
         <button
           className="btn btn-wide btn-brand-orange mt-4"
@@ -62,9 +96,7 @@ export default function CheckoutPage() {
         </button>
 
         {paymentUrl && (
-          <p className="mt-3 text-muted">
-            Redirecting to Square checkout...
-          </p>
+          <p className="mt-3 text-muted">Redirecting to Square checkout...</p>
         )}
       </div>
     </section>

@@ -36,47 +36,48 @@ export interface MenuQueryResult {
   };
 }
 
+// ✅ Added `$where` argument for filtering (optional)
 export const GET_MENUS = gql`
-query GetMenus {
-  foodMenus(first: 20) {
-    nodes {
-      id
-      title
-      menuFields {
-        isavailable
-        menuPrice
-        menuDescription
-        menuCategory(first: 10) {
-          nodes {
-            name
-            slug
-            id
-            ... on Category {
-              id
+  query GetMenus($where: RootQueryToFoodMenuConnectionWhereArgs) {
+    foodMenus(first: 20, where: $where) {
+      nodes {
+        id
+        title
+        menuFields {
+          isavailable
+          menuPrice
+          menuDescription
+          menuCategory(first: 10) {
+            nodes {
               name
-              parent {
-                node {
-                  id
-                  name
-                  slug
-                  count
+              slug
+              id
+              ... on Category {
+                id
+                name
+                parent {
+                  node {
+                    id
+                    name
+                    slug
+                    count
+                  }
                 }
+                count
               }
               count
             }
-            count
           }
-        }
-        menuImage {
-          node {
-            altText
-            id
-            sourceUrl
-            title
+          menuImage {
+            node {
+              altText
+              id
+              sourceUrl
+              title
+            }
           }
         }
       }
     }
   }
-}
 `;

@@ -1,47 +1,71 @@
 import { NextResponse } from "next/server";
-import { SquareClient, SquareEnvironment } from "square";
 
-interface PaymentRequestBody {
-  amount: number;
-  items: {
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-}
-
-const client = new SquareClient({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-  environment:
-    process.env.NODE_ENV === "production"
-      ? SquareEnvironment.Production
-      : SquareEnvironment.Sandbox,
-});
+const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
+const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID!;
 
 export async function POST(req: Request) {
   try {
-    const body: PaymentRequestBody = await req.json();
+    const { amount, items, orderId } = await req.json();
 
-    const response = await client.checkoutApi.createPaymentLink({
-      idempotencyKey: crypto.randomUUID(),
-      quickPay: {
-        name: "Food Order",
-        priceMoney: {
-          amount: Math.round(body.amount * 100),
-          currency: "INR",
+    if (!amount || !orderId) {
+      return NextResponse.json(
+        { success: false, message: "Missing order details." },
+        { status: 400 }
+      );
+    }
+
+    // Convert amount to cents (required by Square)
+    const amountInCents = Math.round(amount * 100);
+
+    // 1️⃣ Create Square checkout link
+    const response = await fetch(
+      `https://connect.squareupsandbox.com/v2/online-checkout/payment-links`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SQUARE_ACCESS_TOKEN}`,
         },
-        locationId: process.env.SQUARE_LOCATION_ID!,
-      },
-    });
+        body: JSON.stringify({
+          idempotency_key: `order-${orderId}-${Date.now()}`,
+          order: {
+            location_id: SQUARE_LOCATION_ID,
+            line_items: items.map((item: any) => ({
+              name: item.title,
+              quantity: item.quantity.toString(),
+              base_price_money: {
+                amount: Math.round(item.price * 100),
+                currency: "INR",
+              },
+            })),
+          },
+          checkout_options: {
+            redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?orderId=${orderId}`,
+            ask_for_shipping_address: false,
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.payment_link) {
+      console.error("Square API error:", data);
+      return NextResponse.json(
+        { success: false, message: "Failed to create payment link." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      checkoutUrl: response.result.paymentLink?.url,
+      success: true,
+      checkoutUrl: data.payment_link.url,
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Square Payment Error:", error);
-    const message =
-      error instanceof Error ? error.message : "Payment processing failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: error.message || "Error creating payment." },
+      { status: 500 }
+    );
   }
 }
