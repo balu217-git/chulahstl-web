@@ -26,6 +26,7 @@ export default function CheckoutPage() {
           items: cart,
           total,
           paymentStatus: "pending",
+          orderStatus: "pending",
         }),
       });
 

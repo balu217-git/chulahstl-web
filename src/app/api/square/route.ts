@@ -14,10 +14,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert amount to cents (required by Square)
+    // Convert amount to cents (Square uses the smallest currency unit)
     const amountInCents = Math.round(amount * 100);
 
-    // 1️⃣ Create Square checkout link
     const response = await fetch(
       `https://connect.squareupsandbox.com/v2/online-checkout/payment-links`,
       {
@@ -35,13 +34,12 @@ export async function POST(req: Request) {
               quantity: item.quantity.toString(),
               base_price_money: {
                 amount: Math.round(item.price * 100),
-                currency: "INR",
+                currency: "USD", // or "INR" if your Square account supports it
               },
             })),
           },
           checkout_options: {
-            redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?orderId=${orderId}`,
-            ask_for_shipping_address: false,
+            redirect_url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/success?orderId=${orderId}`,
           },
         }),
       }
