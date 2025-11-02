@@ -2,14 +2,33 @@ import { NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
 import { gql } from "graphql-request";
 
-const UPDATE_ORDER_STATUS = gql`
-  mutation UpdateOrder($id: ID!, $paymentStatus: String!) {
-    updateOrder(input: { id: $id, fields: { paymentStatus: $paymentStatus } }) {
+const UPDATE_ORDER = gql`
+  mutation UpdateOrderWithACF(
+    $id: ID!
+    $paymentStatus: String
+    $orderStatus: String
+    $paymentId: String
+    $paymentOrderId: String
+  ) {
+    updateOrderWithACF(
+      input: {
+        id: $id
+        payment_status: $paymentStatus
+        order_status: $orderStatus
+        payment_id: $paymentId
+        payment_order_id: $paymentOrderId
+      }
+    ) {
+      success
+      message
       order {
-        id
+        databaseId
         title
-        fields {
+        orderDetails {
           paymentStatus
+          paymentId
+          paymentOrderId
+          orderStatus
         }
       }
     }
@@ -18,36 +37,29 @@ const UPDATE_ORDER_STATUS = gql`
 
 export async function POST(req: Request) {
   try {
-    const { orderId, paymentStatus } = await req.json();
+    const { id, paymentId, orderId } = await req.json();
 
-    if (!orderId) {
-      return NextResponse.json(
-        { success: false, message: "Missing orderId" },
-        { status: 400 }
-      );
-    }
+    console.log("🔹 Updating order:", { id, paymentId, orderId });
 
-    const response = await client.request(UPDATE_ORDER_STATUS, {
-      id: orderId,
-      paymentStatus,
+    const res = await client.request(UPDATE_ORDER, {
+      id: Number(id),
+      paymentStatus: "success",
+      orderStatus: "Paid",
+      paymentId,
+      paymentOrderId: orderId,
     });
 
-    if (!response.updateOrder) {
-      return NextResponse.json(
-        { success: false, message: "Failed to update order." },
-        { status: 500 }
-      );
-    }
+    console.log("✅ WP Order Updated Successfully:", res.updateOrderWithACF.message);
 
     return NextResponse.json({
       success: true,
-      message: "Order updated successfully.",
-      order: response.updateOrder.order,
+      message: "Order updated successfully",
+      data: res.updateOrderWithACF.order,
     });
   } catch (error: any) {
-    console.error("Update Order Error:", error);
+    console.error("❌ Update Order Error:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Error updating order." },
+      { success: false, message: error.message },
       { status: 500 }
     );
   }
