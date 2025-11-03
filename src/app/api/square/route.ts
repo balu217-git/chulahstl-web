@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   try {
     const { amount, items, orderId, databaseId } = await req.json();
 
-    if (!amount || !orderId || !Array.isArray(items)) {
+    if (!amount || !orderId || !Array.isArray(items) || !databaseId) {
       return NextResponse.json(
         { success: false, message: "Missing or invalid order details." },
         { status: 400 }
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
             })),
           },
           checkout_options: {
-            redirect_url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/success?ID=${databaseId}`,
+            redirect_url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/checkout/processing?ID=${databaseId}&orderId=${orderId}`,
           },
         }),
       }
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
     // Update WP order to pending
     await client.request(UPDATE_ORDER, {
       id: Number(databaseId),
-      paymentStatus: "pending",
+      paymentStatus: "Pending",
       orderStatus: "Awaiting Payment",
       paymentOrderId: checkoutOrderId,
     });

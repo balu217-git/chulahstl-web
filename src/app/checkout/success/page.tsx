@@ -1,62 +1,93 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
-  const [message, setMessage] = useState("Processing your payment...");
+  const router = useRouter();
+  const { clearCart } = useCart();
 
-  const id = searchParams.get("ID"); // WordPress order ID
-  const orderId = searchParams.get("orderId"); // Square order_id
-  const transactionId = searchParams.get("transactionId"); // Square payment_id
+  const id = searchParams.get("ID");
+  const orderId = searchParams.get("orderId");
+  const txFromUrl = searchParams.get("transactionId");
+
+  const [transactionId, setTransactionId] = useState<string | null>(txFromUrl || null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [message, setMessage] = useState("Finalizing your order...");
 
   useEffect(() => {
-    async function updateOrder() {
-      if (!id || !orderId || !transactionId) {
-        setMessage("Missing payment details.");
+    let mounted = true;
+
+    async function fetchFinal() {
+      if (!orderId) {
+        setMessage("Missing order information.");
         return;
       }
 
       try {
-        const res = await fetch("/api/update-order-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id,
-            paymentId: transactionId,
-            orderId,
-          }),
-        });
-
+        const res = await fetch(`/api/square/get-transaction-id?orderId=${encodeURIComponent(orderId)}`);
         const data = await res.json();
 
-        if (data.success) {
-          setMessage("✅ Payment successful! Your order has been updated.");
+        if (!mounted) return;
+
+        if (data?.success) {
+          setTransactionId(data.transactionId || transactionId);
+          setStatus(data.status || "UNKNOWN");
+          setMessage("Payment confirmed. Thank you!");
+          // clear cart now that payment is confirmed
+          try { clearCart(); } catch (e) { console.warn("clearCart failed", e); }
         } else {
-          setMessage("⚠️ Failed to update order: " + data.message);
+          setMessage("Payment found but details are not ready. Please wait a moment or contact support.");
+          setStatus("PENDING");
         }
       } catch (err) {
-        console.error("Update Error:", err);
-        setMessage("❌ Error updating order.");
+        console.error("Error fetching final payment:", err);
+        setMessage("Error verifying payment. Contact support if you were charged.");
+        setStatus("UNKNOWN");
       }
     }
 
-    updateOrder();
-  }, [id, orderId, transactionId]);
+    fetchFinal();
+
+    return () => { mounted = false; };
+  }, [orderId, clearCart]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md text-center">
-        <h1 className="text-2xl font-bold mb-4">Checkout Success</h1>
-        <p className="mb-2 text-gray-600">{message}</p>
+    <section className="hero bg-brand-light text-center d-flex align-items-center justify-content-center" style={{
+          minHeight: "80vh"
+        }}>
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="bg-white rounded-4 shadow p-md-5 p-3 col-md-9">
+        <div className="hero-content text-center">
+          <h1 className="display-6 fw-semibold mb-4">Payment Successful</h1>
+            <p className="text-gray-700 mb-4">{message}</p>
+        </div>
+        
 
-        <div className="text-sm mt-4 text-gray-500">
-          <p><strong>Order ID:</strong> {orderId || "N/A"}</p>
-          <p><strong>Payment ID:</strong> {transactionId || "N/A"}</p>
-          <p><strong>Database ID:</strong> {id || "N/A"}</p>
+        <div className="alert alert-success">
+          <div><strong>Order ID:</strong> {id || "—"}</div>
+          <div><strong>Square Order ID:</strong> {orderId || "—"}</div>
+          <div><strong>Transaction ID:</strong> {transactionId || "—"}</div>
+          <div><strong>Payment Status:</strong> {status || "—"}</div>
+        </div>
+
+        <div className="mt-5 flex justify-center gap-3">
+          <button onClick={() => router.push("/")} className="btn btn-wide btn-brand-orange"> Back to store</button>
+
+          {/* <a
+            href={`/orders/${id || ""}`}
+            className="px-4 py-2 border rounded text-gray-700"
+            onClick={(e) => { if (!id) e.preventDefault(); }}
+          >
+            View Order
+          </a> */}
         </div>
       </div>
+        </div>
     </div>
+    </section>
   );
 }

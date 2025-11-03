@@ -1,7 +1,30 @@
 import { NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
 import { gql } from "graphql-request";
+import crypto from "crypto";
 
+const SQUARE_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY!; // From Square Dashboard
+const WEBHOOK_NOTIFICATION_URL = process.env.SQUARE_WEBHOOK_URL!; // e.g., https://yourdomain.com/api/square/webhook
+
+// --- 🔍 Query: Find WP Order by square_order_id ---
+const FIND_ORDER_BY_SQUARE_ID = gql`
+  query GetOrderBySquareId($squareOrderId: String!) {
+    orders(
+      where: {
+        metaQuery: {
+          metaArray: [{ key: "square_order_id", value: $squareOrderId }]
+        }
+      }
+    ) {
+      nodes {
+        databaseId
+        title
+      }
+    }
+  }
+`;
+
+// --- 🔧 Mutation: Update WP Order ---
 const UPDATE_ORDER = gql`
   mutation UpdateOrderWithACF(
     $id: ID!
@@ -21,83 +44,114 @@ const UPDATE_ORDER = gql`
     ) {
       success
       message
-      order {
-        databaseId
-        title
-        orderDetails {
-          paymentStatus
-          paymentId
-          paymentOrderId
-          orderStatus
-        }
-      }
     }
   }
 `;
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    console.log("📩 Square Webhook Received:", JSON.stringify(body, null, 2));
+    // 1️⃣ Read raw body for signature validation
+    const rawBody = await req.text();
+    const signatureHeader = req.headers.get("x-square-hmacsha256-signature");
 
-    // Verify webhook event type
-    if (body.type !== "payment.updated" && body.type !== "payment.created") {
-      console.log("⚠️ Ignoring non-payment event:", body.type);
-      return NextResponse.json({ success: true, ignored: true });
+    // 2️⃣ Verify webhook signature
+    const hash = crypto
+      .createHmac("sha256", SQUARE_SIGNATURE_KEY)
+      .update(WEBHOOK_NOTIFICATION_URL + rawBody)
+      .digest("base64");
+
+    if (hash !== signatureHeader) {
+      console.error("❌ Invalid webhook signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payment = body.data.object.payment;
+    // 3️⃣ Parse JSON body
+    const event = JSON.parse(rawBody);
+    const { type, data } = event;
 
-    // Extract Square data
-    const squareOrderId = payment.order_id;
-    const paymentId = payment.id;
-    const paymentStatus = payment.status;
+    console.log("🔔 Square Webhook Event:", type);
 
-    console.log("✅ Extracted:", { squareOrderId, paymentId, paymentStatus });
+    // 4️⃣ Handle only payment events
+    if (type === "payment.updated" || type === "payment.created") {
+      const payment = data.object.payment;
+      const paymentId = payment.id;
+      const paymentStatus = payment.status;
+      const orderId = payment.order_id;
 
-    // Match WordPress order by custom meta field "payment_order_id"
-    const FIND_ORDER = gql`
-      query FindOrderByPaymentOrderId($paymentOrderId: String!) {
-        orders(where: { metaQuery: { metaArray: { key: "payment_order_id", value: $paymentOrderId, compare: EQUAL } } }) {
-          nodes {
-            databaseId
-            title
-          }
-        }
+      console.log("💳 Payment Update:", { paymentId, paymentStatus, orderId });
+
+      // 5️⃣ Map Square payment status to WP equivalents
+      const mappedStatus =
+        paymentStatus === "COMPLETED"
+          ? "success"
+          : paymentStatus === "FAILED"
+          ? "failed"
+          : paymentStatus === "CANCELED"
+          ? "canceled"
+          : "pending";
+
+      // 6️⃣ Find WordPress order by `square_order_id`
+      const wpOrderRes = await client.request(FIND_ORDER_BY_SQUARE_ID, {
+        squareOrderId: orderId,
+      });
+
+      const wpOrderNode = wpOrderRes?.orders?.nodes?.[0];
+      if (!wpOrderNode) {
+        console.warn("⚠️ No WordPress order found for Square orderId:", orderId);
+        return NextResponse.json({ received: true });
       }
-    `;
 
-    const findRes = await client.request(FIND_ORDER, { paymentOrderId: squareOrderId });
-    const wpOrder = findRes.orders?.nodes?.[0];
+      const wpOrderId = wpOrderNode.databaseId;
+      console.log("🔗 Found WordPress Order:", wpOrderId);
 
-    if (!wpOrder) {
-      console.log("❌ No WP order found for Square order:", squareOrderId);
-      return NextResponse.json({ success: false, message: "Order not found" });
+      // 7️⃣ Determine WordPress orderStatus
+      const orderStatus =
+        mappedStatus === "success"
+          ? "Paid"
+          : mappedStatus === "failed"
+          ? "Failed"
+          : mappedStatus === "canceled"
+          ? "Canceled"
+          : "Pending";
+
+      // 8️⃣ Update WordPress order
+      await client.request(UPDATE_ORDER, {
+        id: Number(wpOrderId),
+        paymentStatus: mappedStatus,
+        orderStatus,
+        paymentId,
+        paymentOrderId: orderId,
+      });
+
+      console.log("✅ WordPress order updated via Square webhook");
     }
 
-    console.log("🟢 Found WP Order:", wpOrder.title);
-
-    // Determine final order status
-    const newOrderStatus = paymentStatus === "COMPLETED" ? "Paid" : "Pending";
-    const newPaymentStatus = paymentStatus.toLowerCase();
-
-    // Update order in WordPress
-    const updateRes = await client.request(UPDATE_ORDER, {
-      id: wpOrder.databaseId,
-      paymentStatus: newPaymentStatus,
-      orderStatus: newOrderStatus,
-      paymentId,
-      paymentOrderId: squareOrderId,
-    });
-
-    console.log("✅ WP Order Updated via Webhook:", updateRes.updateOrderWithACF.message);
-
-    return NextResponse.json({ success: true });
+    // 9️⃣ Always respond to Square quickly (required)
+    return NextResponse.json({ received: true });
   } catch (error: any) {
     console.error("❌ Webhook Error:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: error?.message || "Server error" },
       { status: 500 }
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

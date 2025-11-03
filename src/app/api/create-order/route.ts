@@ -2,14 +2,19 @@ import { NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
 import { gql } from "graphql-request";
 
-// ✅ GraphQL mutation for creating order
+// ✅ GraphQL mutation for creating order (added email)
 const CREATE_ORDER = gql`
   mutation CreateOrderWithACF(
     $title: String!
     $name: String!
+    $email: String!
     $phone: String!
+    $address: String!
+    $deliveryType: String!
+    $deliveryTime: String!
     $items: String!
     $total: Float!
+    $paymentOrderId: String!
     $paymentStatus: String!
     $orderStatus: String!
   ) {
@@ -17,9 +22,14 @@ const CREATE_ORDER = gql`
       input: {
         title: $title
         customer_name: $name
+        customer_email: $email
         customer_phone: $phone
+        address: $address
+        delivery_type: $deliveryType
+        delivery_time: $deliveryTime
         order_items: $items
         total_amount: $total
+        payment_order_id: $paymentOrderId
         payment_status: $paymentStatus
         order_status: $orderStatus
       }
@@ -34,9 +44,13 @@ const CREATE_ORDER = gql`
         slug
         orderDetails {
           customerName
-          customerPhone
           customerEmail
+          customerPhone
+          address
+          deliveryType
+          deliveryTime
           totalAmount
+          paymentOrderId
           paymentStatus
           orderStatus
           paymentId
@@ -50,7 +64,19 @@ const CREATE_ORDER = gql`
 
 export async function POST(req: Request) {
   try {
-    const { name, phone, items, total, paymentStatus, orderStatus } = await req.json();
+    const {
+      name,
+      email,
+      phone,
+      deliveryType,
+      address,
+      deliveryTime,
+      items,
+      total,
+      paymentOrderId,
+      paymentStatus,
+      orderStatus,
+    } = await req.json();
 
     // 🔒 Validation
     if (!Array.isArray(items) || items.length === 0) {
@@ -60,9 +86,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!name || !phone) {
+    if (!name || !phone || !email || !deliveryType) {
       return NextResponse.json(
-        { success: false, message: "Customer name and phone are required." },
+        { success: false, message: "Customer name, email, and phone are required." },
         { status: 400 }
       );
     }
@@ -77,9 +103,14 @@ export async function POST(req: Request) {
     const response = await client.request(CREATE_ORDER, {
       title: orderTitle,
       name,
+      email,
       phone,
+      deliveryType,
+      address,
+      deliveryTime,
       items: orderItems,
       total: numericTotal,
+      paymentOrderId,
       paymentStatus,
       orderStatus,
     });
