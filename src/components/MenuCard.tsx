@@ -19,7 +19,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
   const cartItem = cart.find((item) => item.id === menu.id);
 
   // ✅ Availability flag
-  const isAvailable = fields?.isAvailable ?? true; // default true if missing
+  const isAvailable = fields?.isavailable ?? true; // default true if missing
 
   return (
     <div className="card menu-card h-100 bg-white text-white border-0 d-grid shadow-sm overflow-hidden">

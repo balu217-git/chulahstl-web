@@ -424,7 +424,10 @@ header .nav-link:hover {
 .menu-card .card-title{
     font-size: 14px;
 }
-
+.menu-card .btn.btn-sm.disabled{
+    padding: 0.3rem .5rem;
+    font-size: 0.7rem;
+}
 /* Dish Grid CSS */
 .dishes-grid .dishes-grid-item {
     position: relative;
