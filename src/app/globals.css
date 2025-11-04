@@ -421,6 +421,10 @@ header .nav-link:hover {
     }
 }
 
+.menu-card .card-title{
+    font-size: 14px;
+}
+
 /* Dish Grid CSS */
 .dishes-grid .dishes-grid-item {
     position: relative;

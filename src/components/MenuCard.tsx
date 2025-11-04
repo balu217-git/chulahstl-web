@@ -13,12 +13,16 @@ interface MenuCardProps {
 export default function MenuCard({ menu }: MenuCardProps) {
   const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
   const fields = menu.menuDetails;
-  const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
+  const imageUrl =
+    fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
   const price = Number(fields?.menuPrice) || 0;
   const cartItem = cart.find((item) => item.id === menu.id);
 
+  // ✅ Availability flag
+  const isAvailable = fields?.isAvailable ?? true; // default true if missing
+
   return (
-    <div className="card h-100 bg-white text-white border-0 d-grid shadow-sm overflow-hidden">
+    <div className="card menu-card h-100 bg-white text-white border-0 d-grid shadow-sm overflow-hidden">
       <div className="row g-0">
         {/* Image */}
         <div className="col-lg-4 col-4">
@@ -35,7 +39,10 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
         {/* Content */}
         <div className="col-xl-8 col-8">
-          <div className="card-body d-flex flex-column text-dark" style={{ minHeight: "150px" }}>
+          <div
+            className="card-body d-flex flex-column text-dark"
+            style={{ minHeight: "150px" }}
+          >
             <p className="card-title fw-bold mb-1">{menu.title}</p>
             {fields?.menuDescription && (
               <p className="card-text small mb-2">{fields.menuDescription}</p>
@@ -44,7 +51,15 @@ export default function MenuCard({ menu }: MenuCardProps) {
             <div className="mt-auto d-flex justify-content-between align-items-center">
               <span className="fw-semibold">${fields?.menuPrice || "0.00"}</span>
 
-              {!cartItem ? (
+              {/* ✅ If not available, show disabled button */}
+              {!isAvailable ? (
+                <button
+                  className="btn btn-sm btn-secondary disabled"
+                  disabled
+                >
+                  Not Available
+                </button>
+              ) : !cartItem ? (
                 <button
                   onClick={() =>
                     addToCart({
@@ -63,7 +78,9 @@ export default function MenuCard({ menu }: MenuCardProps) {
                 <div className="d-flex align-items-center gap-2">
                   <button
                     className="btn btn-sm btn-cart btn-outline-secondary"
-                    onClick={() => updateQuantity(menu.id, cartItem.quantity - 1)}
+                    onClick={() =>
+                      updateQuantity(menu.id, cartItem.quantity - 1)
+                    }
                     disabled={cartItem.quantity <= 1}
                   >
                     <FontAwesomeIcon icon={faMinus} />
@@ -73,7 +90,9 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
                   <button
                     className="btn btn-sm btn-cart btn-outline-secondary"
-                    onClick={() => updateQuantity(menu.id, cartItem.quantity + 1)}
+                    onClick={() =>
+                      updateQuantity(menu.id, cartItem.quantity + 1)
+                    }
                   >
                     <FontAwesomeIcon icon={faPlus} />
                   </button>

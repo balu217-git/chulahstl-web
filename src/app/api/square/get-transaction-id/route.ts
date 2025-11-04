@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SQUARE_BASE_URL = "https://connect.squareupsandbox.com/v2";
+const SQUARE_BASE_URL = process.env.SQUARE_BASE_URL!;
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
 
 export async function GET(req: NextRequest) {

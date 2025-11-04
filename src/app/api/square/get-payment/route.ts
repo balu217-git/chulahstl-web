@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
 import { gql } from "graphql-request";
 
-const SQUARE_BASE_URL = "https://connect.squareupsandbox.com/v2";
+const SQUARE_BASE_URL = process.env.SQUARE_BASE_URL!;
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
 
 // 🔹 WordPress Query — find by square_order_id

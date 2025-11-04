@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
 import { gql } from "graphql-request";
 
+const SQUARE_BASE_URL = process.env.SQUARE_BASE_URL!;
 const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
 const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID!;
 const SQUARE_CURRENCY = process.env.SQUARE_CURRENCY || "USD";
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
 
     // ✅ Create Square payment link
     const response = await fetch(
-      `https://connect.squareupsandbox.com/v2/online-checkout/payment-links`,
+      `${SQUARE_BASE_URL}/online-checkout/payment-links`,
       {
         method: "POST",
         headers: {

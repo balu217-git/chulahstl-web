@@ -4,6 +4,7 @@ export interface MenuItem {
   id: string;
   title: string;
   menuDetails: {
+    isAvailable?: boolean; // ✅ corrected name and type
     menuPrice?: string | number;
     menuDescription?: string;
     menuImage?: {

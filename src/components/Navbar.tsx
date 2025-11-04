@@ -178,9 +178,11 @@ export default function Navbar() {
                       Order Online
                     </Link>
                   </li>
+                   {cart.length > 0 && (
                     <li className="nav-item">
                       <CartIcon mode="page" />
                     </li>
+                    )}
                     {/* <li className="nav-item">
                       <CartIcon mode="drawer" drawerTarget="#cartDrawer" />
                     </li> */}

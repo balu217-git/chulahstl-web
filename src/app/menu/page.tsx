@@ -51,7 +51,7 @@ export default async function MenuPage() {
   return (
     <section className="info bg-brand-light">
       <div className="container">
-        <h1 className="text-3xl font-bold mb-6">Our Menu</h1>
+        <h1 className="fs-2 fw-bold mb-6">Our Menu</h1>
 
         <div className="info-container mt-4">
           <div className="row g-4">
@@ -62,13 +62,13 @@ export default async function MenuPage() {
             <div className="col-lg-9 col-md-8">
               {Object.entries(groupedMenus).map(([parentSlug, parentGroup]) => (
                 <div key={parentSlug} id={parentSlug} className="mb-5">
-                  <h3 className="fw-bold text-brand-green mb-4">{parentGroup.name}</h3>
+                  <h4 className="fw-bold text-brand-green mb-4">{parentGroup.name}</h4>
 
                   {Object.entries(parentGroup.children).map(([childSlug, childGroup]) => (
                     <div key={childSlug} id={childSlug} className="mb-4">
-                      <h5 className="fw-semibold text-brand-brown font-family-body mb-3">
+                      <h6 className="fw-semibold text-brand-brown font-family-body mb-3">
                         {childGroup.name}
-                      </h5>
+                      </h6>
 
                       <div className="row g-4">
                         {childGroup.items.map((menu) => (
