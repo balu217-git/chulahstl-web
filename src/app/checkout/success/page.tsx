@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic"; // prevents prerender build errors
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -34,60 +35,67 @@ export default function CheckoutSuccessPage() {
 
         if (data?.success) {
           setTransactionId(data.transactionId || transactionId);
-          setStatus(data.status || "UNKNOWN");
+          setStatus(data.status || "CONFIRMED");
           setMessage("Payment confirmed. Thank you!");
-          // clear cart now that payment is confirmed
-          try { clearCart(); } catch (e) { console.warn("clearCart failed", e); }
+
+          // clear cart after payment confirmation
+          try {
+            clearCart();
+          } catch (e) {
+            console.warn("clearCart failed", e);
+          }
         } else {
-          setMessage("Payment found but details are not ready. Please wait a moment or contact support.");
+          setMessage("Payment found but details are still processing. Please wait or contact support.");
           setStatus("PENDING");
         }
       } catch (err) {
         console.error("Error fetching final payment:", err);
-        setMessage("Error verifying payment. Contact support if you were charged.");
+        setMessage("Error verifying payment. Please contact support if you were charged.");
         setStatus("UNKNOWN");
       }
     }
 
     fetchFinal();
 
-    return () => { mounted = false; };
-  }, [orderId, clearCart]);
+    return () => {
+      mounted = false;
+    };
+  }, [orderId, clearCart, transactionId]);
 
   return (
-    <section className="hero bg-brand-light text-center d-flex align-items-center justify-content-center" style={{
-          minHeight: "80vh"
-        }}>
+    <section
+      className="hero bg-brand-light text-center d-flex align-items-center justify-content-center"
+      style={{ minHeight: "80vh" }}
+    >
       <div className="container">
         <div className="row justify-content-center">
           <div className="bg-white rounded-4 shadow p-md-5 p-3 col-md-9">
-        <div className="hero-content text-center">
-          <h1 className="display-6 fw-semibold mb-4">Payment Successful</h1>
-            <p className="text-gray-700 mb-4">{message}</p>
-        </div>
-        
+            <div className="hero-content text-center">
+              <h1 className="display-6 fw-semibold mb-4">Payment Successful</h1>
+              <p className="text-gray-700 mb-4">{message}</p>
+            </div>
 
-        <div className="alert alert-success">
-          <div><strong>Order ID:</strong> {id || "—"}</div>
-          <div><strong>Square Order ID:</strong> {orderId || "—"}</div>
-          <div><strong>Transaction ID:</strong> {transactionId || "—"}</div>
-          <div><strong>Payment Status:</strong> {status || "—"}</div>
-        </div>
+            <div className="alert alert-success text-start mx-auto" style={{ maxWidth: "600px" }}>
+              <div><strong>Order ID:</strong> {id || "—"}</div>
+              <div><strong>Square Order ID:</strong> {orderId || "—"}</div>
+              <div><strong>Transaction ID:</strong> {transactionId || "—"}</div>
+              <div><strong>Payment Status:</strong> {status || "—"}</div>
+            </div>
 
-        <div className="mt-5 flex justify-center gap-3">
-          <button onClick={() => router.push("/")} className="btn btn-wide btn-brand-orange"> Back to store</button>
-
-          {/* <a
-            href={`/orders/${id || ""}`}
-            className="px-4 py-2 border rounded text-gray-700"
-            onClick={(e) => { if (!id) e.preventDefault(); }}
-          >
-            View Order
-          </a> */}
+            <div className="mt-5 d-flex justify-content-center gap-3">
+              <button onClick={() => router.push("/")} className="btn btn-wide btn-brand-orange">
+                Back to Store
+              </button>
+              {/* Optionally show a "View Order" link */}
+              {/* {id && (
+                <a href={`/orders/${id}`} className="btn btn-outline-secondary">
+                  View Order
+                </a>
+              )} */}
+            </div>
+          </div>
         </div>
       </div>
-        </div>
-    </div>
     </section>
   );
 }
