@@ -128,13 +128,12 @@ export async function POST(req: Request) {
 
     // 9️⃣ Always respond to Square quickly (required)
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error("❌ Webhook Error:", error);
-    return NextResponse.json(
-      { success: false, message: error?.message || "Server error" },
-      { status: 500 }
-    );
-  }
+  } catch (error: unknown) {
+      console.error("❌ Webhook Error:", error);
+      const message = error instanceof Error ? error.message : "Server error";
+      return NextResponse.json({ success: false, message }, { status: 500 });
+    }
+
 }
 
 

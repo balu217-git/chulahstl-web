@@ -79,8 +79,16 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("❌ Webhook error:", error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
-  }
+  } catch (error: unknown) {
+  console.error("❌ Webhook error:", error);
+
+  const message =
+    error instanceof Error ? error.message : "An unexpected server error occurred.";
+
+  return NextResponse.json(
+    { success: false, message },
+    { status: 500 }
+  );
+}
+
 }

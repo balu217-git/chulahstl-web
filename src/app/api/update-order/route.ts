@@ -113,17 +113,18 @@ export async function POST(req: Request) {
       message: result.message || "Order updated successfully.",
       data: result.order,
     });
-  } catch (error: any) {
-    console.error("❌ Update Order Error:", error);
+  } catch (error: unknown) {
+      console.error("❌ Update Order Error:", error);
 
-    const wpError =
-      error?.response?.errors?.[0]?.message ||
-      error?.message ||
-      "Unexpected server error.";
+      const wpError =
+        error instanceof Error
+          ? error.message
+          : (error as any)?.response?.errors?.[0]?.message || "Unexpected server error.";
 
-    return NextResponse.json(
-      { success: false, message: wpError },
-      { status: 500 }
-    );
-  }
+      return NextResponse.json(
+        { success: false, message: wpError },
+        { status: 500 }
+      );
+    }
+
 }

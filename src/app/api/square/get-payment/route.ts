@@ -91,11 +91,12 @@ export async function GET(req: NextRequest) {
       currency,
       message: "Fetched payment info from Square API.",
     });
-  } catch (error: any) {
-    console.error("❌ Payment status error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Internal server error." },
-      { status: 500 }
-    );
-  }
+  } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error("❌ Payment status error:", err);
+      return NextResponse.json(
+        { success: false, message: err.message || "Internal server error." },
+        { status: 500 }
+      );
+    }
 }

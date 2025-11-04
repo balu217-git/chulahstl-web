@@ -6,6 +6,13 @@ const SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN!;
 const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID!;
 const SQUARE_CURRENCY = process.env.SQUARE_CURRENCY || "USD";
 
+// Define a type for order items
+interface OrderItem {
+  title: string;
+  quantity: number;
+  price: number;
+}
+
 // ✅ Update WP order mutation
 const UPDATE_ORDER = gql`
   mutation UpdateOrderWithACF(
@@ -39,7 +46,12 @@ const UPDATE_ORDER = gql`
 
 export async function POST(req: Request) {
   try {
-    const { amount, items, orderId, databaseId } = await req.json();
+    const { amount, items, orderId, databaseId } = await req.json() as {
+      amount: number;
+      items: OrderItem[];
+      orderId: string;
+      databaseId: number;
+    };
 
     if (!amount || !orderId || !Array.isArray(items) || !databaseId) {
       return NextResponse.json(
@@ -57,7 +69,7 @@ export async function POST(req: Request) {
       location: SQUARE_LOCATION_ID,
     });
 
-    // Create Square payment link
+    // ✅ Create Square payment link
     const response = await fetch(
       `https://connect.squareupsandbox.com/v2/online-checkout/payment-links`,
       {
@@ -70,7 +82,7 @@ export async function POST(req: Request) {
           idempotency_key: `order-${databaseId}-${orderId}-${Date.now()}`,
           order: {
             location_id: SQUARE_LOCATION_ID,
-            line_items: items.map((item: any) => ({
+            line_items: items.map((item) => ({
               name: item.title,
               quantity: item.quantity.toString(),
               base_price_money: {
@@ -99,7 +111,7 @@ export async function POST(req: Request) {
     const checkoutUrl = data.payment_link.url;
     const checkoutOrderId = data.payment_link.order_id;
 
-    // Update WP order to pending
+    // ✅ Update WP order to pending
     await client.request(UPDATE_ORDER, {
       id: Number(databaseId),
       paymentStatus: "Pending",
@@ -115,11 +127,12 @@ export async function POST(req: Request) {
       checkoutOrderId,
       message: "Payment link created and order updated successfully.",
     });
-  } catch (error: any) {
-    console.error("Square Payment Error:", error);
-    return NextResponse.json(
-      { success: false, message: error.message || "Error creating payment." },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    console.error("❌ Square Payment Error:", error);
+
+    const message =
+      error instanceof Error ? error.message : "Error creating payment.";
+
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

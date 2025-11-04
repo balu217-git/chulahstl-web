@@ -36,11 +36,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Extract payment details if available
-    let payment = paymentsData?.payments?.[0];
+    const payment = paymentsData?.payments?.[0];
     let transactionId =
-      payment?.id ||
-      payment?.tenders?.[0]?.id ||
-      null;
+      payment?.id || payment?.tenders?.[0]?.id || null;
     let status = payment?.status || "UNKNOWN";
 
     // 2️⃣ If not found in payments API, try fetching order details
@@ -98,13 +96,18 @@ export async function GET(req: NextRequest) {
       status,
       message: "✅ Payment found successfully.",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🚨 Square Payment Fetch Error:", error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Error fetching payment from Square.";
+
     return NextResponse.json(
       {
         success: false,
-        message: "Error fetching payment from Square.",
-        error: error?.message || String(error),
+        message,
       },
       { status: 500 }
     );
