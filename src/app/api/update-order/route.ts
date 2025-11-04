@@ -119,12 +119,14 @@ export async function POST(req: Request) {
       const wpError =
         error instanceof Error
           ? error.message
-          : (error as any)?.response?.errors?.[0]?.message || "Unexpected server error.";
+          : typeof error === "object" &&
+            error !== null &&
+            "response" in error &&
+            Array.isArray((error as { response: { errors?: { message?: string }[] } }).response?.errors)
+          ? (error as { response: { errors?: { message?: string }[] } }).response.errors?.[0]?.message ||
+            "Unexpected server error."
+          : "Unexpected server error.";
 
-      return NextResponse.json(
-        { success: false, message: wpError },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, message: wpError }, { status: 500 });
     }
-
 }

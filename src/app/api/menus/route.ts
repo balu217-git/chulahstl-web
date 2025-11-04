@@ -14,10 +14,17 @@ export async function GET(request: Request) {
     const menus = data?.foodMenus?.nodes || [];
 
     return NextResponse.json({ success: true, data: menus });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Error fetching menus:", error);
+
+    let message = "Failed to fetch menus";
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
+
     return NextResponse.json(
-      { success: false, message: "Failed to fetch menus", error: error.message },
+      { success: false, message },
       { status: 500 }
     );
   }

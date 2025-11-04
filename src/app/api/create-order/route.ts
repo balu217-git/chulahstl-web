@@ -95,8 +95,6 @@ export async function POST(req: Request) {
 
     const orderTitle = `Order-${Date.now()}`;
     const orderItems = JSON.stringify(items);
-
-    // 🧠 Ensure numeric total
     const numericTotal = typeof total === "string" ? parseFloat(total) : total;
 
     // 🚀 Send GraphQL mutation
@@ -130,10 +128,16 @@ export async function POST(req: Request) {
       message: "✅ Order created successfully.",
       order,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🛑 Create Order Error:", error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Error creating order.";
+
     return NextResponse.json(
-      { success: false, message: error.message || "Error creating order." },
+      { success: false, message },
       { status: 500 }
     );
   }
