@@ -34,7 +34,7 @@ export default function CheckoutSuccessPage() {
 
         if (data?.success) {
           setTransactionId(data.transactionId || transactionId);
-          setStatus(data.status || "UNKNOWN");
+          setStatus(data.status || "SUCCESS");
           setMessage("Payment confirmed. Thank you!");
           try {
             clearCart();
@@ -42,7 +42,7 @@ export default function CheckoutSuccessPage() {
             console.warn("clearCart failed", e);
           }
         } else {
-          setMessage("Payment found but details are not ready. Please wait a moment or contact support.");
+          setMessage("Payment found but details are not ready. Please wait or contact support.");
           setStatus("PENDING");
         }
       } catch (err) {
@@ -57,7 +57,7 @@ export default function CheckoutSuccessPage() {
     return () => {
       mounted = false;
     };
-  }, [orderId, clearCart]);
+  }, [orderId, clearCart, transactionId]);
 
   return (
     <section
@@ -81,7 +81,7 @@ export default function CheckoutSuccessPage() {
 
             <div className="mt-5 flex justify-center gap-3">
               <button onClick={() => router.push("/")} className="btn btn-wide btn-brand-orange">
-                Back to store
+                Back to Store
               </button>
             </div>
           </div>

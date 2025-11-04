@@ -1,11 +1,11 @@
+"use client";
+
 import { Suspense } from "react";
-import CheckoutSuccessPage from "./CheckoutSuccessClient";
+import CheckoutSuccessPage from "@/components/CheckoutSuccessPage";
 
-export const dynamic = "force-dynamic"; // prevent prerendering
-
-export default function Page() {
+export default function CheckoutSuccessWrapper() {
   return (
-    <Suspense fallback={<div>Loading payment details...</div>}>
+    <Suspense fallback={<div className="text-center p-10">Loading payment success...</div>}>
       <CheckoutSuccessPage />
     </Suspense>
   );
