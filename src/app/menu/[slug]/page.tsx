@@ -8,11 +8,7 @@ interface PageProps {
 export default async function MenuDetailPage({ params }: PageProps) {
   const { slug } = params;
 
-  const { data } = await client.query({
-    query: GET_MENU_BY_SLUG,
-    variables: { slug },
-  });
-
+  const data = await client.request(GET_MENU_BY_SLUG, { slug });
   const menu = data?.menu;
 
   if (!menu) return <p>Menu not found.</p>;
@@ -29,7 +25,11 @@ export default async function MenuDetailPage({ params }: PageProps) {
       )}
       <p>{menu.menuDetails?.menuDescription}</p>
       <p className="text-blue-600 font-bold">₹{menu.menuDetails?.menuPrice}</p>
-      <p className={`${menu.menuDetails?.isavailable ? "text-green-600" : "text-red-500"}`}>
+      <p
+        className={`${
+          menu.menuDetails?.isavailable ? "text-green-600" : "text-red-500"
+        }`}
+      >
         {menu.menuDetails?.isavailable ? "Available" : "Unavailable"}
       </p>
     </div>
