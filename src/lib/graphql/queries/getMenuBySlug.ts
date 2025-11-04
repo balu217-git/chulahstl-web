@@ -6,7 +6,7 @@ export const GET_MENU_BY_SLUG = gql`
       id
       title
       slug
-      menuFields {
+      menuDetails {
         menuPrice
         menuDescription
         isavailable

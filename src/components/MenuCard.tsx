@@ -12,7 +12,7 @@ interface MenuCardProps {
 
 export default function MenuCard({ menu }: MenuCardProps) {
   const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
-  const fields = menu.menuFields;
+  const fields = menu.menuDetails;
   const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
   const price = Number(fields?.menuPrice) || 0;
   const cartItem = cart.find((item) => item.id === menu.id);

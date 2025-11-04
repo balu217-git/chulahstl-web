@@ -3,7 +3,7 @@
 export interface MenuItem {
   id: string;
   title: string;
-  menuFields: {
+  menuDetails: {
     menuPrice?: string | number;
     menuDescription?: string;
     menuImage?: {

@@ -132,7 +132,7 @@ export default function CheckoutPage() {
               <h5 className="mb-3">Customer Information</h5>
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">Full Name</label>
+                <label className="form-label small">Full Name</label>
                 <input
                   type="text"
                   className="form-control"
@@ -143,7 +143,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">Email Address</label>
+                <label className="form-label small">Email Address</label>
                 <input
                   type="email"
                   className="form-control"
@@ -154,7 +154,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">Phone Number</label>
+                <label className="form-label small">Phone Number</label>
                 <input
                   type="tel"
                   className="form-control"
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
                   checked={deliveryType === "pickup"}
                   onChange={() => setDeliveryType("pickup")}
                 />
-                <label className="form-check-label" htmlFor="pickup">
+                <label className="form-check-label small" htmlFor="pickup">
                   Pickup
                 </label>
               </div>
@@ -192,7 +192,7 @@ export default function CheckoutPage() {
                   checked={deliveryType === "delivery"}
                   onChange={() => setDeliveryType("delivery")}
                 />
-                <label className="form-check-label" htmlFor="delivery">
+                <label className="form-check-label small" htmlFor="delivery">
                   Delivery
                 </label>
               </div>
@@ -209,8 +209,8 @@ export default function CheckoutPage() {
                 </div>
               ) : (
                 <div className="row g-3 mt-3">
-                  <div className="col-md-8">
-                    <label className="form-label">Delivery Address</label>
+                  <div className="col-md-7">
+                    <label className="form-label small">Delivery Address</label>
                     <input
                       type="text"
                       className="form-control"
@@ -219,8 +219,8 @@ export default function CheckoutPage() {
                       onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
-                  <div className="col-md-4">
-                    <label className="form-label">Preferred Delivery Time</label>
+                  <div className="col-md-5">
+                    <label className="form-label small">Preferred Delivery Time</label>
                     <input
                       type="time"
                       className="form-control"

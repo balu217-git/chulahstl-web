@@ -3,7 +3,7 @@ import { gql } from "@apollo/client";
 export interface MenuItem {
   id: string;
   title: string;
-  menuFields: {
+  menuDetails: {
     isavailable: boolean;
     menuPrice: number;
     menuDescription: string;
@@ -38,16 +38,16 @@ export interface MenuQueryResult {
 
 // ✅ Added `$where` argument for filtering (optional)
 export const GET_MENUS = gql`
-  query GetMenus($where: RootQueryToFoodMenuConnectionWhereArgs) {
+ query GetMenus($where: RootQueryToFoodMenuConnectionWhereArgs) {
     foodMenus(first: 20, where: $where) {
       nodes {
         id
         title
-        menuFields {
+        menuDetails{
           isavailable
           menuPrice
           menuDescription
-          menuCategory(first: 10) {
+          menuCategory(first: 20) {
             nodes {
               name
               slug

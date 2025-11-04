@@ -10,7 +10,7 @@ export default async function MenuPage() {
 
   // Extract all categories
   const allCategories: CategoryNode[] =
-    menus.flatMap((menu) => menu.menuFields.menuCategory?.nodes || []) || [];
+    menus.flatMap((menu) => menu.menuDetails.menuCategory?.nodes || []) || [];
 
   // Group menus by parent → child
   const groupedMenus: Record<
@@ -19,7 +19,7 @@ export default async function MenuPage() {
   > = {};
 
   menus.forEach((menu) => {
-    const categories = menu.menuFields.menuCategory?.nodes || [];
+    const categories = menu.menuDetails.menuCategory?.nodes || [];
 
     categories.forEach((cat) => {
       const parent = cat.parent?.node;

@@ -181,9 +181,9 @@ export default function Navbar() {
                     <li className="nav-item">
                       <CartIcon mode="page" />
                     </li>
-                    {/* <li className="nav-item">
+                    <li className="nav-item">
                       <CartIcon mode="drawer" drawerTarget="#cartDrawer" />
-                    </li> */}
+                    </li>
                 </ul>
               </div>
             </div>

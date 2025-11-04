@@ -20,17 +20,17 @@ export default async function MenuDetailPage({ params }: PageProps) {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-4">{menu.title}</h1>
-      {menu.menuFields?.menuImage?.node?.sourceUrl && (
+      {menu.menuDetails?.menuImage?.node?.sourceUrl && (
         <img
-          src={menu.menuFields.menuImage.node.sourceUrl}
+          src={menu.menuDetails.menuImage.node.sourceUrl}
           alt={menu.title}
           className="rounded mb-4"
         />
       )}
-      <p>{menu.menuFields?.menuDescription}</p>
-      <p className="text-blue-600 font-bold">₹{menu.menuFields?.menuPrice}</p>
-      <p className={`${menu.menuFields?.isavailable ? "text-green-600" : "text-red-500"}`}>
-        {menu.menuFields?.isavailable ? "Available" : "Unavailable"}
+      <p>{menu.menuDetails?.menuDescription}</p>
+      <p className="text-blue-600 font-bold">₹{menu.menuDetails?.menuPrice}</p>
+      <p className={`${menu.menuDetails?.isavailable ? "text-green-600" : "text-red-500"}`}>
+        {menu.menuDetails?.isavailable ? "Available" : "Unavailable"}
       </p>
     </div>
   );
