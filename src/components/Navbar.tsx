@@ -169,15 +169,15 @@ export default function Navbar() {
                       Contact
                     </Link>
                   </li>
-                  {/* <li className="nav-item">
+                  <li className="nav-item">
                     <Link className={`btn btn-brand-green ms-md-2 ${
-                        isActive("/menu") ? "active" : ""
+                        isActive("/quick-service-lunches") ? "active" : ""
                       }`}
-                      href="/menu"
+                      href="/quick-service-lunches"
                     >
                       Order Online
                     </Link>
-                  </li> */}
+                  </li>
                    {/* {cart.length > 0 && (
                     <li className="nav-item">
                       <CartIcon mode="page" />
