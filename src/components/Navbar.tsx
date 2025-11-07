@@ -169,7 +169,7 @@ export default function Navbar() {
                       Contact
                     </Link>
                   </li>
-                  <li className="nav-item">
+                  {/* <li className="nav-item">
                     <Link className={`btn btn-brand-green ms-md-2 ${
                         isActive("/menu") ? "active" : ""
                       }`}
@@ -177,12 +177,12 @@ export default function Navbar() {
                     >
                       Order Online
                     </Link>
-                  </li>
-                   {cart.length > 0 && (
+                  </li> */}
+                   {/* {cart.length > 0 && (
                     <li className="nav-item">
                       <CartIcon mode="page" />
                     </li>
-                    )}
+                    )} */}
                     {/* <li className="nav-item">
                       <CartIcon mode="drawer" drawerTarget="#cartDrawer" />
                     </li> */}
