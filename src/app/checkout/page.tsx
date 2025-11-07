@@ -9,7 +9,7 @@ export default function CheckoutPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [deliveryType, setDeliveryType] = useState<"pickup" | "delivery">("pickup");
+  const [orderMode, setOrderMode] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ export default function CheckoutPage() {
     if (!/^\(\d{3}\)\s\d{3}-\d{4}$/.test(phone))
       return alert("Please enter a valid US phone number (e.g. (555) 555-5555).");
 
-    if (deliveryType === "delivery" && !address.trim())
+    if (orderMode === "delivery" && !address.trim())
       return alert("Please enter your delivery address.");
 
     setLoading(true);
@@ -53,7 +53,7 @@ export default function CheckoutPage() {
           name,
           email,
           phone,
-          deliveryType,
+          orderMode,
           address,
           deliveryTime,
           items: cart,
@@ -173,10 +173,10 @@ export default function CheckoutPage() {
                 <input
                   className="form-check-input"
                   type="radio"
-                  name="deliveryType"
+                  name="orderMode"
                   id="pickup"
-                  checked={deliveryType === "pickup"}
-                  onChange={() => setDeliveryType("pickup")}
+                  checked={orderMode === "pickup"}
+                  onChange={() => setOrderMode("pickup")}
                 />
                 <label className="form-check-label small" htmlFor="pickup">
                   Pickup
@@ -187,17 +187,17 @@ export default function CheckoutPage() {
                 <input
                   className="form-check-input"
                   type="radio"
-                  name="deliveryType"
+                  name="orderMode"
                   id="delivery"
-                  checked={deliveryType === "delivery"}
-                  onChange={() => setDeliveryType("delivery")}
+                  checked={orderMode === "delivery"}
+                  onChange={() => setOrderMode("delivery")}
                 />
                 <label className="form-check-label small" htmlFor="delivery">
                   Delivery
                 </label>
               </div>
 
-              {deliveryType === "pickup" ? (
+              {orderMode === "pickup" ? (
                 <div className="mt-3 alert alert-info">
                   <strong>Pickup Location:</strong>
                   <br />

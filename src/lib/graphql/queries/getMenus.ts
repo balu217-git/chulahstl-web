@@ -1,40 +1,42 @@
-import { gql } from "@apollo/client";
+// import { gql } from "@apollo/client";
 
-export interface MenuItem {
-  id: string;
-  title: string;
-  menuDetails: {
-    isavailable: boolean;
-    menuPrice: number;
-    menuDescription: string;
-    menuCategory: {
-      nodes: {
-        id: string;
-        name: string;
-        slug: string;
-        parent?: {
-          node: {
-            id: string;
-            name: string;
-            slug: string;
-          };
-        };
-      }[];
-    };
-    menuImage: {
-      node: {
-        altText: string;
-        sourceUrl: string;
-      };
-    };
-  };
-}
+import { gql } from "graphql-request";
 
-export interface MenuQueryResult {
-  foodMenus: {
-    nodes: MenuItem[];
-  };
-}
+// export interface MenuItem {
+//   id: string;
+//   title: string;
+//   menuDetails: {
+//     isavailable: boolean;
+//     menuPrice: number;
+//     menuDescription: string;
+//     menuCategory: {
+//       nodes: {
+//         id: string;
+//         name: string;
+//         slug: string;
+//         parent?: {
+//           node: {
+//             id: string;
+//             name: string;
+//             slug: string;
+//           };
+//         };
+//       }[];
+//     };
+//     menuImage: {
+//       node: {
+//         altText: string;
+//         sourceUrl: string;
+//       };
+//     };
+//   };
+// }
+
+// export interface MenuQueryResult {
+//   foodMenus: {
+//     nodes: MenuItem[];
+//   };
+// }
 
 // ✅ Added `$where` argument for filtering (optional)
 export const GET_MENUS = gql`

@@ -1,74 +1,30 @@
 import { NextResponse } from "next/server";
 import client from "@/lib/graphql/client";
-import { gql } from "graphql-request";
+import { CREATE_ORDER } from "@/lib/graphql/mutations/createOrder";
 
-// ✅ GraphQL mutation for creating order (added email)
-const CREATE_ORDER = gql`
-  mutation CreateOrderWithACF(
-    $title: String!
-    $name: String!
-    $email: String!
-    $phone: String!
-    $address: String!
-    $deliveryType: String!
-    $deliveryTime: String!
-    $items: String!
-    $total: Float!
-    $paymentOrderId: String!
-    $paymentStatus: String!
-    $orderStatus: String!
-  ) {
-    createOrderWithACF(
-      input: {
-        title: $title
-        customer_name: $name
-        customer_email: $email
-        customer_phone: $phone
-        address: $address
-        delivery_type: $deliveryType
-        delivery_time: $deliveryTime
-        order_items: $items
-        total_amount: $total
-        payment_order_id: $paymentOrderId
-        payment_status: $paymentStatus
-        order_status: $orderStatus
-      }
-    ) {
-      success
-      message
-      order {
-        id
-        databaseId
-        title
-        date
-        slug
-        orderDetails {
-          customerName
-          customerEmail
-          customerPhone
-          address
-          deliveryType
-          deliveryTime
-          totalAmount
-          paymentOrderId
-          paymentStatus
-          orderStatus
-          paymentId
-          notes
-          orderItems
-        }
-      }
-    }
-  }
-`;
+// Define the expected request body type for clarity
+interface OrderRequestBody {
+  name: string;
+  email: string;
+  phone: string;
+  orderMode: "pickup" | "delivery";
+  address?: string;
+  deliveryTime?: string;
+  items: any[];
+  total: number | string;
+  paymentOrderId?: string;
+  paymentStatus?: string;
+  orderStatus?: string;
+}
 
 export async function POST(req: Request) {
   try {
+    const body: OrderRequestBody = await req.json();
     const {
       name,
       email,
       phone,
-      deliveryType,
+      orderMode,
       address,
       deliveryTime,
       items,
@@ -76,9 +32,16 @@ export async function POST(req: Request) {
       paymentOrderId,
       paymentStatus,
       orderStatus,
-    } = await req.json();
+    } = body;
 
-    // 🔒 Validation
+    // 🧩 Validate required fields
+    if (!name || !email || !phone || !orderMode) {
+      return NextResponse.json(
+        { success: false, message: "Customer name, email, phone, and order mode are required." },
+        { status: 400 }
+      );
+    }
+
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { success: false, message: "Cart items are missing." },
@@ -86,31 +49,25 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!name || !phone || !email || !deliveryType) {
-      return NextResponse.json(
-        { success: false, message: "Customer name, email, and phone are required." },
-        { status: 400 }
-      );
-    }
-
+    // 🧾 Prepare data
     const orderTitle = `Order-${Date.now()}`;
     const orderItems = JSON.stringify(items);
     const numericTotal = typeof total === "string" ? parseFloat(total) : total;
 
-    // 🚀 Send GraphQL mutation
+    // 🚀 Send GraphQL Mutation
     const response = await client.request(CREATE_ORDER, {
       title: orderTitle,
       name,
       email,
       phone,
-      deliveryType,
+      orderMode,
       address,
       deliveryTime,
       items: orderItems,
       total: numericTotal,
-      paymentOrderId,
-      paymentStatus,
-      orderStatus,
+      paymentOrderId: paymentOrderId || "",
+      paymentStatus: paymentStatus || "pending",
+      orderStatus: orderStatus || "new",
     });
 
     const order = response?.createOrderWithACF?.order;
@@ -118,11 +75,12 @@ export async function POST(req: Request) {
     if (!order) {
       console.error("❌ No order returned from GraphQL:", response);
       return NextResponse.json(
-        { success: false, message: "Order not created on server." },
+        { success: false, message: "Order not created on the server." },
         { status: 500 }
       );
     }
 
+    // ✅ Success
     return NextResponse.json({
       success: true,
       message: "✅ Order created successfully.",
@@ -134,7 +92,7 @@ export async function POST(req: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Error creating order.";
+        : "Unexpected error occurred while creating the order.";
 
     return NextResponse.json(
       { success: false, message },
