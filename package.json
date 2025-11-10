@@ -24,6 +24,7 @@
     "next": "15.5.3",
     "nodemailer": "^7.0.9",
     "react": "19.1.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "19.1.0",
     "react-slick": "^0.31.0",
     "slick-carousel": "^1.8.1",

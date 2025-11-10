@@ -1,239 +1,128 @@
 "use client";
 
-import { useCart } from "@/context/CartContext";
+import { Offcanvas, Button } from "react-bootstrap";
+import OrderTypeModal from "@/components/OrderTypeModal";
 import { useState } from "react";
+import { useCart } from "@/context/CartContext";
+import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
-export default function CartDrawer() {
-  const { cart, getTotalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
-  const [mode, setMode] = useState<"pickup" | "delivery">("pickup");
+export default function CartDrawer({ show, onClose }: { show: boolean; onClose: () => void }) {
+  const { cart, getTotalPrice, updateQuantity, removeFromCart, clearCart, orderMode, setOrderMode } =
+    useCart();
+
+  const [showOrderModal, setShowOrderModal] = useState(false);
+
+  const handleOrderModeClick = (mode: "pickup" | "delivery") => {
+    setOrderMode(mode);
+    if (mode === "delivery") setShowOrderModal(true);
+  };
 
   return (
     <>
-      <div
-        className="offcanvas offcanvas-end"
-        tabIndex={-1}
-        id="cartDrawer"
-        aria-labelledby="cartDrawerLabel"
-      >
-        {/* Header */}
-        <div className="offcanvas-header border-bottom">
-          <h5 className="offcanvas-title fw-bold" id="cartDrawerLabel">
-            Order Details
-          </h5>
-          <button
-            type="button"
-            className="btn-close"
-            data-bs-dismiss="offcanvas"
-            aria-label="Close"
-          ></button>
-        </div>
+      <Offcanvas show={show} onHide={onClose} placement="end" backdrop={true}>
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Cart</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body className="d-flex flex-column justify-content-between h-100">
+  <div className="cart-items flex-grow-1 overflow-auto">
+    <div className="btn-group mb-4 w-100">
+      {["pickup", "delivery"].map((type) => (
+        <Button
+          key={type}
+          type="button"
+          className={`btn ${
+            orderMode === type
+              ? "btn-dark"
+              : "btn-outline-dark bg-transparent text-dark"
+          }`}
+          onClick={() => handleOrderModeClick(type as "pickup" | "delivery")}
+        >
+          {type}
+        </Button>
+      ))}
+    </div>
 
-        {/* Body */}
-        <div className="offcanvas-body d-flex flex-column">
-          {/* Pickup / Delivery Toggle */}
-          <div className="d-flex justify-content-center mb-4">
-            <div
-              className="btn-group w-100 rounded-pill overflow-hidden shadow-sm"
-              role="group"
-              aria-label="Pickup or Delivery"
+    {cart.length === 0 ? (
+      <div className="text-center py-5">
+        <p>Your cart is empty.</p>
+        <Link className="btn btn-brand-green" href="/menu">
+          View Menu
+        </Link>
+      </div>
+    ) : (
+      cart.map((item) => (
+        <div
+          key={item.id}
+          className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3"
+        >
+          <div className="d-flex align-items-center gap-3">
+            <Image
+              src={item.image || "/images/img-dish-icon-bg.webp"}
+              alt={item.title}
+              width={60}
+              height={60}
+              className="rounded"
+            />
+            <div>
+              <p className="mb-1 fw-semibold">{item.title}</p>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  className="btn btn-cart btn-outline-secondary btn-sm btn-light"
+                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                >
+                  <FontAwesomeIcon icon={faMinus} />
+                </Button>
+                <span>{item.quantity}</span>
+                <Button
+                  className="btn btn-cart btn-outline-secondary btn-sm btn-light"
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="text-end">
+            <p className="fw-bold mb-1">₹{(item.price * item.quantity).toFixed(2)}</p>
+            <Button
+              className="btn btn-sm btn-link text-danger p-0 shadow-none"
+              onClick={() => removeFromCart(item.id)}
             >
-              {["pickup", "delivery"].map((type) => (
-                <input
-                  key={type}
-                  type="radio"
-                  className="btn-check"
-                  name="orderMode"
-                  id={type}
-                  checked={mode === type}
-                  onChange={() => setMode(type as "pickup" | "delivery")}
-                />
-              ))}
-
-              <label
-                className={`btn ${
-                  mode === "pickup"
-                    ? "btn-dark bg-neutral-700 text-white"
-                    : "btn-outline-dark text-muted"
-                } rounded-start-pill fw-semibold text-capitalize`}
-                htmlFor="pickup"
-              >
-                Pickup
-              </label>
-              <label
-                className={`btn ${
-                  mode === "delivery"
-                    ? "btn-dark bg-neutral-700 text-white"
-                    : "btn-outline-dark text-muted"
-                } rounded-end-pill fw-semibold text-capitalize`}
-                htmlFor="delivery"
-              >
-                Delivery
-              </label>
-            </div>
-          </div>
-
-          {/* Cart Items */}
-          <div className="flex-grow-1 overflow-auto mb-3" style={{ maxHeight: "60vh" }}>
-            {cart.length === 0 ? (
-              <div className="text-center py-5">
-                <p className="fw-semibold">Your cart is empty.</p>
-              </div>
-            ) : (
-              <>
-                {/* Store Info */}
-                <div className="border-bottom pb-3 mb-3">
-                  <h5 className="mb-1 fw-semibold text-dark">Chulah</h5>
-                  <small className="text-muted d-block mb-1">
-                    <i className="bi bi-clock me-1"></i> Opens 11:00 AM CDT
-                  </small>
-                  <small className="text-muted d-block">
-                    16721 MAIN ST, WILDWOOD, MO 63040
-                  </small>
-                </div>
-
-                {/* Items */}
-                {cart.map((item) => (
-                  <div
-                    key={item.id}
-                    className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3"
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <Image
-                        src={item.image || "/images/img-dish-icon-bg.webp"}
-                        alt={item.title}
-                        width={60}
-                        height={60}
-                        className="rounded"
-                      />
-                      <div>
-                        <p className="mb-1 fw-semibold">{item.title}</p>
-                        <div className="d-flex align-items-center gap-2">
-                          <button
-                            className="btn btn-cart btn-outline-secondary btn-sm"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                          >
-                            <FontAwesomeIcon icon={faMinus} />
-                          </button>
-                          <span>{item.quantity}</span>
-                          <button
-                            className="btn btn-cart btn-outline-secondary btn-sm"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          >
-                            <FontAwesomeIcon icon={faPlus} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="fw-bold mb-1">
-                        ₹{(item.price * item.quantity).toFixed(2)}
-                      </p>
-                      <button
-                        className="btn btn-sm btn-link text-danger p-0 shadow-none"
-                        onClick={() => removeFromCart(item.id)}
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="border-top pt-3 mt-auto">
-            {cart.length > 0 && (
-              <>
-                <div className="d-flex justify-content-between mb-3">
-                  <span className="fw-semibold">Subtotal</span>
-                  <span className="fw-bold">₹{getTotalPrice().toFixed(2)}</span>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn btn-brand-orange w-100 mb-2 rounded-pill fw-semibold"
-                  data-bs-toggle="modal"
-                  data-bs-target="#scheduleModal"
-                >
-                  Schedule {mode === "pickup" ? "Pickup" : "Delivery"}
-                </button>
-
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary w-100 rounded-pill"
-                  onClick={clearCart}
-                >
-                  Clear Cart
-                </button>
-              </>
-            )}
+              <FontAwesomeIcon icon={faTrash} />
+            </Button>
           </div>
         </div>
+      ))
+    )}
+  </div>
+
+  {cart.length > 0 && (
+    <div className="border-top pt-3 sticky-bottom bg-white">
+      <div className="d-flex justify-content-between mb-3">
+        <span>Subtotal</span>
+        <span>₹{getTotalPrice().toFixed(2)}</span>
       </div>
 
-      {/* Schedule Modal */}
-      <div
-        className="modal fade"
-        id="scheduleModal"
-        tabIndex={-1}
-        aria-labelledby="scheduleModalLabel"
-        aria-hidden="true"
+      <Link href="/checkout" className="btn btn-brand-orange w-100 mb-2 rounded-pill">
+        Checkout
+      </Link>
+      <Button
+        className="btn btn-outline-secondary btn-light w-100 rounded-pill"
+        onClick={clearCart}
       >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title fw-bold" id="scheduleModalLabel">
-                Schedule {mode === "pickup" ? "Pickup" : "Delivery"}
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
+        Clear Cart
+      </Button>
+    </div>
+  )}
+</Offcanvas.Body>
 
-            <div className="modal-body">
-              <div className="mb-3">
-                <label htmlFor="pickupDate" className="form-label">
-                  Select Date
-                </label>
-                <input
-                  type="date"
-                  className="form-control"
-                  id="pickupDate"
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
+      </Offcanvas>
 
-              <div className="mb-3">
-                <label htmlFor="pickupTime" className="form-label">
-                  Select Time
-                </label>
-                <input type="time" className="form-control" id="pickupTime" />
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button type="button" className="btn btn-primary">
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <OrderTypeModal show={showOrderModal} onClose={() => setShowOrderModal(false)} />
     </>
   );
 }

@@ -547,6 +547,10 @@ header .nav-link:hover {
     padding: .5rem;
 }
 
+/* .form-control-brand{
+    border-color: var(--bs-);
+} */
+
 .form-container .form-control {
     background-color: transparent;
     color: var(--bs-white);
@@ -693,10 +697,6 @@ header .nav-link:hover {
 }
 
 
-
-.line-clamp-2 {
-
-}
 .card-text {
     -webkit-box-orient: vertical;
     display: -webkit-box;
@@ -713,4 +713,16 @@ header .nav-link:hover {
     left: 0;
     display: block;
     z-index: 1;
+}
+
+
+body.modal-open {
+  overflow: hidden !important;
+}
+.modal-backdrop.show {
+  z-index: 1060 !important;
+}
+
+.modal.show {
+  z-index: 1065 !important;
 }

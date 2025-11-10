@@ -66,6 +66,9 @@ const MenuCategoriesAside: React.FC<MenuCategoriesAsideProps> = ({
 
   return (
     <aside className="col-lg-3 col-md-4 p-4 aside-sticky-top sticky-top h-100 bg-brand-light">
+       <div className="d-flex justify-content-between align-items-center mb-5">
+            <h1 className="fs-2 fw-bold mb-0">Our Menu</h1>
+          </div>
       <nav className="nav flex-column nav-pills">
         {groupedCategories.map(([parentId, group]) => (
           <div key={parentId} className="mb-3">

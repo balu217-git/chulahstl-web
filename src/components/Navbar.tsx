@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import CartIcon from "@/components/CartIcon";
 import { useCart } from "@/context/CartContext";
+import CartDrawer from "@/components/CartDrawer";
 
 
 
@@ -18,6 +19,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const { cart } = useCart();
+  const [showDrawer, setShowDrawer] = useState(false);
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -25,6 +27,7 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
+    <>
     <header id="main-header" className="sticky-top">
       <nav className="navbar bg-white navbar-expand-lg border-bottom border-1">
         <div className="container">
@@ -182,9 +185,9 @@ export default function Navbar() {
                     <li className="nav-item">
                       <CartIcon mode="page" />
                     </li>
-                    )}
-                    <li className="nav-item">
-                      <CartIcon mode="drawer" drawerTarget="#cartDrawer" />
+                    )} */}
+                    {/*<li className="nav-item">
+                      <CartIcon mode="drawer" onOpenDrawer={() => setShowDrawer(true)} />
                     </li> */}
                 </ul>
               </div>
@@ -193,5 +196,7 @@ export default function Navbar() {
         </div>
       </nav>
     </header>
+     <CartDrawer show={showDrawer} onClose={() => setShowDrawer(false)} />
+     </>
   );
 }

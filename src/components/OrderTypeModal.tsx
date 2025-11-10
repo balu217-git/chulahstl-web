@@ -1,110 +1,93 @@
 "use client";
-import { useState } from "react";
-
-interface OrderDetails {
-  orderType: string;
-  address?: string;
-  schedule: string;
-}
+import { useState, useEffect } from "react";
+import { Modal, Button, Form } from "react-bootstrap";
+import { useCart } from "@/context/CartContext";
 
 interface OrderTypeModalProps {
   show: boolean;
   onClose: () => void;
-  onConfirm: (details: OrderDetails) => void;
 }
 
-export default function OrderTypeModal({
-  show,
-  onClose,
-  onConfirm,
-}: OrderTypeModalProps) {
-  const [orderType, setOrderType] = useState<"pickup" | "delivery">("pickup");
+export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
+  const { orderMode, setOrderMode } = useCart();
+  const [localMode, setLocalMode] = useState(orderMode || "pickup");
   const [address, setAddress] = useState("");
-  const [schedule, setSchedule] = useState("ASAP");
+  const [deliveryTime, setDeliveryTime] = useState("");
 
+  // ✅ Load saved data when modal opens
+  useEffect(() => {
+    if (show) {
+      const savedAddress = sessionStorage.getItem("deliveryAddress");
+      const savedTime = sessionStorage.getItem("deliveryTime");
+
+      if (savedAddress) setAddress(savedAddress);
+      if (savedTime) setDeliveryTime(savedTime);
+    }
+  }, [show]);
+
+  // ✅ Save data to sessionStorage on Confirm
   const handleConfirm = () => {
-    onConfirm({ orderType, address, schedule });
+    if (localMode === "delivery") {
+      sessionStorage.setItem("deliveryAddress", address);
+      sessionStorage.setItem("deliveryTime", deliveryTime);
+    } else {
+      sessionStorage.removeItem("deliveryAddress");
+      sessionStorage.removeItem("deliveryTime");
+    }
+
+    setOrderMode(localMode as "pickup" | "delivery");
     onClose();
   };
 
-  if (!show) return null;
-
   return (
-    <div
-      className="modal fade show d-block"
-      style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
-      tabIndex={-1}
-      role="dialog"
-    >
-      <div className="modal-dialog modal-dialog-centered" role="document">
-        <div className="modal-content bg-white shadow-lg ">
-          <div className="modal-header border-0 pb-0">
-            <h5 className="modal-title fw-bold">Order details</h5>
-            <button
-              type="button"
-              className="btn-close btn-close-white"
-              onClick={onClose}
-            ></button>
-          </div>
+    <Modal show={show} onHide={onClose} centered backdrop="static">
+      <Modal.Header closeButton>
+        <Modal.Title>Order Type</Modal.Title>
+      </Modal.Header>
 
-          <div className="modal-body">
-            {/* Pickup / Delivery Button Group */}
-              <div className="btn-group mb-4 w-100" role="group" aria-label="Order Type">
-                {["pickup", "delivery"].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`btn ${
-                      orderType === type
-                        ? "btn-dark"
-                        : "btn-outline-dark bg-transparent text-dark"
-                    }`}
-                    onClick={() => setOrderType(type as "pickup" | "delivery")}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-
-
-            {orderType === "pickup" ? (
-              <>
-                {/* <p className="text-green-400 font-medium mb-1">Open now</p> */}
-                <div className="small mb-4">
-                  <h6 className="fw-bold">Chulah</h6>
-                  <p>Opens 11:00 AM CDT<br/>
-                  16721 MAIN ST, WILDWOOD, MO 63040</p>
-                </div>
-
-                <div className="d-grid gap-2">
-                  <button className="btn btn-brand-yellow text-dark fw-semibold py-2 rounded-pill" onClick={() => setSchedule("ASAP")} >Pickup {schedule} </button>
-                  <button className="btn btn-outline-dark rounded-pill py-2" onClick={() => setSchedule("Scheduled")}>Schedule Pickup</button>
-                </div>
-              </>
-              ) : (
-              <>
-                <label className="form-label small">Enter delivery address</label>
-                <div className="input-group mb-3">
-                  {/* <span className="input-group-text bg-neutral-800 border-0 text-gray-400">
-                    <i className="bi bi-search"></i>
-                  </span> */}
-                  <textarea
-                    className="form-control"
-                    placeholder="Search address..."
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="modal-footer border-0">
-            <button onClick={handleConfirm} className="btn btn-sm btn-wide w-100 btn-brand-green fw-semibold py-2">Confirm</button>
-          </div>
-
+      <Modal.Body>
+        <div className="btn-group mb-4 w-100">
+          {["pickup", "delivery"].map((type) => (
+            <Button
+              key={type}
+              variant={localMode === type ? "dark" : "outline-dark"}
+              onClick={() => setLocalMode(type as "pickup" | "delivery")}
+            >
+              {type}
+            </Button>
+          ))}
         </div>
-      </div>
-    </div>
+
+        {localMode === "delivery" && (
+          <>
+            <Form.Group controlId="address" className="mb-3">
+              <Form.Label>Enter delivery address</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Search address..."
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="deliveryTime">
+              <Form.Label>Preferred Delivery Time</Form.Label>
+              <Form.Control
+                type="time"
+                value={deliveryTime}
+                onChange={(e) => setDeliveryTime(e.target.value)}
+              />
+            </Form.Group>
+          </>
+        )}
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="dark" onClick={handleConfirm} className="w-100">
+          Confirm
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
