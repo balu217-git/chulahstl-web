@@ -9,7 +9,12 @@ import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
-export default function CartDrawer({ show, onClose }: { show: boolean; onClose: () => void }) {
+interface CartDrawerProps {
+  show?: boolean;
+  onClose?: () => void;
+}
+
+export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   const { cart, getTotalPrice, updateQuantity, removeFromCart, clearCart, orderMode, setOrderMode } =
     useCart();
 

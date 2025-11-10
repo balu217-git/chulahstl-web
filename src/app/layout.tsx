@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           <Footer />
            {/* This appears when user clicks the cart button */}
-      <CartDrawer />
+      <CartDrawer show={false} onClose={() => {}}/>
           <BootstrapClient />
         </CartProvider>
       </body>
