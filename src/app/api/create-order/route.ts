@@ -3,6 +3,15 @@ import client from "@/lib/graphql/client";
 import { CREATE_ORDER } from "@/lib/graphql/mutations/createOrder";
 
 // Define the expected request body type for clarity
+// Define item structure
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+// Define request body type
 interface OrderRequestBody {
   name: string;
   email: string;
@@ -10,12 +19,13 @@ interface OrderRequestBody {
   orderMode: "pickup" | "delivery";
   address?: string;
   deliveryTime?: string;
-  items: any[];
+  items: OrderItem[]; // ✅ use specific type
   total: number | string;
   paymentOrderId?: string;
   paymentStatus?: string;
   orderStatus?: string;
 }
+
 
 export async function POST(req: Request) {
   try {
