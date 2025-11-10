@@ -1,5 +1,5 @@
 // mark as client to allow DOM APIs
-// "use client";
+"use client";
 
 // src/app/layout.tsx
 import type { Metadata } from "next";
