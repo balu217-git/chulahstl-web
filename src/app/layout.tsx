@@ -2,7 +2,6 @@
 "use client";
 
 // src/app/layout.tsx
-import type { Metadata } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -25,10 +24,6 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "My Next App",
-  description: "Next.js app with Bootstrap",
-};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
