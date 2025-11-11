@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+interface AddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
+}
+
 interface AddressData {
   city: string;
   state: string;
@@ -30,23 +36,30 @@ export function useAddressAndTime(lat: number | null, lng: number | null) {
         const geoRes = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`
         );
-        const geoData = await geoRes.json();
+        const geoData: {
+          status: string;
+          results: {
+            formatted_address: string;
+            address_components: AddressComponent[];
+          }[];
+        } = await geoRes.json();
 
         if (geoData.status !== "OK" || !geoData.results.length) {
           throw new Error("No address found");
         }
 
         const addressComponents = geoData.results[0].address_components;
+
         const city =
-          addressComponents.find((c: any) =>
+          addressComponents.find((c) =>
             c.types.includes("locality")
           )?.long_name || "";
         const state =
-          addressComponents.find((c: any) =>
+          addressComponents.find((c) =>
             c.types.includes("administrative_area_level_1")
           )?.short_name || "";
         const zip =
-          addressComponents.find((c: any) =>
+          addressComponents.find((c) =>
             c.types.includes("postal_code")
           )?.long_name || "";
 
@@ -55,7 +68,11 @@ export function useAddressAndTime(lat: number | null, lng: number | null) {
         const tzRes = await fetch(
           `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${key}`
         );
-        const tzData = await tzRes.json();
+        const tzData: {
+          status: string;
+          rawOffset: number;
+          dstOffset: number;
+        } = await tzRes.json();
 
         if (tzData.status !== "OK") throw new Error("Timezone fetch failed");
 
@@ -77,8 +94,12 @@ export function useAddressAndTime(lat: number | null, lng: number | null) {
           fullAddress: geoData.results[0].formatted_address,
           formattedTime,
         });
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
