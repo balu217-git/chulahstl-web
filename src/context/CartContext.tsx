@@ -22,51 +22,55 @@ interface CartContextType {
   removeFromCart: (id: string) => void;
   clearCart: () => void;
   getTotalPrice: () => number;
-  orderMode: "pickup" | "delivery";
+  orderMode: "pickup" | "delivery" | null;
   setOrderMode: (mode: "pickup" | "delivery") => void;
-  
+  address: string;
+  setAddress: (address: string) => void;
+  deliveryTime: string;
+  setDeliveryTime: (time: string) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [orderMode, setOrderMode] = useState<"pickup" | "delivery">("pickup");
+  const [orderMode, setOrderMode] = useState<"pickup" | "delivery" | null>(null);
+  const [address, setAddress] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
 
-  // ✅ Load saved cart & mode on mount
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem("cart");
       if (savedCart) setCart(JSON.parse(savedCart));
 
-      const savedMode = sessionStorage.getItem("orderMode");
-      if (savedMode === "pickup" || savedMode === "delivery") {
-        setOrderMode(savedMode);
-      }
+      const savedMode = sessionStorage.getItem("orderMode") as
+        | "pickup"
+        | "delivery"
+        | null;
+      if (savedMode) setOrderMode(savedMode);
+
+      const savedAddress = sessionStorage.getItem("deliveryAddress");
+      const savedTime = sessionStorage.getItem("deliveryTime");
+      if (savedAddress) setAddress(savedAddress);
+      if (savedTime) setDeliveryTime(savedTime);
     } catch (err) {
-      console.error("Error loading cart or mode:", err);
+      console.error("Error loading storage:", err);
     }
   }, []);
 
-  // ✅ Save cart updates
   useEffect(() => {
-    try {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } catch (err) {
-      console.error("Error saving cart:", err);
-    }
+    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // ✅ Save order mode
   useEffect(() => {
-    try {
-      sessionStorage.setItem("orderMode", orderMode);
-    } catch (err) {
-      console.error("Error saving orderMode:", err);
-    }
+    if (orderMode) sessionStorage.setItem("orderMode", orderMode);
   }, [orderMode]);
 
-  // ✅ Add item
+  useEffect(() => {
+    if (address) sessionStorage.setItem("deliveryAddress", address);
+    if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
+  }, [address, deliveryTime]);
+
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
@@ -81,22 +85,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // ✅ Update item quantity
   const updateQuantity = (id: string, quantity: number) => {
     setCart((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item))
     );
   };
 
-  // ✅ Remove item
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // ✅ Clear cart
   const clearCart = () => setCart([]);
 
-  // ✅ Total price
   const getTotalPrice = () =>
     cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
@@ -111,6 +111,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         getTotalPrice,
         orderMode,
         setOrderMode,
+        address,
+        setAddress,
+        deliveryTime,
+        setDeliveryTime,
       }}
     >
       {children}
@@ -118,7 +122,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// ✅ Custom hook for easier use
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");

@@ -7,33 +7,32 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapMarkerAlt, faClock, faCalendarAlt, } from "@fortawesome/free-solid-svg-icons";
 
 export default function CheckoutPage() {
-  const { cart, getTotalPrice, orderMode } = useCart();
+  const { cart, getTotalPrice, orderMode, address, deliveryTime } = useCart();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
+  // const [address, setAddress] = useState("");
+  // const [deliveryTime, setDeliveryTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  // 🧠 Load saved session data (from popup or previous page)
-  useEffect(() => {
-    const savedAddress = sessionStorage.getItem("deliveryAddress");
-    const savedTime = sessionStorage.getItem("deliveryTime");
 
-    if (savedAddress) setAddress(savedAddress);
-    if (savedTime) setDeliveryTime(savedTime);
-  }, []);
+ // 🕒 Format delivery time display (e.g., 12:30 PM - U.S. format)
+const formatDeliveryTime = (timeStr: string) => {
+  if (!timeStr) return "";
+  const [hours, minutes] = timeStr.split(":");
+  const date = new Date();
+  date.setHours(parseInt(hours), parseInt(minutes));
+  
+  // ✅ Use U.S. locale, 12-hour format with AM/PM
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 
-  // 🕒 Format delivery time display (e.g., 12:30 PM)
-  const formatDeliveryTime = (timeStr: string) => {
-    if (!timeStr) return "";
-    const [hours, minutes] = timeStr.split(":");
-    const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes));
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
@@ -139,42 +138,6 @@ export default function CheckoutPage() {
         <div className="row">
           {/* 🧍 Left Column: Customer Info */}
           <div className="col-lg-6">
-            <div className="bg-white rounded shadow-sm p-4 mb-4">
-              <h5 className="mb-3">Customer Information</h5>
-
-              <div className="mb-3">
-                <label className="form-label small">Full Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label small">Email Address</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label small">Phone Number</label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  placeholder="(555) 555-5555"
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhone(e.target.value))}
-                />
-              </div>
-            </div>
 
             {/* 🚚 Delivery Option */}
             <div className="bg-white rounded shadow-sm p-4 mb-4">
@@ -182,13 +145,9 @@ export default function CheckoutPage() {
 
               {orderMode === "pickup" ? (
                 <div className="mt-3 alert alert-info">
-                  <strong>Pickup Location:</strong>
-                  <br />
-                  🍽️ VenuVenu Restaurant
-                  <br />
-                  123 Main Street, Austin, TX 78701
-                  <br />
-                  <strong>Pickup Hours:</strong> 10:00 AM – 9:00 PM
+                   <h5>Pickup From:</h5>
+                    <p>123 Main Street, Downtown, Hyderabad</p>
+                    <p>Pickup Time: {deliveryTime}</p>
                 </div>
               ) : (
                 <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
@@ -228,6 +187,45 @@ export default function CheckoutPage() {
                 </Card>
               )}
             </div>
+
+            <div className="bg-white rounded shadow-sm p-4 mb-4">
+              <h5 className="mb-3">Customer Information</h5>
+
+              <div className="mb-3">
+                <label className="form-label small">Full Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small">Email Address</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small">Phone Number</label>
+                <input
+                  type="tel"
+                  className="form-control"
+                  placeholder="(555) 555-5555"
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                />
+              </div>
+            </div>
+
+            
           </div>
 
           {/* 🛒 Right Column: Cart Summary */}
