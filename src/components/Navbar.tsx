@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import CartIcon from "@/components/CartIcon";
 import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
@@ -186,9 +184,9 @@ export default function Navbar() {
                       <CartIcon mode="page" />
                     </li>
                     )} */}
-                    <li className="nav-item">
+                    {/* <li className="nav-item">
                       <CartIcon mode="drawer" onOpenDrawer={() => setShowDrawer(true)} />
-                    </li>
+                    </li> */}
                 </ul>
               </div>
             </div>
