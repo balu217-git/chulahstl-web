@@ -11,9 +11,9 @@ interface OrderTypeModalProps {
   onClose: () => void;
 }
 
-const STORE_ADDRESS = "16721 MAIN ST, WILDWOOD, MO 63040";
-const STORE_LAT = 17.385;
-const STORE_LNG = 78.486;
+const STORE_ADDRESS = "CHULAH INDIAN HEARTH & BAR, 16721 Main St, Wildwood, MO 63040, USA";
+const STORE_LAT = -33.8688;
+const STORE_LNG = 151.2195;
 
 export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   const {

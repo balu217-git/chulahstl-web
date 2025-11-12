@@ -6,6 +6,7 @@ import OurMenu from "@/components/OurMenu";
 import ContactForm from "@/components/forms/ContactForm";
 import ContactIcons from "@/components/ContactIcons";
 import LazyVideo from "@/components/LazyVideo";
+import GoogleReviews from "@/components/GoogleReviews";
 import Image from "next/image";
 const slidesData = [
   {
@@ -200,6 +201,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <GoogleReviews />
     </>
   );
 }
