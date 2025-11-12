@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MenuCard from "@/components/MenuCard";
 import MenuCategoriesAside from "@/components/MenuCategoriesAside";
-import { MenuItem, CategoryNode } from "@/types/menu";
+import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
+import PlaceHeader from "@/components/PlaceHeader";
 import { useCart } from "@/context/CartContext";
+import { MenuItem, CategoryNode } from "@/types/menu";
 
 interface MenuClientProps {
-  menus: MenuItem[];
   allCategories: CategoryNode[];
   groupedMenus: Record<
     string,
@@ -17,50 +18,45 @@ interface MenuClientProps {
 }
 
 export default function MenuClient({ allCategories, groupedMenus }: MenuClientProps) {
-  const { orderMode, setOrderMode } = useCart();
+  const { orderConfirmed, setOrderConfirmed, orderMode } = useCart();
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [prevMode, setPrevMode] = useState(orderMode);
 
-  const handleOrderModeClick = (mode: "pickup" | "delivery") => {
-    setOrderMode(mode);
-    if (mode === "delivery") {
-      // delay to avoid overlap animation conflicts
-      setTimeout(() => setShowOrderModal(true), 150);
+  // ✅ Detect orderMode change and trigger modal automatically
+  useEffect(() => {
+    if (orderMode !== prevMode) {
+      setOrderConfirmed(false); // reset confirmation
+      setShowOrderModal(true);  // open modal for new mode
+      setPrevMode(orderMode);
     }
+  }, [orderMode, prevMode, setOrderConfirmed]);
+
+  const handleDeliverySelect = () => {
+    setShowOrderModal(true);
   };
 
   return (
     <>
-      <OrderTypeModal show={showOrderModal} onClose={() => setShowOrderModal(false)} />
+      <OrderTypeModal
+        show={showOrderModal}
+        onClose={() => {
+          setShowOrderModal(false);
+          setOrderConfirmed(true); // mark confirmed when modal closes
+        }}
+      />
 
       <section className="info bg-brand-light">
         <div className="container">
           <div className="info-container mt-4">
             <div className="row g-4">
-              {/* --- Sidebar Categories --- */}
               <MenuCategoriesAside categories={allCategories} />
 
-              {/* --- Menu Items --- */}
               <div className="col-lg-9 col-md-8">
-                <div className="mb-5">
-                  <div className="btn-group mb-4">
-                    {["pickup", "delivery"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        className={`btn btn-wide ${
-                          orderMode === type
-                            ? "btn-dark"
-                            : "btn-outline-dark bg-transparent text-dark"
-                        }`}
-                        onClick={() => handleOrderModeClick(type as "pickup" | "delivery")}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
+                <div className="mb-2">
+                  <PlaceHeader />
+                  <OrderModeSelector onDeliverySelect={handleDeliverySelect} />
                 </div>
 
-                {/* --- Grouped Menus --- */}
                 {Object.entries(groupedMenus).map(([parentSlug, parentGroup]) => (
                   <div key={parentSlug} id={parentSlug} className="mb-5">
                     <h4 className="fw-bold text-brand-green mb-4">{parentGroup.name}</h4>
@@ -72,7 +68,7 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
                         <div className="row g-4">
                           {childGroup.items.map((menu) => (
                             <div key={menu.id} className="col-xl-6 col-md-12">
-                              <MenuCard menu={menu} />
+                              <MenuCard onDeliverySelect={handleDeliverySelect} menu={menu} />
                             </div>
                           ))}
                         </div>

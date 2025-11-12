@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Offcanvas, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
 
 interface CartDrawerProps {
@@ -50,19 +51,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
 
         <Offcanvas.Body className="d-flex flex-column justify-content-between h-100">
           {/* --- Order Type Buttons --- */}
-          <div className="btn-group mb-4 w-100">
-            {["pickup", "delivery"].map((type) => (
-              <Button
-                key={type}
-                variant={
-                  orderMode === type ? "dark" : "outline-dark bg-transparent text-dark"
-                }
-                onClick={() => handleOrderModeClick(type as "pickup" | "delivery")}
-              >
-                {type}
-              </Button>
-            ))}
-          </div>
+          <OrderModeSelector onDeliverySelect={() => setShowOrderModal(true)} />
 
           {/* --- Cart Items --- */}
           <div className="cart-items flex-grow-1 overflow-auto">

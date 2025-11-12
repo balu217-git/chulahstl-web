@@ -1,11 +1,5 @@
 "use client";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface CartItem {
   id: string;
@@ -22,8 +16,12 @@ interface CartContextType {
   removeFromCart: (id: string) => void;
   clearCart: () => void;
   getTotalPrice: () => number;
-  orderMode: "pickup" | "delivery" | null;
+
+  orderMode: "pickup" | "delivery";
   setOrderMode: (mode: "pickup" | "delivery") => void;
+  orderConfirmed: boolean;
+  setOrderConfirmed: (val: boolean) => void;
+
   address: string;
   setAddress: (address: string) => void;
   deliveryTime: string;
@@ -34,19 +32,18 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [orderMode, setOrderMode] = useState<"pickup" | "delivery" | null>(null);
+  const [orderMode, setOrderMode] = useState<"pickup" | "delivery">("pickup");
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [address, setAddress] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
 
+  // Load from storage
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem("cart");
       if (savedCart) setCart(JSON.parse(savedCart));
 
-      const savedMode = sessionStorage.getItem("orderMode") as
-        | "pickup"
-        | "delivery"
-        | null;
+      const savedMode = sessionStorage.getItem("orderMode") as "pickup" | "delivery" | null;
       if (savedMode) setOrderMode(savedMode);
 
       const savedAddress = sessionStorage.getItem("deliveryAddress");
@@ -58,14 +55,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Save cart to localStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
+  // Save orderMode and reset confirmation whenever mode changes
   useEffect(() => {
-    if (orderMode) sessionStorage.setItem("orderMode", orderMode);
+    if (orderMode) {
+      sessionStorage.setItem("orderMode", orderMode);
+      setOrderConfirmed(false); // ✅ reset confirmation on mode change
+    }
   }, [orderMode]);
 
+  // Save address & deliveryTime
   useEffect(() => {
     if (address) sessionStorage.setItem("deliveryAddress", address);
     if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
@@ -76,9 +79,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
         return prev.map((i) =>
-          i.id === item.id
-            ? { ...i, quantity: i.quantity + item.quantity }
-            : i
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
         );
       }
       return [...prev, item];
@@ -111,6 +112,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         getTotalPrice,
         orderMode,
         setOrderMode,
+        orderConfirmed,
+        setOrderConfirmed,
         address,
         setAddress,
         deliveryTime,

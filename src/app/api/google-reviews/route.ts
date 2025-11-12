@@ -1,30 +1,45 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  const placeId = process.env.GOOGLE_PLACE_ID;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const placeId = process.env.NEXT_PUBLIC_PLACE_ID;
 
   if (!apiKey || !placeId) {
     return NextResponse.json(
-      { error: "Missing Google API Key or Place ID" },
-      { status: 400 }
+      { error: "Missing API key or Place ID" },
+      { status: 500 }
     );
   }
 
   try {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&key=${apiKey}`
-    );
+    // ✅ include opening_hours field
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,rating,user_ratings_total,reviews,opening_hours&key=${apiKey}`;
 
-    // Ensure it's JSON, not HTML
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Google API response error:", text);
-      return NextResponse.json({ error: "Google API error" }, { status: res.status });
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.status !== "OK") {
+      console.error("Google API error:", data);
+      return NextResponse.json({ error: data.error_message }, { status: 500 });
     }
 
-    const data = await res.json();
-    return NextResponse.json({ reviews: data.result?.reviews || [] });
+    const {
+      name,
+      formatted_address,
+      rating,
+      user_ratings_total,
+      reviews,
+      opening_hours,
+    } = data.result;
+
+    return NextResponse.json({
+      name,
+      address: formatted_address,
+      rating,
+      totalReviews: user_ratings_total,
+      reviews,
+      opening_hours,
+    });
   } catch (error) {
     console.error("Fetch failed:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
