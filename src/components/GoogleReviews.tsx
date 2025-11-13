@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 // import "slick-carousel/slick/slick-theme.css";
@@ -99,16 +100,15 @@ export default function GoogleReviews({
 
                   {/* Author */}
                   <div className="d-flex align-items-center mt-auto">
-                    <img
-                        src={review.profile_photo_url || "/default-avatar.svg"}
-                        alt={review.author_name}
-                        className="rounded-circle me-2 overflow-hidden"
-                        width={40}
-                        height={40}
-                        onError={(e) => {
-                          e.currentTarget.src = "/default-avatar.svg";
-                        }}
-                      />
+                    <div className="rounded-circle overflow-hidden" style={{ width: 48, height: 48 }}>
+                        <Image
+                          src={review.profile_photo_url}
+                          alt={review.author_name}
+                          width={48}
+                          height={48}
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
 
                     <div>
                       <p className="mb-0 fw-semibold text-white">
@@ -162,8 +162,10 @@ export default function GoogleReviews({
                   </div>
                   <p className="small">{selectedReview.text}</p>
                   <div className="d-flex align-items-center mt-3">
-                    <img
-                      src={selectedReview.profile_photo_url || "/default-avatar.svg"}
+                  
+                    <div className="rounded-circle overflow-hidden" style={{ width: 48, height: 48 }}>
+                        <Image
+                         src={selectedReview.profile_photo_url || "/default-avatar.svg"}
                       alt={selectedReview.author_name}
                       className="rounded-circle me-2"
                       width={40}
@@ -171,7 +173,8 @@ export default function GoogleReviews({
                       onError={(e) => {
                           e.currentTarget.src = "/default-avatar.svg";
                         }}
-                    />
+                        />
+                      </div>
                     
                     <div>
                       <p className="mb-0 fw-semibold text-white">
