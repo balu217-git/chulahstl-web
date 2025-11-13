@@ -23,9 +23,9 @@ export default function OrderModeSelector({ onDeliverySelect }: OrderModeSelecto
   };
 
   return (
-    <div className="btn-group mb-4">
+    <div className="btn-group">
       {["pickup", "delivery"].map((type) => (
-        <Button
+        <Button className="btn-sm"
           key={type}
           variant={localMode === type ? "dark" : "outline-dark"}
           onClick={() => handleClick(type as "pickup" | "delivery")}

@@ -8,6 +8,7 @@ import { Offcanvas, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import OrderModeSelector from "@/components/OrderModeSelector";
+import OrderModeAddress from "@/components/OrderModeAddress"
 import OrderTypeModal from "@/components/OrderTypeModal";
 
 interface CartDrawerProps {
@@ -24,6 +25,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
     clearCart,
     orderMode,
     setOrderMode,
+    address,
   } = useCart();
 
   const [showOrderModal, setShowOrderModal] = useState(false);
@@ -45,13 +47,14 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
         backdrop={true}
         scroll={true}
       >
-        <Offcanvas.Header closeButton>
+        <Offcanvas.Header closeButton className="border-bottom">
           <Offcanvas.Title>Cart</Offcanvas.Title>
         </Offcanvas.Header>
 
         <Offcanvas.Body className="d-flex flex-column justify-content-between h-100">
           {/* --- Order Type Buttons --- */}
           <OrderModeSelector onDeliverySelect={() => setShowOrderModal(true)} />
+          <OrderModeAddress className="mt-2" onDeliverySelect={() => setShowOrderModal(true)}/>
 
           {/* --- Cart Items --- */}
           <div className="cart-items flex-grow-1 overflow-auto">

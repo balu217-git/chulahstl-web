@@ -1,49 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 
-interface Suggestion {
+export interface Suggestion {
   description: string;
   place_id: string;
+  structured_formatting?: {
+    main_text?: string;
+    secondary_text?: string;
+  };
 }
 
-interface SelectedPlace {
+export interface SelectedPlace {
+  name: string;
   formatted_address: string;
   lat: number;
   lng: number;
   distanceKm: number;
   canDeliver: boolean;
+  place_id?: string;
 }
 
 interface AddressDistanceProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string) => void; // draft changes
+  initialPlace?: SelectedPlace | null; // optional initial/hydration
+  onPlaceSelect?: (place: SelectedPlace | null) => void; // draft place callback
 }
 
-export default function AddressDistance({ value, onChange }: AddressDistanceProps) {
+export default function AddressDistance({
+  value,
+  onChange,
+  initialPlace = null,
+  onPlaceSelect,
+}: AddressDistanceProps) {
   const RESTAURANT_PLACE_ID = process.env.NEXT_PUBLIC_PLACE_ID;
   const MAX_DELIVERY_KM = 10;
 
-  const [query, setQuery] = useState(value);
+  const [query, setQuery] = useState<string>(value || "");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(initialPlace);
   const [restaurantLocation, setRestaurantLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loadingRestaurant, setLoadingRestaurant] = useState(true);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  // Sync query with external value
+  const [selectionConfirmed, setSelectionConfirmed] = useState<boolean>(!!initialPlace);
+  const [highlightIndex, setHighlightIndex] = useState<number>(-1);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
-    setQuery(value);
+    setQuery(value || "");
+    if (selectedPlace && value !== selectedPlace.formatted_address) {
+      setSelectionConfirmed(false);
+      setSelectedPlace(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  // Fetch restaurant location once
   useEffect(() => {
     const fetchRestaurant = async () => {
+      if (!RESTAURANT_PLACE_ID) {
+        setLoadingRestaurant(false);
+        return;
+      }
       try {
         setLoadingRestaurant(true);
-        const res = await fetch(`/api/google/place-details?place_id=${RESTAURANT_PLACE_ID}`);
+        const res = await fetch(
+          `/api/google/place-details?place_id=${encodeURIComponent(
+            RESTAURANT_PLACE_ID
+          )}&fields=geometry,formatted_address,name`
+        );
         const data = await res.json();
-        if (data.status === "OK") {
+        if (data?.status === "OK" && data.result?.geometry?.location) {
           setRestaurantLocation({
             lat: data.result.geometry.location.lat,
             lng: data.result.geometry.location.lng,
@@ -56,66 +86,79 @@ export default function AddressDistance({ value, onChange }: AddressDistanceProp
       }
     };
     fetchRestaurant();
-  }, []);
+  }, [RESTAURANT_PLACE_ID]);
 
-  // Fetch autocomplete suggestions
+  // heuristic to detect full/pasted addresses
+  const looksLikeFullAddress = (q: string) => {
+    if (!q) return false;
+    if (q.length > 25) return true;
+    return /\d/.test(q) && q.includes(",");
+  };
+
+  // AUTOCOMPLETE with geocode fallback
   useEffect(() => {
-    if (!query) {
+    if (selectionConfirmed && selectedPlace && query === selectedPlace.formatted_address) {
       setSuggestions([]);
+      setLoadingSuggestions(false);
       return;
     }
 
-    const timeout = setTimeout(async () => {
+    if (!query) {
+      setSuggestions([]);
+      setLoadingSuggestions(false);
+      return;
+    }
+
+    let cancelled = false;
+    const t = setTimeout(async () => {
       try {
         setLoadingSuggestions(true);
-        const res = await fetch(`/api/google/autocomplete?input=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setSuggestions(data.predictions || []);
-      } catch {
-        setSuggestions([]);
+
+        // 1) try autocomplete
+        const acRes = await fetch(`/api/google/autocomplete?input=${encodeURIComponent(query)}`);
+        const acData = await acRes.json();
+        const preds: Suggestion[] = acData.predictions || [];
+
+        if (!cancelled && preds.length > 0) {
+          setSuggestions(preds);
+          setHighlightIndex(-1);
+          return;
+        }
+
+        // 2) if no predictions and input looks like a full address -> geocode
+        if (!cancelled && looksLikeFullAddress(query)) {
+          const gRes = await fetch(`/api/google/geocode?address=${encodeURIComponent(query)}`);
+          const gData = await gRes.json();
+          const first = gData?.results?.[0];
+          if (first) {
+            const fakePred: Suggestion = {
+              description: first.formatted_address,
+              place_id: first.place_id,
+              structured_formatting: {
+                main_text: first.formatted_address,
+                secondary_text: "",
+              },
+            };
+            setSuggestions([fakePred]);
+            setHighlightIndex(-1);
+            return;
+          }
+        }
+
+        if (!cancelled) setSuggestions([]);
+      } catch (err) {
+        console.error("Autocomplete/geocode fetch failed", err);
+        if (!cancelled) setSuggestions([]);
       } finally {
-        setLoadingSuggestions(false);
+        if (!cancelled) setLoadingSuggestions(false);
       }
     }, 300);
 
-    return () => clearTimeout(timeout);
-  }, [query]);
-
-  const handleSelect = async (placeId: string) => {
-    if (!restaurantLocation) return;
-    try {
-      setLoadingSuggestions(true);
-      const res = await fetch(`/api/google/place-details?place_id=${placeId}`);
-      const data = await res.json();
-      if (data.status !== "OK") return;
-
-      const loc = data.result.geometry.location;
-      const distanceKm = getDistanceKm(
-        restaurantLocation.lat,
-        restaurantLocation.lng,
-        loc.lat,
-        loc.lng
-      );
-
-      const canDeliver = distanceKm <= MAX_DELIVERY_KM;
-
-      setSelectedPlace({
-        formatted_address: data.result.formatted_address,
-        lat: loc.lat,
-        lng: loc.lng,
-        distanceKm,
-        canDeliver,
-      });
-
-      setSuggestions([]);
-      setQuery(data.result.formatted_address);
-      onChange(data.result.formatted_address); // Update external value
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [query, selectionConfirmed, selectedPlace]);
 
   const getDistanceKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -129,59 +172,197 @@ export default function AddressDistance({ value, onChange }: AddressDistanceProp
     return R * c;
   };
 
+  const handleSelect = async (placeId: string) => {
+    if (!restaurantLocation) {
+      console.warn("Restaurant location not loaded yet.");
+      return;
+    }
+    try {
+      setLoadingSuggestions(true);
+      const res = await fetch(
+        `/api/google/place-details?place_id=${encodeURIComponent(placeId)}&fields=geometry,formatted_address,name`
+      );
+      const data = await res.json();
+      if (data?.status !== "OK") {
+        console.warn("place-details status:", data?.status);
+        return;
+      }
+      const loc = data.result.geometry.location;
+      const distanceKm = getDistanceKm(restaurantLocation.lat, restaurantLocation.lng, loc.lat, loc.lng);
+      const canDeliver = distanceKm <= MAX_DELIVERY_KM;
+
+      const formattedAddress = data.result.formatted_address || data.result.name || "";
+      const newSel: SelectedPlace = {
+        name: data.result.name || "",
+        formatted_address: formattedAddress,
+        lat: loc.lat,
+        lng: loc.lng,
+        distanceKm,
+        canDeliver,
+        place_id: placeId,
+      };
+
+      setSelectedPlace(newSel);
+      setQuery(formattedAddress);
+      onChange(formattedAddress);
+      if (onPlaceSelect) onPlaceSelect(newSel);
+
+      setSelectionConfirmed(true);
+      setSuggestions([]);
+      setHighlightIndex(-1);
+    } catch (err) {
+      console.error("Error fetching place details", err);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const clearAll = () => {
+    setQuery("");
+    setSuggestions([]);
+    setSelectedPlace(null);
+    setSelectionConfirmed(false);
+    onChange("");
+    if (onPlaceSelect) onPlaceSelect(null);
+    inputRef.current?.focus();
+  };
+
+  const handleInputChange = (v: string) => {
+    if (selectionConfirmed) {
+      if (!selectedPlace || v !== selectedPlace.formatted_address) {
+        setSelectionConfirmed(false);
+        setSelectedPlace(null);
+        if (onPlaceSelect) onPlaceSelect(null);
+      }
+    }
+    setQuery(v);
+    onChange(v);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestions.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      if (highlightIndex >= 0 && highlightIndex < suggestions.length) {
+        e.preventDefault();
+        handleSelect(suggestions[highlightIndex].place_id);
+      }
+    } else if (e.key === "Escape") {
+      setSuggestions([]);
+      setHighlightIndex(-1);
+    }
+  };
+
+  const showSuggestions =
+    suggestions.length > 0 &&
+    !(selectionConfirmed && selectedPlace && query === selectedPlace.formatted_address);
+
   return (
     <div style={{ position: "relative" }}>
-      <input
-        type="text"
-        className="form-control"
-        placeholder={loadingRestaurant ? "Loading..." : "Enter your delivery address"}
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          onChange(e.target.value);
-        }}
-        disabled={loadingRestaurant}
-      />
+      <div className="input-group border rounded-3">
+        <span className="input-group-text bg-white border-0">
+          <FontAwesomeIcon icon={faSearch} />
+        </span>
 
-      {/* Suggestions Dropdown */}
+        <input
+          ref={inputRef}
+          type="text"
+          className="form-control border-0"
+          placeholder={loadingRestaurant ? "Loading restaurant..." : "Enter your delivery address"}
+          value={query}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={loadingRestaurant}
+          aria-autocomplete="list"
+          aria-controls="addr-suggestions"
+          aria-expanded={showSuggestions}
+        />
+
+        {(query || selectedPlace) && (
+          <button
+            type="button"
+            className="btn border-0 shadow-none small"
+            onClick={clearAll}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            <small className="fw-semibold">Change</small>
+          </button>
+        )}
+      </div>
+
       {loadingSuggestions && (
-        <div className="mt-1">
+        <div className="mt-1" style={{ maxWidth: "100%" }}>
           {[...Array(3)].map((_, idx) => (
             <div key={idx} className="placeholder-glow mb-1">
-              <span className="placeholder col-12"></span>
+              <span className="placeholder col-12" />
             </div>
           ))}
         </div>
       )}
 
-      {suggestions.length > 0 && (
+      {showSuggestions && (
         <ul
+          id="addr-suggestions"
+          role="listbox"
           className="list-group position-absolute w-100 shadow"
           style={{ zIndex: 2000, maxHeight: 250, overflowY: "auto" }}
         >
-          {suggestions.map((s) => (
-            <li
-              key={s.place_id}
-              className="list-group-item list-group-item-action"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSelect(s.place_id)}
-            >
-              {s.description}
-            </li>
-          ))}
+          {suggestions.map((s, idx) => {
+            const main = s.structured_formatting?.main_text || s.description;
+            const secondary = s.structured_formatting?.secondary_text || "";
+            const isHighlighted = idx === highlightIndex;
+            return (
+              <li
+                key={s.place_id}
+                role="option"
+                aria-selected={isHighlighted}
+                className={`list-group-item list-group-item-action ${isHighlighted ? "active" : ""}`}
+                style={{ cursor: "pointer" }}
+                onMouseEnter={() => setHighlightIndex(idx)}
+                onMouseLeave={() => setHighlightIndex(-1)}
+                onClick={() => handleSelect(s.place_id)}
+              >
+                <div style={{ fontWeight: 600 }}>{main}</div>
+                {secondary ? <small className="">{secondary}</small> : <small className="text-muted">{s.description}</small>}
+              </li>
+            );
+          })}
         </ul>
       )}
 
-      {/* Selected Place */}
       {selectedPlace && (
         <div
-          className={`mt-2 p-2 border rounded ${
-            selectedPlace.canDeliver ? "border-success bg-light" : "border-danger bg-light"
-          }`}
+          className={`mt-2 p-2 alert ${selectedPlace.canDeliver ? "alert-success" : "alert-danger"}`}
+          style={{ zIndex: 1500 }}
         >
-          <small>{selectedPlace.canDeliver ? "✅ Deliverable" : "❌ Out of range"}</small>
-          <div style={{ fontSize: 12 }}>
-            {selectedPlace.formatted_address} — {selectedPlace.distanceKm.toFixed(2)} km
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "top" }}>
+            <div>
+              <strong>{selectedPlace.name || "Selected place"}</strong>
+              <div style={{ fontSize: 12 }}>
+                {selectedPlace.formatted_address} — {selectedPlace.distanceKm.toFixed(2)} km
+              </div>
+              <small>{selectedPlace.canDeliver ? "✅ Deliverable" : "❌ Out of range"}</small>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                className="btn-close small"
+                onClick={() => {
+                  setSelectionConfirmed(false);
+                  setQuery("");
+                  setSelectedPlace(null);
+                  if (onPlaceSelect) onPlaceSelect(null);
+                  onChange("");
+                  inputRef.current?.focus();
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -5,8 +5,8 @@ import MenuCard from "@/components/MenuCard";
 import MenuCategoriesAside from "@/components/MenuCategoriesAside";
 import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
+import OrderModeAddress from"@/components/OrderModeAddress";
 import PlaceHeader from "@/components/PlaceHeader";
-import AddressDistance from "@/components/AddressDistance";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
 
@@ -19,7 +19,7 @@ interface MenuClientProps {
 }
 
 export default function MenuClient({ allCategories, groupedMenus }: MenuClientProps) {
-  const { orderConfirmed, setOrderConfirmed, orderMode } = useCart();
+  const { orderConfirmed, setOrderConfirmed, orderMode, address } = useCart();
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [prevMode, setPrevMode] = useState(orderMode);
 
@@ -44,6 +44,8 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
           setShowOrderModal(false);
           setOrderConfirmed(true); // mark confirmed when modal closes
         }}
+
+
       />
 
       <section className="info bg-brand-light">
@@ -55,12 +57,18 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
               <div className="col-lg-9 col-md-8">
                 <div className="mb-2">
                   <PlaceHeader />
-                  <OrderModeSelector onDeliverySelect={handleDeliverySelect} />
-                  {/* <AddressDistance /> */}
+                  <div className="row gx-2">
+                    <div className="col-md-auto"> 
+                      <OrderModeSelector onDeliverySelect={handleDeliverySelect} />
+                    </div>
+                    <div className="col-md-auto">
+                       <OrderModeAddress onDeliverySelect={handleDeliverySelect}/>
+                    </div>
+                  </div>
                 </div>
 
                 {Object.entries(groupedMenus).map(([parentSlug, parentGroup]) => (
-                  <div key={parentSlug} id={parentSlug} className="mb-5">
+                  <div key={parentSlug} id={parentSlug} className="my-5">
                     <h4 className="fw-bold text-brand-green mb-4">{parentGroup.name}</h4>
                     {Object.entries(parentGroup.children).map(([childSlug, childGroup]) => (
                       <div key={childSlug} id={childSlug} className="mb-4">

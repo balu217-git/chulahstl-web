@@ -205,6 +205,13 @@ h6 {
     --bs-btn-disabled-border-color: var(--brand-yellow);
 }
 
+.list-group-item.active {
+    z-index: 2;
+    color: var(--bs-white);
+    background-color: var( --brand-green-light);
+    border-color: var(--bs-list-group-active-border-color);
+}
+
 /* Navigation Bar */
 
 header .nav-link {

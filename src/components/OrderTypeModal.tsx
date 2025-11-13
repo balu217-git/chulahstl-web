@@ -1,9 +1,11 @@
+// components/OrderTypeModal.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useCart } from "@/context/CartContext";
+import { useCart, AddressPlace } from "@/context/CartContext";
 import PlaceHeader from "@/components/PlaceHeader";
-import AddressDistance from "@/components/AddressDistance";
+import AddressDistance, { SelectedPlace } from "@/components/AddressDistance";
 
 interface OrderTypeModalProps {
   show: boolean;
@@ -11,8 +13,29 @@ interface OrderTypeModalProps {
 }
 
 export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
-  const { orderMode, setOrderMode, address, setAddress, deliveryTime, setDeliveryTime, setOrderConfirmed } =
-    useCart();
+  const {
+    orderMode,
+    setOrderMode,
+    address,
+    setAddress,
+    deliveryTime,
+    setDeliveryTime,
+    setOrderConfirmed,
+    addressPlace,
+    setAddressPlace,
+  } = useCart() as any;
+
+  // Local drafts (modal-local)
+  const [draftAddress, setDraftAddress] = useState<string>(address || "");
+  const [draftAddressPlace, setDraftAddressPlace] = useState<SelectedPlace | null>(addressPlace || null);
+
+  // When modal opens, (re)initialize drafts from context
+  useEffect(() => {
+    if (show) {
+      setDraftAddress(address || "");
+      setDraftAddressPlace(addressPlace || null);
+    }
+  }, [show, address, addressPlace]);
 
   const handleModeChange = (mode: "pickup" | "delivery") => {
     setOrderMode(mode);
@@ -20,19 +43,22 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
 
   const handleConfirm = () => {
     if (orderMode === "delivery") {
-      sessionStorage.setItem("deliveryAddress", address);
+      // commit drafts to context (and sessionStorage via CartContext effects)
+      setAddress(draftAddress);
+      if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
+      sessionStorage.setItem("deliveryAddress", draftAddress || "");
     }
-    setOrderConfirmed(true); // ✅ mark confirmed for this mode
+    setOrderConfirmed(true);
     onClose();
   };
 
   return (
     <Modal show={show} onHide={onClose} centered backdrop="static">
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold text-uppercase">Confirm Order Type</Modal.Title>
+      <Modal.Header closeButton className="text-brand-green">
+        <Modal.Title className="fw-bold text-brand-green">Confirm Order Type</Modal.Title>
       </Modal.Header>
 
-      <Modal.Body>
+      <Modal.Body className="text-brand-green">
         <div className="btn-group mb-4 w-100">
           {["pickup", "delivery"].map((type) => (
             <Button
@@ -47,49 +73,53 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
 
         {orderMode === "pickup" && (
           <>
-            <PlaceHeader />
+            <PlaceHeader fontSize="fs-5" />
             <Form.Group className="mt-3">
-              <Form.Label>Pickup Time</Form.Label>
+              <Form.Label className="small fw-semibold text-dark">Pickup Time</Form.Label>
               <Form.Control
                 type="time"
                 value={deliveryTime}
                 onChange={(e) => setDeliveryTime(e.target.value)}
               />
             </Form.Group>
-
-           
           </>
         )}
 
         {orderMode === "delivery" && (
           <>
             <Form.Group className="mb-3">
-              <Form.Label>Delivery Address</Form.Label>
+              <Form.Label className="small fw-semibold text-dark">Delivery Address</Form.Label>
               <AddressDistance
-                value={address}
-                onChange={(val) => setAddress(val)}
+                value={draftAddress}
+                initialPlace={draftAddressPlace ?? undefined}
+                onChange={(val) => setDraftAddress(val)}
+                onPlaceSelect={(p) => setDraftAddressPlace(p)}
               />
             </Form.Group>
 
-
-            <Form.Group>
-              <Form.Label>Preferred Delivery Time</Form.Label>
+            <Form.Group className="mb-3">
+              <Form.Label className="small fw-semibold text-dark">Preferred Delivery Time</Form.Label>
               <Form.Control
                 type="time"
                 value={deliveryTime}
                 onChange={(e) => setDeliveryTime(e.target.value)}
               />
             </Form.Group>
+
+            <Form.Group>
+              <Form.Label className="small fw-semibold text-dark">Delivery From</Form.Label>
+              <PlaceHeader fontSize="fs-6" />
+            </Form.Group>
           </>
         )}
       </Modal.Body>
 
-      <Modal.Footer>
+      <Modal.Footer className="text-brand-green">
         <Button
           variant="dark"
           className="w-100 fw-semibold"
           onClick={handleConfirm}
-          disabled={orderMode === "delivery" && address.trim().length === 0}
+          disabled={orderMode === "delivery" && draftAddress.trim().length === 0}
         >
           Confirm
         </Button>

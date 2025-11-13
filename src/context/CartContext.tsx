@@ -9,6 +9,16 @@ interface CartItem {
   image?: string;
 }
 
+export interface AddressPlace {
+  place_id?: string;
+  name?: string;
+  formatted_address: string;
+  lat?: number;
+  lng?: number;
+  distanceKm?: number;
+  canDeliver?: boolean;
+}
+
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
@@ -26,6 +36,10 @@ interface CartContextType {
   setAddress: (address: string) => void;
   deliveryTime: string;
   setDeliveryTime: (time: string) => void;
+
+  // NEW: persisted place metadata for selected address
+  addressPlace: AddressPlace | null;
+  setAddressPlace: (place: AddressPlace | null) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -36,6 +50,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [address, setAddress] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
+
+  // NEW: selected place metadata
+  const [addressPlace, setAddressPlace] = useState<AddressPlace | null>(null);
 
   // Load from storage
   useEffect(() => {
@@ -50,6 +67,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const savedTime = sessionStorage.getItem("deliveryTime");
       if (savedAddress) setAddress(savedAddress);
       if (savedTime) setDeliveryTime(savedTime);
+
+      // NEW: load saved addressPlace (if any)
+      const savedPlaceJson = sessionStorage.getItem("deliveryAddressPlace");
+      if (savedPlaceJson) {
+        try {
+          const parsed = JSON.parse(savedPlaceJson);
+          // basic validation: ensure formatted_address exists
+          if (parsed && typeof parsed.formatted_address === "string") {
+            setAddressPlace(parsed);
+          }
+        } catch {}
+      }
     } catch (err) {
       console.error("Error loading storage:", err);
     }
@@ -64,15 +93,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (orderMode) {
       sessionStorage.setItem("orderMode", orderMode);
-      setOrderConfirmed(false); // ✅ reset confirmation on mode change
+      setOrderConfirmed(false); // reset confirmation on mode change
     }
   }, [orderMode]);
 
   // Save address & deliveryTime
   useEffect(() => {
     if (address) sessionStorage.setItem("deliveryAddress", address);
+    else sessionStorage.removeItem("deliveryAddress");
     if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
+    else sessionStorage.removeItem("deliveryTime");
   }, [address, deliveryTime]);
+
+  // NEW: persist addressPlace
+  useEffect(() => {
+    if (addressPlace) {
+      try {
+        sessionStorage.setItem("deliveryAddressPlace", JSON.stringify(addressPlace));
+      } catch (err) {
+        console.error("Error saving deliveryAddressPlace:", err);
+      }
+    } else {
+      sessionStorage.removeItem("deliveryAddressPlace");
+    }
+  }, [addressPlace]);
 
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
@@ -118,6 +162,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         setAddress,
         deliveryTime,
         setDeliveryTime,
+        addressPlace,
+        setAddressPlace,
       }}
     >
       {children}

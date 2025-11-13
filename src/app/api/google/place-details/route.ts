@@ -1,3 +1,4 @@
+// app/api/google/place-details/route.ts
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -9,8 +10,12 @@ export async function GET(req: Request) {
 
   const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+  const fields = searchParams.get("fields") || "geometry,formatted_address,name";
+
   const res = await fetch(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,formatted_address&key=${GOOGLE_API_KEY}`
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
+      placeId
+    )}&fields=${encodeURIComponent(fields)}&key=${GOOGLE_API_KEY}`
   );
 
   const data = await res.json();
