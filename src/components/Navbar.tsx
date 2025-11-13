@@ -8,7 +8,6 @@ import { useCart } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 
 
-
 export default function Navbar() {
   useEffect(() => {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
@@ -184,9 +183,9 @@ export default function Navbar() {
                       <CartIcon mode="page" />
                     </li>
                     )} */}
-                    <li className="nav-item">
+                    {/* <li className="nav-item">
                       <CartIcon mode="drawer" onOpenDrawer={() => setShowDrawer(true)} />
-                    </li>
+                    </li> */}
                 </ul>
               </div>
             </div>
