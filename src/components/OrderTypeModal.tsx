@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useCart, AddressPlace } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext";
 import PlaceHeader from "@/components/PlaceHeader";
 import AddressDistance, { SelectedPlace } from "@/components/AddressDistance";
 
@@ -13,6 +13,7 @@ interface OrderTypeModalProps {
 }
 
 export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
+  // useCart is strongly typed in your CartContext; do NOT cast to `any`
   const {
     orderMode,
     setOrderMode,
@@ -23,17 +24,19 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
     setOrderConfirmed,
     addressPlace,
     setAddressPlace,
-  } = useCart() as any;
+  } = useCart();
 
   // Local drafts (modal-local)
   const [draftAddress, setDraftAddress] = useState<string>(address || "");
-  const [draftAddressPlace, setDraftAddressPlace] = useState<SelectedPlace | null>(addressPlace || null);
+  const [draftAddressPlace, setDraftAddressPlace] = useState<SelectedPlace | null>(
+    (addressPlace as unknown as SelectedPlace) || null
+  );
 
   // When modal opens, (re)initialize drafts from context
   useEffect(() => {
     if (show) {
       setDraftAddress(address || "");
-      setDraftAddressPlace(addressPlace || null);
+      setDraftAddressPlace((addressPlace as unknown as SelectedPlace) || null);
     }
   }, [show, address, addressPlace]);
 
@@ -45,7 +48,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
     if (orderMode === "delivery") {
       // commit drafts to context (and sessionStorage via CartContext effects)
       setAddress(draftAddress);
-      if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
+      setAddressPlace && setAddressPlace(draftAddressPlace);
       sessionStorage.setItem("deliveryAddress", draftAddress || "");
     }
     setOrderConfirmed(true);
