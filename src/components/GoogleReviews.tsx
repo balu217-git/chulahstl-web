@@ -100,7 +100,7 @@ export default function GoogleReviews({
 
                   {/* Author */}
                   <div className="d-flex align-items-center mt-auto">
-                    <div className="rounded-circle overflow-hidden" style={{ width: 48, height: 48 }}>
+                      <div className="rounded-circle overflow-hidden me-2" style={{ width: 48, height: 48 }}>
                         <Image
                           src={review.profile_photo_url}
                           alt={review.author_name}
@@ -109,15 +109,14 @@ export default function GoogleReviews({
                           style={{ objectFit: "cover" }}
                         />
                       </div>
-
-                    <div>
-                      <p className="mb-0 fw-semibold text-white">
-                        {review.author_name}
-                      </p>
-                      <small className="text-secondary">
-                        {review.relative_time_description}
-                      </small>
-                    </div>
+                      <div>
+                        <p className="mb-0 fw-semibold text-white">
+                          {review.author_name}
+                        </p>
+                        <small className="text-secondary">
+                          {review.relative_time_description}
+                        </small>
+                      </div>
                   </div>
                 </div>
               </div>
