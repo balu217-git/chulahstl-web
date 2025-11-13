@@ -3,6 +3,7 @@
 import { Modal, Button, Form } from "react-bootstrap";
 import { useCart } from "@/context/CartContext";
 import PlaceHeader from "@/components/PlaceHeader";
+import AddressDistance from "@/components/AddressDistance";
 
 interface OrderTypeModalProps {
   show: boolean;
@@ -55,6 +56,8 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
                 onChange={(e) => setDeliveryTime(e.target.value)}
               />
             </Form.Group>
+
+           
           </>
         )}
 
@@ -62,13 +65,12 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
           <>
             <Form.Group className="mb-3">
               <Form.Label>Delivery Address</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter your delivery address"
+              <AddressDistance
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(val) => setAddress(val)}
               />
             </Form.Group>
+
 
             <Form.Group>
               <Form.Label>Preferred Delivery Time</Form.Label>

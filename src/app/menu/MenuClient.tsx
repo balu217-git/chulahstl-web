@@ -6,6 +6,7 @@ import MenuCategoriesAside from "@/components/MenuCategoriesAside";
 import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
 import PlaceHeader from "@/components/PlaceHeader";
+import AddressDistance from "@/components/AddressDistance";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
 
@@ -55,6 +56,7 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
                 <div className="mb-2">
                   <PlaceHeader />
                   <OrderModeSelector onDeliverySelect={handleDeliverySelect} />
+                  {/* <AddressDistance /> */}
                 </div>
 
                 {Object.entries(groupedMenus).map(([parentSlug, parentGroup]) => (
