@@ -42,7 +42,6 @@ export default async function MenuPage() {
 
   return (
     <MenuClient
-      menus={menus}
       allCategories={allCategories}
       groupedMenus={groupedMenus}
     />
