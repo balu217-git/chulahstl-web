@@ -139,8 +139,9 @@ export default function GoogleReviews({
           <div className="modal-content bg-dark text-light rounded-4">
             <div className="modal-header border-0">
               <h5 className="modal-title" id="reviewModalLabel">
-                {selectedReview?.author_name}'s Review
+                {`${selectedReview?.author_name}'s Review`}
               </h5>
+
               <button
                 type="button"
                 className="btn-close btn-close-white"
