@@ -107,6 +107,9 @@ export default function GoogleReviews({
                           width={48}
                           height={48}
                           style={{ objectFit: "cover" }}
+                          onError={(e) => {
+                          e.currentTarget.src = "/default-avatar.svg";
+                        }}
                         />
                       </div>
                       <div>
