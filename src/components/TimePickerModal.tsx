@@ -335,10 +335,20 @@ export default function TimePickerModal({
         .date-left { font-weight: 600; }
         .date-right { font-size: 12px; opacity: 0.95; background: rgba(255,255,255,0.02); padding: 6px 8px; border-radius: 8px; }
         .slots-scroll { max-height: 46vh; overflow:auto; padding-bottom: 12px; }
-        .slot-row { display:flex; align-items:center; gap:12px; padding:14px 12px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition: background 120ms ease; }
+        .slot-row { display:flex; align-items:center; gap:12px; padding:14px 12px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition: background 120ms ease; font-size: 14px; border-radius: 10px;}
         .slot-row:hover { background: #fff4e9; }
         .slot-row:hover .slot-radio{border-color: #00282a;}
         .slot-row:hover .slot-radio.checked{border-color: #00282a; background: #00282a;}
+        .slot-row:has(.slot-radio.checked) {
+  background-color: #00282a;
+  color: #fff;
+}
+  .slot-row:has(.slot-radio.checked) .slot-radio.checked{
+      border-color: #e8841e; background: #e8841e;
+  }
+  .slot-row:has(.slot-radio.checked):hover .slot-radio.checked{
+      border-color: #e8841e; background: #e8841e;
+  }
         .slot-radio { width:22px; height:22px; border-radius:50%; border:2px solid #e8841e; display:inline-block; flex:0 0 22px; position:relative; }
         .slot-radio.checked { background: #e8841e; border-color: #e8841e; }
         .slot-label { font-weight:600; }
@@ -470,7 +480,7 @@ export default function TimePickerModal({
 
       <Modal.Footer className="sticky">
         <div style={{ width: "100%" }}>
-          <Button className="schedule-btn" onClick={handleConfirm} disabled={!asapAvailable && !selectedSlot}>
+          <Button className="schedule-btn btn-brand-green" onClick={handleConfirm} disabled={!asapAvailable && !selectedSlot}>
             {mode === "pickup" ? "Schedule Pickup" : "Schedule Delivery"}
           </Button>
         </div>
