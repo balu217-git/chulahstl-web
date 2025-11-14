@@ -575,6 +575,13 @@ header .nav-link:hover {
 .form-container .form-label{
     font-size: .85rem;
 }
+/* .form-control:focus {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: #e8841e;
+    outline: 0;
+    box-shadow: none;
+} */
 
 .bg-brand-light .form-container ::placeholder {
     color: color-mix(in srgb, var(--brand-green) 80%, transparent);
