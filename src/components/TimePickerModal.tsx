@@ -480,7 +480,7 @@ export default function TimePickerModal({
 
       <Modal.Footer className="sticky">
         <div style={{ width: "100%" }}>
-          <Button className="schedule-btn btn-brand-green" onClick={handleConfirm} disabled={!asapAvailable && !selectedSlot}>
+          <Button className="schedule-btn btn-brand-green btn-wide" onClick={handleConfirm} disabled={!asapAvailable && !selectedSlot}>
             {mode === "pickup" ? "Schedule Pickup" : "Schedule Delivery"}
           </Button>
         </div>
