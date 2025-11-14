@@ -24,19 +24,19 @@ export interface SelectedPlace {
   timeZoneId?: string; // <- optional IANA timezone (e.g. "America/Chicago")
 }
 
-interface AddressDistanceProps {
+interface AddressPickerProps {
   value: string;
   onChange: (value: string) => void; // draft changes
   initialPlace?: SelectedPlace | null; // optional initial/hydration
   onPlaceSelect?: (place: SelectedPlace | null) => void; // draft place callback
 }
 
-export default function AddressDistance({
+export default function AddressPicker({
   value,
   onChange,
   initialPlace = null,
   onPlaceSelect,
-}: AddressDistanceProps) {
+}: AddressPickerProps) {
   const RESTAURANT_PLACE_ID = process.env.NEXT_PUBLIC_PLACE_ID;
   const MAX_DELIVERY_KM = 10;
 

@@ -7,10 +7,10 @@ import { MenuItem } from "@/types/menu";
 
 interface MenuCardProps {
   menu: MenuItem;
-  onDeliverySelect: () => void;
+  onAddressSelect: () => void;
 }
 
-export default function MenuCard({ menu, onDeliverySelect }: MenuCardProps) {
+export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
   const { addToCart, cart, updateQuantity, removeFromCart, orderMode, orderConfirmed } = useCart();
 
   const fields = menu.menuDetails;
@@ -22,7 +22,7 @@ export default function MenuCard({ menu, onDeliverySelect }: MenuCardProps) {
   const handleAddToCart = () => {
     // ✅ force modal if not confirmed for current mode
     if (!orderConfirmed) {
-      onDeliverySelect();
+      onAddressSelect();
       return;
     }
     addToCart({ id: menu.id, title: menu.title, price, quantity: 1, image: imageUrl });

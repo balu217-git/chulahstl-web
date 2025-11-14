@@ -1,6 +1,7 @@
+// components/CartDrawer.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,8 +9,9 @@ import { Offcanvas, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import OrderModeSelector from "@/components/OrderModeSelector";
-import OrderModeAddress from "@/components/OrderModeAddress"
+import OrderModeAddress from "@/components/OrderModeAddress";
 import OrderTypeModal from "@/components/OrderTypeModal";
+import TimePickerModal from "@/components/TimePickerModal";
 
 interface CartDrawerProps {
   show?: boolean;
@@ -26,35 +28,85 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
     orderMode,
     setOrderMode,
     address,
+    addressPlace,
+    setDeliveryTime,
   } = useCart();
 
   const [showOrderModal, setShowOrderModal] = useState(false);
 
+  // TimePicker parent-controlled state
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
+
   const handleOrderModeClick = (mode: "pickup" | "delivery") => {
     setOrderMode(mode);
     if (mode === "delivery") {
-      // Ensure modal shows *above* Offcanvas
+      // Ensure modal shows above Offcanvas (small delay)
       setTimeout(() => setShowOrderModal(true), 150);
     }
   };
 
+  const handleDeliverySelect = () => {
+    setShowOrderModal(true);
+  };
+
+  // fetch weekday_text when timepicker opens (on-demand)
+  useEffect(() => {
+    if (!showTimePicker) {
+      setWeekdayText(null);
+      return;
+    }
+
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/google-reviews");
+        if (!res.ok) {
+          if (!mounted) return;
+          setWeekdayText(null);
+          return;
+        }
+        const j = await res.json();
+        if (!mounted) return;
+        setWeekdayText(j?.opening_hours?.weekday_text || null);
+      } catch (err) {
+        console.error("Failed to fetch opening hours:", err);
+        if (!mounted) return;
+        setWeekdayText(null);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [showTimePicker]);
+
+  // Called when user picks a time in TimePickerModal
+  const handleTimeConfirm = (iso: string) => {
+    setDeliveryTime(iso);
+    setShowTimePicker(false);
+  };
+
+  // timeZone for TimePicker: prefer selected place timezone, fallback to env default
+  const timeZone =
+    (addressPlace as any)?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
+
   return (
     <>
-      <Offcanvas
-        show={show}
-        onHide={onClose}
-        placement="end"
-        backdrop={true}
-        scroll={true}
-      >
+      <Offcanvas show={show} onHide={onClose} placement="end" backdrop={true} scroll={true}>
         <Offcanvas.Header closeButton className="border-bottom">
           <Offcanvas.Title>Cart</Offcanvas.Title>
         </Offcanvas.Header>
 
         <Offcanvas.Body className="d-flex flex-column justify-content-between h-100">
           {/* --- Order Type Buttons --- */}
-          <OrderModeSelector onDeliverySelect={() => setShowOrderModal(true)} />
-          <OrderModeAddress className="mt-2" onDeliverySelect={() => setShowOrderModal(true)}/>
+          <OrderModeSelector onAddressSelect={handleDeliverySelect} />
+          {/* Address box opens OrderTypeModal; Time box opens TimePickerModal */}
+          <OrderModeAddress
+            className="mt-2"
+            onAddressSelect={() => setShowOrderModal(true)}
+            onTimeSelect={() => setShowTimePicker(true)}
+          />
 
           {/* --- Cart Items --- */}
           <div className="cart-items flex-grow-1 overflow-auto">
@@ -101,9 +153,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                   </div>
 
                   <div className="text-end">
-                    <p className="fw-bold mb-1">
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </p>
+                    <p className="fw-bold mb-1">₹{(item.price * item.quantity).toFixed(2)}</p>
                     <Button
                       className="btn btn-sm btn-link text-danger p-0 shadow-none"
                       onClick={() => removeFromCart(item.id)}
@@ -124,18 +174,11 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                 <span>₹{getTotalPrice().toFixed(2)}</span>
               </div>
 
-              <Link
-                href="/checkout"
-                className="btn btn-brand-orange w-100 mb-2 rounded-pill"
-                onClick={onClose}
-              >
+              <Link href="/checkout" className="btn btn-brand-orange w-100 mb-2 rounded-pill" onClick={onClose}>
                 Checkout
               </Link>
 
-              <Button
-                className="btn btn-outline-secondary btn-light w-100 rounded-pill"
-                onClick={clearCart}
-              >
+              <Button className="btn btn-outline-secondary btn-light w-100 rounded-pill" onClick={clearCart}>
                 Clear Cart
               </Button>
             </div>
@@ -145,6 +188,18 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
 
       {/* --- Order Modal --- */}
       <OrderTypeModal show={showOrderModal} onClose={() => setShowOrderModal(false)} />
+
+      {/* --- TimePicker Modal (parent-controlled) --- */}
+      <TimePickerModal
+        show={showTimePicker}
+        onClose={() => setShowTimePicker(false)}
+        mode={orderMode === "pickup" ? "pickup" : "delivery"}
+        weekdayText={weekdayText}
+        timeZone={timeZone}
+        slotMinutes={15}
+        daysAhead={9}
+        onConfirm={handleTimeConfirm}
+      />
     </>
   );
 }

@@ -1,18 +1,19 @@
 // components/OrderTypeModal.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useCart } from "@/context/CartContext";
 import PlaceHeader from "@/components/PlaceHeader";
-import AddressDistance, { SelectedPlace } from "@/components/AddressDistance";
+import AddressPicker, { SelectedPlace } from "@/components/AddressPicker";
 import TimePickerModal from "@/components/TimePickerModal";
-import PlaceTimePickerLauncher from "@/components/PlaceTimePickerLauncher";
 
 interface OrderTypeModalProps {
   show: boolean;
   onClose: () => void;
 }
+
+const DEFAULT_ASAP_MINUTES = 50; // adjust if needed
 
 export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   const {
@@ -38,6 +39,12 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
 
+  // prefer explicit open_now from API when available
+  const [fetchedOpenNow, setFetchedOpenNow] = useState<boolean | null>(null);
+
+  // What flow opened the time picker — "pickup" or "delivery"
+  const [timePickerFor, setTimePickerFor] = useState<"pickup" | "delivery" | null>(null);
+
   // Initialize drafts and fetch opening hours when the modal opens
   useEffect(() => {
     if (!show) return;
@@ -45,20 +52,27 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
     setDraftAddressPlace((addressPlace as unknown as SelectedPlace) || null);
     setDraftDeliveryTime(deliveryTime || "");
 
-    // fetch place opening_hours.weekday_text (optional)
+    // fetch place opening_hours (optional) so we can decide ASAP visibility.
     (async () => {
       try {
         const res = await fetch("/api/google-reviews");
         if (!res.ok) {
           setWeekdayText(null);
+          setFetchedOpenNow(null);
           return;
         }
         const j = await res.json();
-        const wd = j?.opening_hours?.weekday_text || null;
-        setWeekdayText(wd);
+        setWeekdayText(j?.opening_hours?.weekday_text || null);
+        // prefer explicit open_now if available from API
+        if (typeof j?.opening_hours?.open_now === "boolean") {
+          setFetchedOpenNow(j.opening_hours.open_now);
+        } else {
+          setFetchedOpenNow(null);
+        }
       } catch (err) {
         console.error("Failed to fetch opening hours:", err);
         setWeekdayText(null);
+        setFetchedOpenNow(null);
       }
     })();
   }, [show, address, addressPlace, deliveryTime]);
@@ -70,17 +84,14 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   const handleConfirm = () => {
     // commit modal-local drafts into CartContext
     if (orderMode === "delivery") {
-        setAddress(draftAddress);
-        if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
-        setDeliveryTime(draftDeliveryTime || "");
-        // store timezone in cart/context if you have a setter e.g. setTimeZone
-        // setTimeZone?.(draftAddressPlace?.timeZoneId);
-        sessionStorage.setItem("deliveryAddress", draftAddress || "");
-      } else {
-            // pickup: we still may want to set deliveryTime (used as pickup time)
-            setDeliveryTime(draftDeliveryTime || "");
-          }
-
+      setAddress(draftAddress);
+      if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
+      setDeliveryTime(draftDeliveryTime || "");
+      sessionStorage.setItem("deliveryAddress", draftAddress || "");
+    } else {
+      // pickup
+      setDeliveryTime(draftDeliveryTime || "");
+    }
     setOrderConfirmed(true);
     onClose();
   };
@@ -99,14 +110,87 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   };
   const confirmDisabled = orderMode === "delivery" ? !canConfirmDelivery() : false;
 
-  // TimePicker open/close + callback
-  const openTimePicker = () => setShowTimePicker(true);
-  const closeTimePicker = () => setShowTimePicker(false);
+  // ---------- Determine place open state ----------
+  // prefer draftAddressPlace.open_now if provided by AddressPicker,
+  // otherwise prefer fetchedOpenNow (from /api/google-reviews),
+  // otherwise fallback to parsing weekday_text (rare).
+  const placeOpenNow = useMemo(() => {
+    // 1) place object from AddressPicker (most reliable if available)
+    const placeFlag = (draftAddressPlace as any)?.open_now;
+    if (typeof placeFlag === "boolean") return placeFlag;
 
-  // onConfirm from TimePicker stores into modal-local draft
+    // 2) fetched open_now
+    if (typeof fetchedOpenNow === "boolean") return fetchedOpenNow;
+
+    // 3) fallback: parse weekday_text (basic check — you already have weekdayText)
+    if (!weekdayText || weekdayText.length === 0) return false;
+
+    // Map Monday..Sunday (Google) -> JS day 0..6 (Sunday=0)
+    const now = draftAddressPlace?.timeZoneId
+      ? new Date(new Date().toLocaleString("en-US", { timeZone: draftAddressPlace.timeZoneId }))
+      : new Date();
+    const jsDay = now.getDay(); // 0..6
+    // google weekday_text index mapping: Monday..Sunday => map to (i+1)%7
+    const idx = jsDay === 0 ? 6 : jsDay - 1;
+    const todayLine = weekdayText[idx] || "";
+    // quick check: if 'closed' present -> closed, else open
+    if (/closed/i.test(todayLine)) return false;
+    // if line contains a dash like "9:00 AM – 10:00 PM" assume open for simplicity
+    return /(\d{1,2}:\d{2}\s?[APMapm]+)/.test(todayLine);
+  }, [draftAddressPlace, fetchedOpenNow, weekdayText]);
+
+  // ---------- Schedule / ASAP flow ----------
+  const openScheduleFlow = (forMode: "pickup" | "delivery") => {
+    setTimePickerFor(forMode);
+
+    if (forMode === "delivery") {
+      const deliverable = draftAddress.trim().length > 0 && draftAddressPlace?.canDeliver !== false;
+      if (!deliverable) return;
+      // commit address immediately so scheduling UI can rely on cart state
+      setAddress(draftAddress);
+      if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
+      sessionStorage.setItem("deliveryAddress", draftAddress || "");
+    }
+
+    onClose();
+    // give parent a short moment to close modal; if your parent unmounts immediately,
+    // consider lifting TimePicker into parent. This small timeout works for many flows.
+    setTimeout(() => {
+      setShowTimePicker(true);
+    }, 120);
+  };
+
+  // ASAP handler: commit address and set delivery time to now + DEFAULT_ASAP_MINUTES
+  const handleDeliverASAP = () => {
+    // ensure deliverable
+    const deliverable = draftAddress.trim().length > 0 && draftAddressPlace?.canDeliver !== false;
+    if (!deliverable) return;
+    // ensure place open now
+    if (!placeOpenNow) return;
+
+    // commit address & place immediately
+    setAddress(draftAddress);
+    if (typeof setAddressPlace === "function") setAddressPlace(draftAddressPlace);
+    sessionStorage.setItem("deliveryAddress", draftAddress || "");
+
+    // set delivery time to "now + DEFAULT_ASAP_MINUTES"
+    const asapDate = new Date(Date.now() + DEFAULT_ASAP_MINUTES * 60_000);
+    setDeliveryTime(asapDate.toISOString());
+    // close modal (we do NOT mark order confirmed; scheduling only)
+    onClose();
+  };
+
+  const closeTimePicker = () => {
+    setShowTimePicker(false);
+    setTimePickerFor(null);
+  };
+
+  // When time is picked, write directly into cart context
   const onTimePicked = (iso: string) => {
+    setDeliveryTime(iso);
     setDraftDeliveryTime(iso);
     setShowTimePicker(false);
+    setTimePickerFor(null);
   };
 
   return (
@@ -132,20 +216,6 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
           {orderMode === "pickup" && (
             <>
               <PlaceHeader fontSize="fs-5" />
-              <Form.Group className="mt-3">
-                <Form.Label className="small fw-semibold text-dark">Pickup Time</Form.Label>
-                <div className="d-flex gap-2">
-                  <Form.Control
-                    type="text"
-                    value={draftDeliveryTime ? new Date(draftDeliveryTime).toLocaleString() : ""}
-                    placeholder="No time selected"
-                    readOnly
-                  />
-                  <Button variant="outline-secondary" onClick={openTimePicker}>
-                    Select time
-                  </Button>
-                </div>
-              </Form.Group>
             </>
           )}
 
@@ -153,86 +223,87 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
             <>
               <Form.Group className="mb-3">
                 <Form.Label className="small fw-semibold text-dark">Delivery Address</Form.Label>
-                <AddressDistance
+                <AddressPicker
                   value={draftAddress}
                   initialPlace={draftAddressPlace ?? undefined}
                   onChange={(val) => setDraftAddress(val)}
                   onPlaceSelect={(p) => setDraftAddressPlace(p)}
                 />
-                {/* Option A: Manual launcher button (user clicks) */}
-                {/* {draftAddressPlace?.place_id && (
-                  <PlaceTimePickerLauncher placeId={draftAddressPlace.place_id} />
-                )} */}
               </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label className="small fw-semibold text-dark">Preferred Delivery Time</Form.Label>
-                <div className="d-flex gap-2">
-                  <Form.Control
-                    type="text"
-                    value={draftDeliveryTime ? new Date(draftDeliveryTime).toLocaleString() : ""}
-                    placeholder="No time selected"
-                    readOnly
-                  />
-                  <Button variant="outline-secondary" onClick={openTimePicker} disabled={!draftAddress.trim()}>
-                    Select time
-                  </Button>
-                </div>
-              </Form.Group>
-
-              <Form.Group>
-                <Form.Label className="small fw-semibold text-dark">Delivery From</Form.Label>
-                <PlaceHeader fontSize="fs-6" />
-              </Form.Group>
+              {draftAddressPlace && draftAddressPlace.canDeliver === true && (
+                <Form.Group className="mb-3">
+                  <Form.Label className="small fw-semibold text-dark">Delivery From</Form.Label>
+                  <PlaceHeader fontSize="fs-6" />
+                </Form.Group>
+               )}
 
               {draftAddressPlace && draftAddressPlace.canDeliver === false && (
                 <div className="mt-2 alert alert-danger small">This address is outside our delivery area.</div>
               )}
+
+              {/* ASAP + Schedule UI (ASAP first). Buttons enabled/disabled via canConfirmDelivery/placeOpenNow */}
+              <div className="d-grid gap-2 mt-4">
+                {placeOpenNow && (
+                  <Button
+                    variant="danger"
+                    className="py-2 w-100"
+                    onClick={handleDeliverASAP}
+                    disabled={!canConfirmDelivery()}
+                    title={canConfirmDelivery() ? `Deliver ASAP (~${DEFAULT_ASAP_MINUTES} min)` : undefined}
+                  >
+                    Deliver ASAP ({DEFAULT_ASAP_MINUTES} min)
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline-dark"
+                  className="py-2 w-100 fw-semibold"
+                  onClick={() => openScheduleFlow("delivery")}
+                  disabled={!canConfirmDelivery()}
+                >
+                  Schedule delivery
+                </Button>
+              </div>
             </>
           )}
         </Modal.Body>
 
         <Modal.Footer className="text-brand-green d-flex gap-2">
+
+
           {orderMode === "delivery" && draftAddress.trim().length > 0 && (
             <Button variant="outline-secondary" onClick={handleClearDraft}>
               Clear address
             </Button>
           )}
 
-          {/* footer button opens the TimePicker (schedule) */}
-          <Button
-            variant="dark"
-            className="flex-grow-1 fw-semibold"
-            onClick={openTimePicker}
-            disabled={confirmDisabled}
-          >
-            {orderMode === "pickup" ? "Schedule Pickup" : "Schedule Delivery"}
-          </Button>
 
-          {/* Final commit */}
-          <Button
-            variant="secondary"
-            onClick={handleConfirm}
-            className="ms-2"
-            disabled={orderMode === "delivery" && draftAddress.trim().length === 0}
-          >
-            Confirm
-          </Button>
+
+          {/* If user is in pickup mode show schedule pickup button in footer */}
+          {orderMode === "pickup" && (
+            <Button
+              variant="dark"
+              className="flex-grow-1 fw-semibold"
+              onClick={() => openScheduleFlow("pickup")}
+            >
+              Schedule Pickup
+            </Button>
+            
+          )}
         </Modal.Footer>
       </Modal>
 
-      {/* TimePicker Modal - gets weekdayText fetched earlier */}
+      {/* TimePicker Modal - opened after closing this modal. */}
       <TimePickerModal
-  show={showTimePicker}
-  onClose={closeTimePicker}
-  mode={orderMode === "pickup" ? "pickup" : "delivery"}
-  weekdayText={weekdayText}
-  // prefer place timezone, fallback to app default
-  timeZone={draftAddressPlace?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago"}
-  slotMinutes={15}
-  daysAhead={9}
-  onConfirm={onTimePicked}
-/>
+        show={showTimePicker}
+        onClose={closeTimePicker}
+        mode={timePickerFor ?? (orderMode === "pickup" ? "pickup" : "delivery")}
+        weekdayText={weekdayText}
+        timeZone={draftAddressPlace?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago"}
+        slotMinutes={15}
+        daysAhead={9}
+        onConfirm={onTimePicked}
+      />
     </>
   );
 }

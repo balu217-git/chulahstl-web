@@ -5,10 +5,10 @@ import { Button } from "react-bootstrap";
 import { useCart } from "@/context/CartContext";
 
 interface OrderModeSelectorProps {
-  onDeliverySelect?: () => void;
+  onAddressSelect?: () => void;
 }
 
-export default function OrderModeSelector({ onDeliverySelect }: OrderModeSelectorProps) {
+export default function OrderModeSelector({ onAddressSelect }: OrderModeSelectorProps) {
   const { orderMode, setOrderMode } = useCart();
   const [localMode, setLocalMode] = useState<"pickup" | "delivery">(orderMode);
 
@@ -19,7 +19,7 @@ export default function OrderModeSelector({ onDeliverySelect }: OrderModeSelecto
   const handleClick = (mode: "pickup" | "delivery") => {
     setLocalMode(mode);
     setOrderMode(mode);
-    if (mode === "delivery" && onDeliverySelect) onDeliverySelect();
+    if (mode === "delivery" && onAddressSelect) onAddressSelect();
   };
 
   return (

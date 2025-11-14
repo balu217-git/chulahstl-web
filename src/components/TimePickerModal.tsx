@@ -3,7 +3,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
-import { formatTimeForTZ } from "@/lib/formatDateTime";
 
 type Mode = "pickup" | "delivery";
 

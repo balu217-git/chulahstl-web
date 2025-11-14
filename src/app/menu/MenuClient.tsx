@@ -1,3 +1,4 @@
+// components/MenuClient.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,8 +6,9 @@ import MenuCard from "@/components/MenuCard";
 import MenuCategoriesAside from "@/components/MenuCategoriesAside";
 import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
-import OrderModeAddress from"@/components/OrderModeAddress";
+import OrderModeAddress from "@/components/OrderModeAddress";
 import PlaceHeader from "@/components/PlaceHeader";
+import TimePickerModal from "@/components/TimePickerModal";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
 
@@ -19,15 +21,27 @@ interface MenuClientProps {
 }
 
 export default function MenuClient({ allCategories, groupedMenus }: MenuClientProps) {
-  const { orderConfirmed, setOrderConfirmed, orderMode, address } = useCart();
+  const {
+    orderConfirmed,
+    setOrderConfirmed,
+    orderMode,
+    address,
+    addressPlace,
+    setDeliveryTime,
+  } = useCart();
+
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [prevMode, setPrevMode] = useState(orderMode);
 
-  // ✅ Detect orderMode change and trigger modal automatically
+  // TimePicker state lifted to parent
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
+
+  // Open the order-type modal when orderMode changes
   useEffect(() => {
     if (orderMode !== prevMode) {
       setOrderConfirmed(false); // reset confirmation
-      setShowOrderModal(true);  // open modal for new mode
+      setShowOrderModal(true); // open modal for new mode
       setPrevMode(orderMode);
     }
   }, [orderMode, prevMode, setOrderConfirmed]);
@@ -36,16 +50,70 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
     setShowOrderModal(true);
   };
 
+  // Fetch weekday_text (or other opening hours) when timepicker opens.
+  useEffect(() => {
+    if (!showTimePicker) {
+      setWeekdayText(null);
+      return;
+    }
+
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/google-reviews");
+        if (!res.ok) {
+          if (!mounted) return;
+          setWeekdayText(null);
+          return;
+        }
+        const j = await res.json();
+        if (!mounted) return;
+        setWeekdayText(j?.opening_hours?.weekday_text || null);
+      } catch (err) {
+        console.error("Failed to fetch opening hours:", err);
+        if (!mounted) return;
+        setWeekdayText(null);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [showTimePicker]);
+
+  // Handler when time is chosen in TimePickerModal
+  const handleTimeConfirm = (iso: string) => {
+    // Write into cart
+    setDeliveryTime(iso);
+    // Close picker
+    setShowTimePicker(false);
+  };
+
+  // timeZone for TimePicker: prefer selected place timezone, fallback to env default
+  const timeZone =
+    (addressPlace as any)?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
+
   return (
     <>
+      {/* Address selecte and change controle */}
       <OrderTypeModal
         show={showOrderModal}
         onClose={() => {
           setShowOrderModal(false);
           setOrderConfirmed(true); // mark confirmed when modal closes
         }}
+      />
 
-
+      {/* TimePickerModal is parent-controlled now */}
+      <TimePickerModal
+        show={showTimePicker}
+        onClose={() => setShowTimePicker(false)}
+        mode={orderMode === "pickup" ? "pickup" : "delivery"}
+        weekdayText={weekdayText}
+        timeZone={timeZone}
+        slotMinutes={15}
+        daysAhead={9}
+        onConfirm={handleTimeConfirm}
       />
 
       <section className="info bg-brand-light">
@@ -58,11 +126,14 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
                 <div className="mb-2">
                   <PlaceHeader />
                   <div className="row gx-2">
-                    <div className="col-md-auto"> 
-                      <OrderModeSelector onDeliverySelect={handleDeliverySelect} />
+                    <div className="col-md-auto">
+                      <OrderModeSelector onAddressSelect={handleDeliverySelect} />
                     </div>
                     <div className="col-md-auto">
-                       <OrderModeAddress onDeliverySelect={handleDeliverySelect}/>
+                      <OrderModeAddress
+                        onAddressSelect={handleDeliverySelect}
+                        onTimeSelect={() => setShowTimePicker(true)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -78,7 +149,7 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
                         <div className="row g-4">
                           {childGroup.items.map((menu) => (
                             <div key={menu.id} className="col-xl-6 col-md-12">
-                              <MenuCard onDeliverySelect={handleDeliverySelect} menu={menu} />
+                              <MenuCard onAddressSelect={handleDeliverySelect} menu={menu} />
                             </div>
                           ))}
                         </div>
@@ -91,6 +162,8 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
           </div>
         </div>
       </section>
+
+      
     </>
   );
 }
