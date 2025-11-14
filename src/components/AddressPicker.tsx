@@ -297,7 +297,7 @@ export default function AddressPicker({
         <input
           ref={inputRef}
           type="text"
-          className="form-control form-control-lg border-0"
+          className="input-group border text-brand-green rounded-4 border-brand-green overflow-hidden"
           placeholder={loadingRestaurant ? "Loading restaurant..." : "Enter your delivery address"}
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
