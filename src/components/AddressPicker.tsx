@@ -289,7 +289,7 @@ export default function AddressPicker({
 
   return (
     <div style={{ position: "relative" }}>
-      <div className="input-group border rounded-3">
+      <div className="input-group border text-brand-green rounded-3">
         <span className="input-group-text bg-white border-0">
           <FontAwesomeIcon icon={faSearch} />
         </span>
@@ -297,7 +297,7 @@ export default function AddressPicker({
         <input
           ref={inputRef}
           type="text"
-          className="form-control border-0"
+          className="form-control form-control-lg border-0"
           placeholder={loadingRestaurant ? "Loading restaurant..." : "Enter your delivery address"}
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}

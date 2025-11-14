@@ -239,8 +239,8 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
                 )}
 
                 <Button
-                  variant="outline-dark"
-                  className="py-2 w-100 fw-semibold"
+                  // variant="outline-dark"
+                  className="py-2 btn-brand-green w-100 fw-semibold border border-brand-green"
                   onClick={() => openScheduleFlow("delivery")}
                   disabled={!canConfirmDelivery()}
                 >
@@ -253,15 +253,15 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
 
         <Modal.Footer className="text-brand-green d-flex gap-2">
           {orderMode === "delivery" && draftAddress.trim().length > 0 && (
-            <Button variant="outline-secondary" onClick={handleClearDraft}>
+            <Button variant="outline-secondary" className="btn-sm" onClick={handleClearDraft}>
               Clear address
             </Button>
           )}
 
           {orderMode === "pickup" && (
             <Button
-              variant="dark"
-              className="flex-grow-1 fw-semibold"
+              // variant="dark"
+              className="py-2 btn-brand-green w-100 fw-semibold border border-brand-green"
               onClick={() => openScheduleFlow("pickup")}
             >
               Schedule Pickup
