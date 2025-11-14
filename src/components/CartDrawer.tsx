@@ -12,6 +12,7 @@ import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderModeAddress from "@/components/OrderModeAddress";
 import OrderTypeModal from "@/components/OrderTypeModal";
 import TimePickerModal from "@/components/TimePickerModal";
+import type { SelectedPlace } from "@/components/AddressPicker";
 
 interface CartDrawerProps {
   show?: boolean;
@@ -70,6 +71,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
         if (!mounted) return;
         setWeekdayText(j?.opening_hours?.weekday_text || null);
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error("Failed to fetch opening hours:", err);
         if (!mounted) return;
         setWeekdayText(null);
@@ -88,8 +90,9 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   };
 
   // timeZone for TimePicker: prefer selected place timezone, fallback to env default
-  const timeZone =
-    (addressPlace as any)?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
+  // avoid `any` by asserting addressPlace to SelectedPlace | null | undefined
+  const ap = addressPlace as SelectedPlace | null | undefined;
+  const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
   return (
     <>
@@ -103,7 +106,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
           <OrderModeSelector onAddressSelect={handleDeliverySelect} />
           {/* Address box opens OrderTypeModal; Time box opens TimePickerModal */}
           <OrderModeAddress
-            className="mt-2"
+            className="my-3"
             onAddressSelect={() => setShowOrderModal(true)}
             onTimeSelect={() => setShowTimePicker(true)}
           />

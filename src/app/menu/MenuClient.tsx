@@ -11,6 +11,7 @@ import PlaceHeader from "@/components/PlaceHeader";
 import TimePickerModal from "@/components/TimePickerModal";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
+import type { SelectedPlace } from "@/components/AddressPicker";
 
 interface MenuClientProps {
   allCategories: CategoryNode[];
@@ -22,10 +23,8 @@ interface MenuClientProps {
 
 export default function MenuClient({ allCategories, groupedMenus }: MenuClientProps) {
   const {
-    orderConfirmed,
     setOrderConfirmed,
     orderMode,
-    address,
     addressPlace,
     setDeliveryTime,
   } = useCart();
@@ -44,7 +43,8 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
       setShowOrderModal(true); // open modal for new mode
       setPrevMode(orderMode);
     }
-  }, [orderMode, prevMode, setOrderConfirmed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderMode, prevMode]);
 
   const handleDeliverySelect = () => {
     setShowOrderModal(true);
@@ -70,6 +70,7 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
         if (!mounted) return;
         setWeekdayText(j?.opening_hours?.weekday_text || null);
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error("Failed to fetch opening hours:", err);
         if (!mounted) return;
         setWeekdayText(null);
@@ -90,12 +91,12 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
   };
 
   // timeZone for TimePicker: prefer selected place timezone, fallback to env default
-  const timeZone =
-    (addressPlace as any)?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
+  const ap = addressPlace as SelectedPlace | null | undefined;
+  const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
   return (
     <>
-      {/* Address selecte and change controle */}
+      {/* Address selector and change control */}
       <OrderTypeModal
         show={showOrderModal}
         onClose={() => {
@@ -162,8 +163,6 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
           </div>
         </div>
       </section>
-
-      
     </>
   );
 }

@@ -6,11 +6,12 @@ import { useCart } from "@/context/CartContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faTaxi } from "@fortawesome/free-solid-svg-icons";
 import { formatDateTimeForTZ } from "@/lib/formatDateTime";
+import type { SelectedPlace } from "@/components/AddressPicker";
 
 interface OrderModeAddressProps {
   className?: string;
-  onAddressSelect?: () => void;   // ← opens OrderTypeModal
-  onTimeSelect?: () => void;       // ← opens TimePickerModal
+  onAddressSelect?: () => void; // opens OrderTypeModal
+  onTimeSelect?: () => void; // opens TimePickerModal
 }
 
 const DEFAULT_ASAP_MINUTES = 50;
@@ -31,14 +32,13 @@ export default function OrderModeAddress({
 }: OrderModeAddressProps) {
   const { orderMode, address, deliveryTime, addressPlace } = useCart();
 
-  const timeZone =
-    (addressPlace as any)?.timeZoneId ??
-    process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ??
-    "America/Chicago";
+  // addressPlace may be a SelectedPlace (from context) or undefined/null.
+  // Use a safe assertion to SelectedPlace so we can access timeZoneId without `any`.
+  const ap = addressPlace as SelectedPlace | undefined | null;
+  const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
   const timeLabel = (() => {
-    if (!deliveryTime)
-      return orderMode === "delivery" ? "Delivery time" : "Pickup time";
+    if (!deliveryTime) return orderMode === "delivery" ? "Delivery time" : "Pickup time";
 
     if (isAsapIso(deliveryTime)) return `ASAP (${DEFAULT_ASAP_MINUTES} min)`;
 
@@ -52,7 +52,7 @@ export default function OrderModeAddress({
         <div className="col">
           <div
             className="overflow-hidden input-group border border-dark rounded-3"
-            onClick={onAddressSelect}   // ← OPEN ORDER TYPE MODAL
+            onClick={onAddressSelect}
             style={{ cursor: "pointer" }}
           >
             <span className="input-group-text pe-0 bg-transparent border border-light">
@@ -72,7 +72,7 @@ export default function OrderModeAddress({
       <div className="col-auto">
         <div
           className="overflow-hidden input-group border border-dark rounded-3"
-          onClick={onTimeSelect}     // ← OPEN TIME PICKER MODAL
+          onClick={onTimeSelect}
           style={{ cursor: "pointer" }}
         >
           <span className="input-group-text pe-0 bg-transparent border border-light">

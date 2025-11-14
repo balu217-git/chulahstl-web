@@ -5,9 +5,12 @@ import { useState, useEffect } from "react";
 import { Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapMarkerAlt, faClock, faCalendarAlt, } from "@fortawesome/free-solid-svg-icons";
+import PlaceHeader from "@/components/PlaceHeader";
+import { formatDateTimeForTZ } from "@/lib/formatDateTime";
+
 
 export default function CheckoutPage() {
-  const { cart, getTotalPrice, orderMode, address, deliveryTime } = useCart();
+  const { cart, getTotalPrice, orderMode, address, deliveryTime, addressPlace } = useCart();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,6 +19,11 @@ export default function CheckoutPage() {
   // const [deliveryTime, setDeliveryTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+
+  const timeZone =
+  (addressPlace as any)?.timeZoneId ??
+  process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ??
+  "America/Chicago";
 
 
  // 🕒 Format delivery time display (e.g., 12:30 PM - U.S. format)
@@ -140,53 +148,57 @@ const formatDeliveryTime = (timeStr: string) => {
           <div className="col-lg-6">
 
             {/* 🚚 Delivery Option */}
-            <div className="bg-white rounded shadow-sm p-4 mb-4">
-              <h5 className="mb-3">Order Type</h5>
-
+              
               {orderMode === "pickup" ? (
-                <div className="mt-3 alert alert-info">
-                   <h5>Pickup From:</h5>
-                    <p>123 Main Street, Downtown, Hyderabad</p>
-                    <p>Pickup Time: {deliveryTime}</p>
+                <>
+                <h5 className="mb-3">Pickup details</h5>
+                <div className="card mt-3 alert alert-info">
+                    <div className="mt-3">
+                      <PlaceHeader fontSize="fs-6" />
+                    </div>
+                    <p>Pickup Time: {formatDateTimeForTZ(deliveryTime, timeZone)}</p>
                 </div>
+                </>
               ) : (
-                <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
+                 <>
                   <h6 className="fw-semibold mb-3">Delivery details</h6>
+                  <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
+                    
 
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
-                    <p className="mb-0">
-                      Delivering to{" "}
-                      <strong>{address || "No address set yet"}</strong>
-                    </p>
-                  </div>
+                    <div className="d-flex align-items-start mb-3">
+                      <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
+                      <p className="mb-0">
+                        Delivering to{" "}
+                        <strong>{address || "No address set yet"}</strong>
+                      </p>
+                    </div>
 
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faClock} className="me-2 pt-1"/>
-                    <p className="mb-0">
-                      {deliveryTime
-                        ? `Tomorrow by ${formatDeliveryTime(deliveryTime)}`
-                        : "Delivery time not set yet"}
-                    </p>
-                  </div>
+                    <div className="d-flex align-items-start mb-3">
+                      <FontAwesomeIcon icon={faClock} className="me-2 pt-1"/>
+                      <p className="mb-0">
+                        {deliveryTime
+                          ? `Tomorrow by ${formatDateTimeForTZ(deliveryTime, timeZone)}`
+                          : "Delivery time not set yet"}
+                      </p>
+                    </div>
 
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2 pt-1"/>
-                    <a
-                      href="#"
-                      className="text-decoration-underline text-light small"
-                    >
-                      Add delivery instructions
-                    </a>
-                  </div>
+                    <div className="d-flex align-items-start mb-3">
+                      <FontAwesomeIcon icon={faCalendarAlt} className="me-2 pt-1"/>
+                      <a
+                        href="#"
+                        className="text-decoration-underline text-light small"
+                      >
+                        Add delivery instructions
+                        </a>
+                    </div>
 
-                  <div className="border-top border-secondary pt-3 small text-muted">
-                    You’re saving <strong>$9.33</strong> by ordering directly
-                    from us vs. other websites
-                  </div>
-                </Card>
+                    {/* <div className="border-top border-secondary pt-3 small text-muted">
+                      You’re saving <strong>$9.33</strong> by ordering directly
+                      from us vs. other websites
+                    </div> */}
+                  </Card>
+                 </>
               )}
-            </div>
 
             <div className="bg-white rounded shadow-sm p-4 mb-4">
               <h5 className="mb-3">Customer Information</h5>
