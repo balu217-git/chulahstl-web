@@ -13,7 +13,7 @@ export default function OrderModeAddress({
   className = "",
   onDeliverySelect,
 }: OrderModeAddressProps) {
-  const { orderMode, address } = useCart();
+  const { orderMode, address, deliveryTime } = useCart();
 
   const handleClick = () => {
     if (onDeliverySelect) onDeliverySelect();
@@ -52,7 +52,14 @@ export default function OrderModeAddress({
           </span>
 
           <select className="form-select form-select-sm bg-transparent border-0" disabled>
-            <option>Pickup time</option>
+            <option>
+              {deliveryTime
+                ? deliveryTime 
+                : orderMode === "delivery"
+                    ? "Delivery time"
+                    : "Pickup time"
+              }
+            </option>
           </select>
         </div>
       </div>

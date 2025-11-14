@@ -31,7 +31,6 @@ interface CartContextType {
   setOrderMode: (mode: "pickup" | "delivery") => void;
   orderConfirmed: boolean;
   setOrderConfirmed: (val: boolean) => void;
-
   address: string;
   setAddress: (address: string) => void;
   deliveryTime: string;

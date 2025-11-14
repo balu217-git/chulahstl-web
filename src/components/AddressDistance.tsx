@@ -21,6 +21,7 @@ export interface SelectedPlace {
   distanceKm: number;
   canDeliver: boolean;
   place_id?: string;
+  timeZoneId?: string; // <- optional IANA timezone (e.g. "America/Chicago")
 }
 
 interface AddressDistanceProps {
@@ -172,50 +173,74 @@ export default function AddressDistance({
     return R * c;
   };
 
-  const handleSelect = async (placeId: string) => {
-    if (!restaurantLocation) {
-      console.warn("Restaurant location not loaded yet.");
+ const handleSelect = async (placeId: string) => {
+  if (!restaurantLocation) {
+    console.warn("Restaurant location not loaded yet.");
+    return;
+  }
+  try {
+    setLoadingSuggestions(true);
+
+    const res = await fetch(
+      `/api/google/place-details?place_id=${encodeURIComponent(placeId)}&fields=geometry,formatted_address,name`
+    );
+    const data = await res.json();
+    if (data?.status !== "OK") {
+      console.warn("place-details status:", data?.status);
       return;
     }
+
+    const loc = data.result.geometry.location;
+    const distanceKm = getDistanceKm(
+      restaurantLocation.lat,
+      restaurantLocation.lng,
+      loc.lat,
+      loc.lng
+    );
+    const canDeliver = distanceKm <= MAX_DELIVERY_KM;
+
+    const formattedAddress = data.result.formatted_address || data.result.name || "";
+    const newSel: SelectedPlace = {
+      name: data.result.name || "",
+      formatted_address: formattedAddress,
+      lat: loc.lat,
+      lng: loc.lng,
+      distanceKm,
+      canDeliver,
+      place_id: placeId,
+    };
+
+    // --- Fetch timezone for this lat/lng (server route you added) ---
     try {
-      setLoadingSuggestions(true);
-      const res = await fetch(
-        `/api/google/place-details?place_id=${encodeURIComponent(placeId)}&fields=geometry,formatted_address,name`
-      );
-      const data = await res.json();
-      if (data?.status !== "OK") {
-        console.warn("place-details status:", data?.status);
-        return;
+      const tzRes = await fetch(`/api/google/timezone?lat=${loc.lat}&lng=${loc.lng}&timestamp=${Math.floor(Date.now()/1000)}`);
+      if (tzRes.ok) {
+        const tzJson = await tzRes.json();
+        if (tzJson?.timeZoneId) {
+          newSel.timeZoneId = tzJson.timeZoneId; // attach IANA timezone
+        }
+      } else {
+        // optional: fallback or log
+        console.warn("timezone lookup failed", await tzRes.text());
       }
-      const loc = data.result.geometry.location;
-      const distanceKm = getDistanceKm(restaurantLocation.lat, restaurantLocation.lng, loc.lat, loc.lng);
-      const canDeliver = distanceKm <= MAX_DELIVERY_KM;
-
-      const formattedAddress = data.result.formatted_address || data.result.name || "";
-      const newSel: SelectedPlace = {
-        name: data.result.name || "",
-        formatted_address: formattedAddress,
-        lat: loc.lat,
-        lng: loc.lng,
-        distanceKm,
-        canDeliver,
-        place_id: placeId,
-      };
-
-      setSelectedPlace(newSel);
-      setQuery(formattedAddress);
-      onChange(formattedAddress);
-      if (onPlaceSelect) onPlaceSelect(newSel);
-
-      setSelectionConfirmed(true);
-      setSuggestions([]);
-      setHighlightIndex(-1);
-    } catch (err) {
-      console.error("Error fetching place details", err);
-    } finally {
-      setLoadingSuggestions(false);
+    } catch (tzErr) {
+      console.error("timezone lookup error", tzErr);
     }
-  };
+
+    setSelectedPlace(newSel);
+    setQuery(formattedAddress);
+    onChange(formattedAddress);
+    if (onPlaceSelect) onPlaceSelect(newSel);
+
+    setSelectionConfirmed(true);
+    setSuggestions([]);
+    setHighlightIndex(-1);
+  } catch (err) {
+    console.error("Error fetching place details", err);
+  } finally {
+    setLoadingSuggestions(false);
+  }
+};
+
 
   const clearAll = () => {
     setQuery("");
