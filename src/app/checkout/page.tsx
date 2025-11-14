@@ -1,13 +1,14 @@
+// components/CheckoutPage.tsx
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faClock, faCalendarAlt, } from "@fortawesome/free-solid-svg-icons";
+import { faMapMarkerAlt, faClock, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import PlaceHeader from "@/components/PlaceHeader";
 import { formatDateTimeForTZ } from "@/lib/formatDateTime";
-
+import type { SelectedPlace } from "@/components/AddressPicker";
 
 export default function CheckoutPage() {
   const { cart, getTotalPrice, orderMode, address, deliveryTime, addressPlace } = useCart();
@@ -20,27 +21,24 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  const timeZone =
-  (addressPlace as any)?.timeZoneId ??
-  process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ??
-  "America/Chicago";
+  // --- timeZone: prefer selected place timezone, no `any` ---
+  const ap = addressPlace as SelectedPlace | null | undefined;
+  const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
+  // 🕒 Format delivery time display (e.g., 12:30 PM - U.S. format)
+  const formatDeliveryTime = (timeStr: string) => {
+    if (!timeStr) return "";
+    const [hours, minutes] = timeStr.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
 
- // 🕒 Format delivery time display (e.g., 12:30 PM - U.S. format)
-const formatDeliveryTime = (timeStr: string) => {
-  if (!timeStr) return "";
-  const [hours, minutes] = timeStr.split(":");
-  const date = new Date();
-  date.setHours(parseInt(hours), parseInt(minutes));
-  
-  // ✅ Use U.S. locale, 12-hour format with AM/PM
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
+    // ✅ Use U.S. locale, 12-hour format with AM/PM
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
@@ -57,14 +55,12 @@ const formatDeliveryTime = (timeStr: string) => {
       return alert("Please fill in your name, email, and phone number.");
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email))
-      return alert("Please enter a valid email address.");
+    if (!emailPattern.test(email)) return alert("Please enter a valid email address.");
 
     if (!/^\(\d{3}\)\s\d{3}-\d{4}$/.test(phone))
       return alert("Please enter a valid US phone number (e.g. (555) 555-5555).");
 
-    if (orderMode === "delivery" && !address.trim())
-      return alert("Please enter your delivery address.");
+    if (orderMode === "delivery" && !address.trim()) return alert("Please enter your delivery address.");
 
     setLoading(true);
 
@@ -146,98 +142,65 @@ const formatDeliveryTime = (timeStr: string) => {
         <div className="row">
           {/* 🧍 Left Column: Customer Info */}
           <div className="col-lg-6">
-
             {/* 🚚 Delivery Option */}
-              
-              {orderMode === "pickup" ? (
-                <>
+            {orderMode === "pickup" ? (
+              <>
                 <h5 className="mb-3">Pickup details</h5>
                 <div className="card mt-3 alert alert-info">
-                    <div className="mt-3">
-                      <PlaceHeader fontSize="fs-6" />
-                    </div>
-                    <p>Pickup Time: {formatDateTimeForTZ(deliveryTime, timeZone)}</p>
+                  <div className="mt-3">
+                    <PlaceHeader fontSize="fs-6" />
+                  </div>
+                  <p>Pickup Time: {formatDateTimeForTZ(deliveryTime, timeZone)}</p>
                 </div>
-                </>
-              ) : (
-                 <>
-                  <h6 className="fw-semibold mb-3">Delivery details</h6>
-                  <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
-                    
+              </>
+            ) : (
+              <>
+                <h6 className="fw-semibold mb-3">Delivery details</h6>
+                <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
+                  <div className="d-flex align-items-start mb-3">
+                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
+                    <p className="mb-0">
+                      Delivering to <strong>{address || "No address set yet"}</strong>
+                    </p>
+                  </div>
 
-                    <div className="d-flex align-items-start mb-3">
-                      <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
-                      <p className="mb-0">
-                        Delivering to{" "}
-                        <strong>{address || "No address set yet"}</strong>
-                      </p>
-                    </div>
+                  <div className="d-flex align-items-start mb-3">
+                    <FontAwesomeIcon icon={faClock} className="me-2 pt-1" />
+                    <p className="mb-0">
+                      {deliveryTime
+                        ? `Tomorrow by ${formatDateTimeForTZ(deliveryTime, timeZone)}`
+                        : "Delivery time not set yet"}
+                    </p>
+                  </div>
 
-                    <div className="d-flex align-items-start mb-3">
-                      <FontAwesomeIcon icon={faClock} className="me-2 pt-1"/>
-                      <p className="mb-0">
-                        {deliveryTime
-                          ? `Tomorrow by ${formatDateTimeForTZ(deliveryTime, timeZone)}`
-                          : "Delivery time not set yet"}
-                      </p>
-                    </div>
-
-                    <div className="d-flex align-items-start mb-3">
-                      <FontAwesomeIcon icon={faCalendarAlt} className="me-2 pt-1"/>
-                      <a
-                        href="#"
-                        className="text-decoration-underline text-light small"
-                      >
-                        Add delivery instructions
-                        </a>
-                    </div>
-
-                    {/* <div className="border-top border-secondary pt-3 small text-muted">
-                      You’re saving <strong>$9.33</strong> by ordering directly
-                      from us vs. other websites
-                    </div> */}
-                  </Card>
-                 </>
-              )}
+                  <div className="d-flex align-items-start mb-3">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2 pt-1" />
+                    <a href="#" className="text-decoration-underline text-light small">
+                      Add delivery instructions
+                    </a>
+                  </div>
+                </Card>
+              </>
+            )}
 
             <div className="bg-white rounded shadow-sm p-4 mb-4">
               <h5 className="mb-3">Customer Information</h5>
 
               <div className="mb-3">
                 <label className="form-label small">Full Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <input type="text" className="form-control" placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               <div className="mb-3">
                 <label className="form-label small">Email Address</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
 
               <div className="mb-3">
                 <label className="form-label small">Phone Number</label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  placeholder="(555) 555-5555"
-                  value={phone}
-                  onChange={(e) => setPhone(formatPhone(e.target.value))}
-                />
+                <input type="tel" className="form-control" placeholder="(555) 555-5555" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} />
               </div>
             </div>
-
-            
           </div>
 
           {/* 🛒 Right Column: Cart Summary */}
@@ -246,38 +209,24 @@ const formatDeliveryTime = (timeStr: string) => {
               <h5 className="mb-3">Your Order</h5>
               <ul className="list-group mb-3">
                 {cart.map((item) => (
-                  <li
-                    key={item.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                  >
+                  <li key={item.id} className="list-group-item d-flex justify-content-between align-items-center">
                     <span>
                       {item.title} × {item.quantity}
                     </span>
-                    <span className="fw-bold">
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </span>
+                    <span className="fw-bold">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
 
               <h4 className="text-end">
-                Total:{" "}
-                <span className="fw-bold">₹{getTotalPrice().toFixed(2)}</span>
+                Total: <span className="fw-bold">₹{getTotalPrice().toFixed(2)}</span>
               </h4>
 
-              <button
-                className="btn btn-brand-orange w-100 mt-4"
-                onClick={handleCheckout}
-                disabled={loading}
-              >
+              <button className="btn btn-brand-orange w-100 mt-4" onClick={handleCheckout} disabled={loading}>
                 {loading ? "Processing..." : "Pay with Square"}
               </button>
 
-              {paymentUrl && (
-                <p className="mt-3 text-muted text-center">
-                  Redirecting to Square checkout...
-                </p>
-              )}
+              {paymentUrl && <p className="mt-3 text-muted text-center">Redirecting to Square checkout...</p>}
             </div>
           </div>
         </div>
