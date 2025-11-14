@@ -369,7 +369,7 @@ export default function AddressPicker({
             <div>
               <strong>{selectedPlace.name || "Selected place"}</strong>
               <div style={{ fontSize: 12 }}>
-                {selectedPlace.formatted_address} — {selectedPlace.distanceKm.toFixed(2)} km
+                {selectedPlace.formatted_address} — {selectedPlace.distanceKm.toFixed(2)} mi
               </div>
               <small>{selectedPlace.canDeliver ? "✅ Deliverable" : "❌ Out of range"}</small>
             </div>

@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import Link from "next/link";
 import Image from "next/image";
 import { Offcanvas, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,6 +13,7 @@ import OrderModeAddress from "@/components/OrderModeAddress";
 import OrderTypeModal from "@/components/OrderTypeModal";
 import TimePickerModal from "@/components/TimePickerModal";
 import type { SelectedPlace } from "@/components/AddressPicker";
+import Link from "next/link";
 
 interface CartDrawerProps {
   show?: boolean;
@@ -20,6 +21,8 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ show, onClose }: CartDrawerProps) {
+  const router = useRouter();
+  // Grab everything we need from context at top level (no hooks inside helpers)
   const {
     cart,
     getTotalPrice,
@@ -30,6 +33,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
     setOrderMode,
     address,
     addressPlace,
+    deliveryTime,
     setDeliveryTime,
   } = useCart();
 
@@ -39,16 +43,18 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
 
+  // small helper to open order modal above the offcanvas
+  const openOrderModalAbove = () => {
+    setTimeout(() => setShowOrderModal(true), 120);
+  };
+
   const handleOrderModeClick = (mode: "pickup" | "delivery") => {
     setOrderMode(mode);
-    if (mode === "delivery") {
-      // Ensure modal shows above Offcanvas (small delay)
-      setTimeout(() => setShowOrderModal(true), 150);
-    }
+    if (mode === "delivery") openOrderModalAbove();
   };
 
   const handleDeliverySelect = () => {
-    setShowOrderModal(true);
+    openOrderModalAbove();
   };
 
   // fetch weekday_text when timepicker opens (on-demand)
@@ -90,9 +96,51 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   };
 
   // timeZone for TimePicker: prefer selected place timezone, fallback to env default
-  // avoid `any` by asserting addressPlace to SelectedPlace | null | undefined
   const ap = addressPlace as SelectedPlace | null | undefined;
   const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
+
+  // --- missing-field checks (use values from top-level useCart) ---
+  const checkoutMissingFields = (): string[] => {
+    const missing: string[] = [];
+    if (!cart || cart.length === 0) missing.push("Add at least one item to the cart");
+    if (!orderMode) missing.push("Choose pickup or delivery");
+    if (orderMode === "delivery") {
+      if (!address || address.trim().length === 0) missing.push("Set a delivery address");
+      if (!deliveryTime || deliveryTime.trim().length === 0) missing.push("Choose a delivery time or select ASAP");
+    } else {
+      // pickup flow - require pickup time too (if your flow needs it)
+      if (!deliveryTime || deliveryTime.trim().length === 0) missing.push("Choose a pickup time");
+    }
+    return missing;
+  };
+
+  // Handler for the Checkout button — opens modals for missing items or navigates when ready.
+  const handleGoToCheckout = () => {
+    const missing = checkoutMissingFields();
+    if (missing.length > 0) {
+      // If delivery address is missing, open OrderTypeModal (address flow)
+      if (orderMode === "delivery" && (!address || address.trim().length === 0)) {
+        openOrderModalAbove();
+        return;
+      }
+
+      // If time missing (pickup or delivery), open TimePicker
+      if (!deliveryTime || deliveryTime.trim().length === 0) {
+        // close order modal first (if open) then open timepicker above offcanvas
+        setShowOrderModal(false);
+        setTimeout(() => setShowTimePicker(true), 120);
+        return;
+      }
+
+      // fallback: show order modal
+      openOrderModalAbove();
+      return;
+    }
+
+    // All good -> close offcanvas and navigate to /checkout
+    if (onClose) onClose();
+    router.push("/checkout");
+  };
 
   return (
     <>
@@ -107,7 +155,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
           {/* Address box opens OrderTypeModal; Time box opens TimePickerModal */}
           <OrderModeAddress
             className="my-3"
-            onAddressSelect={() => setShowOrderModal(true)}
+            onAddressSelect={() => openOrderModalAbove()}
             onTimeSelect={() => setShowTimePicker(true)}
           />
 
@@ -177,9 +225,15 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                 <span className="fw-bold fs-5">₹{getTotalPrice().toFixed(2)}</span>
               </div>
 
-              <Link href="/checkout" className="btn btn-brand-orange w-100 mb-2 rounded-pill" onClick={onClose}>
+              <button
+                className="btn btn-brand-orange w-100 mb-2 rounded-pill"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleGoToCheckout();
+                }}
+              >
                 Checkout
-              </Link>
+              </button>
 
               <Button className="btn btn-outline-secondary btn-light w-100 rounded-pill" onClick={clearCart}>
                 Clear Cart
