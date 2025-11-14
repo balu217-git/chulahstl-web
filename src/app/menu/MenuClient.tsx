@@ -7,7 +7,7 @@ import MenuCategoriesAside from "@/components/MenuCategoriesAside";
 import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
 import OrderModeAddress from "@/components/OrderModeAddress";
-import PlaceHeader from "@/components/PlaceHeader";
+import Address from "@/components/Address";
 import TimePickerModal from "@/components/TimePickerModal";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
@@ -125,7 +125,7 @@ export default function MenuClient({ allCategories, groupedMenus }: MenuClientPr
 
               <div className="col-lg-9 col-md-8">
                 <div className="mb-2">
-                  <PlaceHeader />
+                  <Address />
                   <div className="row gx-2">
                     <div className="col-md-auto">
                       <OrderModeSelector onAddressSelect={handleDeliverySelect} />

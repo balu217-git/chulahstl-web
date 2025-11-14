@@ -96,6 +96,16 @@ h6 {
     background-color: var(--brand-brown) !important;
 }
 
+.border-brand-green{
+    border-color: var(--brand-green) !important;
+}
+.border-brand-orange{
+    border-color: var(--brand-orange) !important;
+}
+.border-brand-yellow{
+    border-color: var(--brand-yellow) !important;
+}
+
 .bg-brand-multy-color{
   background: linear-gradient(
     356deg,

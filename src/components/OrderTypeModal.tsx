@@ -4,7 +4,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useCart } from "@/context/CartContext";
-import PlaceHeader from "@/components/PlaceHeader";
+import Address from "@/components/Address";
 import AddressPicker, { SelectedPlace } from "@/components/AddressPicker";
 import TimePickerModal from "@/components/TimePickerModal";
 
@@ -196,7 +196,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
           </div>
 
           {orderMode === "pickup" && (
-            <PlaceHeader fontSize="fs-5" />
+            <Address fontSize="fs-5" />
           )}
 
           {orderMode === "delivery" && (
@@ -217,7 +217,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
               {draftAddressPlace?.canDeliver === true && (
                 <Form.Group className="mb-3">
                   <Form.Label className="small fw-semibold text-dark">Delivery From</Form.Label>
-                  <PlaceHeader fontSize="fs-6" />
+                  <Address fontSize="fs-6" />
                 </Form.Group>
               )}
 

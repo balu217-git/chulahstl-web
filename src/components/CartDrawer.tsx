@@ -172,9 +172,9 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
           {/* --- Cart Footer --- */}
           {cart.length > 0 && (
             <div className="border-top pt-3 sticky-bottom bg-white">
-              <div className="d-flex justify-content-between mb-3">
+              <div className="d-flex justify-content-between mb-3 fw-semibold align-items-end">
                 <span>Subtotal</span>
-                <span>₹{getTotalPrice().toFixed(2)}</span>
+                <span className="fw-bold fs-5">₹{getTotalPrice().toFixed(2)}</span>
               </div>
 
               <Link href="/checkout" className="btn btn-brand-orange w-100 mb-2 rounded-pill" onClick={onClose}>

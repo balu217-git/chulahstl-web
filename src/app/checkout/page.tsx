@@ -5,8 +5,8 @@ import { useCart } from "@/context/CartContext";
 import { useState } from "react";
 import { Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faClock, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
-import PlaceHeader from "@/components/PlaceHeader";
+import { faMapMarkerAlt, faClock,faStore, faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import Address from "@/components/Address";
 import { formatDateTimeForTZ } from "@/lib/formatDateTime";
 import type { SelectedPlace } from "@/components/AddressPicker";
 
@@ -137,79 +137,110 @@ export default function CheckoutPage() {
   return (
     <section className="hero bg-brand-light" style={{ minHeight: "80vh" }}>
       <div className="container">
-        <h2 className="fw-bold mb-4 text-center">Checkout</h2>
+        <h1 className="fw-bold mb-5 text-center">Checkout</h1>
 
         <div className="row">
           {/* 🧍 Left Column: Customer Info */}
           <div className="col-lg-6">
-            {/* 🚚 Delivery Option */}
-            {orderMode === "pickup" ? (
-              <>
-                <h5 className="mb-3">Pickup details</h5>
-                <div className="card mt-3 alert alert-info">
-                  <div className="mt-3">
-                    <PlaceHeader fontSize="fs-6" />
-                  </div>
-                  <p>Pickup Time: {formatDateTimeForTZ(deliveryTime, timeZone)}</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <h6 className="fw-semibold mb-3">Delivery details</h6>
-                <Card className="bg-brand-green text-light border-0 p-3 rounded-4">
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
-                    <p className="mb-0">
-                      Delivering to <strong>{address || "No address set yet"}</strong>
-                    </p>
-                  </div>
+            <div className="mb-md-5 mb-4">
+              {/* 🚚 Delivery Option */}
+              {orderMode === "pickup" ? (
+                <>
+                  <h5 className="mb-3 fw-semibold font-family-body">Pickup details</h5>
+                  <Card className="bg-brand-green text-light border-brand-orange rounded-4 mb-3 overflow-hidden">
+                    <Card.Body>
+                      <div className="d-flex align-items-start">
+                        <FontAwesomeIcon icon={faStore} className="me-2 pt-1" />
+                        <p className="mb-0">
+                          Pickup from: <strong><Address fontSize="fs-6" showName={false} showOpenStatus={false} showTimings={false} /></strong>
+                        </p>
+                      </div>
+                      <div className="d-flex align-items-start mb-3">
+                        <FontAwesomeIcon icon={faClock} className="me-2 pt-1" />
+                        <p className="mb-0">
+                          {deliveryTime
+                            ? formatDateTimeForTZ(deliveryTime, timeZone)
+                            : "Delivery time not set"}
+                        </p>
+                      </div>
+                    </Card.Body>
+                    <Card.Footer className="text-center bg-brand-green-light">
+                      <small >You're saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
+                    </Card.Footer>
 
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faClock} className="me-2 pt-1" />
-                    <p className="mb-0">
-                      {deliveryTime
-                        ? `Tomorrow by ${formatDateTimeForTZ(deliveryTime, timeZone)}`
-                        : "Delivery time not set yet"}
-                    </p>
-                  </div>
+                  </Card>
+                </>
+              ) : (
+                <>
+                  <h5 className="fw-semibold mb-3 font-family-body">Delivery details</h5>
+                  <Card className="bg-brand-green text-light border-brand-orang border-1 rounded-4 mb-3 overflow-hidden">
+                    <Card.Body className="p-4">
+                      <div className="d-flex align-items-start mb-3">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 pt-1" />
+                        <p className="mb-0">
+                          Delivering to: <strong className="d-block">{address || "No address set yet"}</strong>
+                        </p>
+                      </div>
 
-                  <div className="d-flex align-items-start mb-3">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2 pt-1" />
-                    <a href="#" className="text-decoration-underline text-light small">
-                      Add delivery instructions
-                    </a>
-                  </div>
-                </Card>
-              </>
-            )}
+                      <div className="d-flex align-items-start mb-3">
+                        <FontAwesomeIcon icon={faClock} className="me-2 pt-1" />
+                        <p className="mb-0">
+                          {deliveryTime
+                            ? formatDateTimeForTZ(deliveryTime, timeZone)
+                            : "Delivery time not set"}
+                        </p>
+                      </div>
 
-            <div className="bg-white rounded shadow-sm p-4 mb-4">
-              <h5 className="mb-3">Customer Information</h5>
+                      <div className="d-flex align-items-start mb-3">
+                        <FontAwesomeIcon icon={faClipboardList} className="me-2 pt-1" />
+                        <a href="#" className="text-decoration-underline text-light small">
+                          Add delivery instructions
+                        </a>
+                      </div>
+                    </Card.Body>
+                    <Card.Footer className="text-center bg-brand-green-light">
+                      <small >You're saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
+                    </Card.Footer>
 
-              <div className="mb-3">
-                <label className="form-label small">Full Name</label>
-                <input type="text" className="form-control" placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label small">Email Address</label>
-                <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label small">Phone Number</label>
-                <input type="tel" className="form-control" placeholder="(555) 555-5555" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} />
-              </div>
+                  </Card>
+                </>
+              )}
             </div>
+
+            <div className="mb-md-5 mb-4 form-container">
+              <h5 className="mb-3 fw-semibold font-family-body">Customer Information</h5>
+               <Card className="bg-transparent border-brand-green border-1 rounded-4 text-brand-green">
+                  <Card.Body className="p-4">
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Full Name</label>
+                    <input type="text" className="form-control" placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Email Address</label>
+                    <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Phone Number</label>
+                    <input type="tel" className="form-control" placeholder="(555) 555-5555" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} />
+                  </div>
+                  </Card.Body>
+              </Card>
+            </div>
+
+           
           </div>
 
           {/* 🛒 Right Column: Cart Summary */}
           <div className="col-lg-6">
-            <div className="bg-white rounded shadow-sm p-4">
-              <h5 className="mb-3">Your Order</h5>
-              <ul className="list-group mb-3">
+            <h5 className="mb-3 font-family-body fw-semibold">Your Order</h5>
+            <Card className="shadow-sm font-family-body text-brand-green rounded-4 border-brand-orang">
+
+              <Card.Body className="p-4">
+                <ul className="list-group mb-3">
                 {cart.map((item) => (
-                  <li key={item.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  <li key={item.id} className="list-group-item d-flex justify-content-between text-brand-green align-items-center">
                     <span>
                       {item.title} × {item.quantity}
                     </span>
@@ -218,7 +249,7 @@ export default function CheckoutPage() {
                 ))}
               </ul>
 
-              <h4 className="text-end">
+              <h4 className="text-end font-family-body">
                 Total: <span className="fw-bold">₹{getTotalPrice().toFixed(2)}</span>
               </h4>
 
@@ -227,7 +258,8 @@ export default function CheckoutPage() {
               </button>
 
               {paymentUrl && <p className="mt-3 text-muted text-center">Redirecting to Square checkout...</p>}
-            </div>
+              </Card.Body>
+            </Card>
           </div>
         </div>
       </div>
