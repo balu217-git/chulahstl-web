@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     const transactionId = payment.id;
     const status = payment.status;
     const amount = payment.amount_money?.amount / 100 || 0;
-    const currency = payment.amount_money?.currency || "INR";
+    const currency = payment.amount_money?.currency || "USD";
 
     return NextResponse.json({
       success: true,

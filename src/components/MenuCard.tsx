@@ -25,7 +25,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
       onAddressSelect();
       return;
     }
-    addToCart({ id: menu.id, title: menu.title, price, quantity: 1, image: imageUrl });
+    addToCart({ id: menu.id, name: menu.title, price, quantity: 1, image: imageUrl });
   };
 
   return (

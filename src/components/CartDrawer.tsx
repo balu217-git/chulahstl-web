@@ -177,13 +177,13 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                   <div className="d-flex align-items-center gap-3">
                     <Image
                       src={item.image || "/images/img-dish-icon-bg.webp"}
-                      alt={item.title}
+                      alt={item.name}
                       width={60}
                       height={60}
                       className="rounded"
                     />
                     <div>
-                      <p className="mb-1 fw-semibold">{item.title}</p>
+                      <p className="mb-1 fw-semibold">{item.name}</p>
                       <div className="d-flex align-items-center gap-2">
                         <Button
                           className="btn btn-cart btn-outline-secondary btn-sm btn-light"

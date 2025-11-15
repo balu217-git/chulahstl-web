@@ -58,28 +58,28 @@ export async function POST(req: Request) {
     });
 
     // 🧠 Determine proper WordPress order status
-    let orderStatus = "Pending";
+    let orderStatus = "Order Payment Pending";
     const normalizedStatus = (paymentStatus || "").toLowerCase();
 
     switch (normalizedStatus) {
       case "paid":
       case "success":
       case "completed":
-        orderStatus = "Paid";
+        orderStatus = "Order Confirmed";
         break;
       case "processing":
       case "pending":
-        orderStatus = "Processing";
+        orderStatus = "Awaiting Order Confirmation";
         break;
       case "failed":
-        orderStatus = "Failed";
+        orderStatus = "Order Payment Failed";
         break;
       case "canceled":
       case "cancelled":
-        orderStatus = "Canceled";
+        orderStatus = "Order Payment Canceled";
         break;
       default:
-        orderStatus = "Pending";
+        orderStatus = "Order Payment Pending";
         break;
     }
 

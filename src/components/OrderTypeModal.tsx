@@ -1,4 +1,3 @@
-// components/OrderTypeModal.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -13,7 +12,7 @@ interface OrderTypeModalProps {
   onClose: () => void;
 }
 
-const DEFAULT_ASAP_MINUTES = 50; // adjust if needed
+const DEFAULT_ASAP_MINUTES = 50; // used for display (estimate window)
 
 /** Local extension of SelectedPlace for optional Google properties we rely on */
 interface LocalSelectedPlace extends Partial<SelectedPlace> {
@@ -22,18 +21,51 @@ interface LocalSelectedPlace extends Partial<SelectedPlace> {
   canDeliver?: boolean;
 }
 
+/** Shape of metadata we persist */
+type OrderTypeTag = "ASAP" | "SCHEDULED";
+interface OrderMetadata {
+  type: OrderTypeTag;
+  aptSuite?: string | null;
+  instructions?: string | null;
+  address?: string | null;
+  timeIso?: string | null;
+  updatedAt?: string;
+}
+
+/**
+ * Optional subset of your CartContext that this component may call if present.
+ * We avoid 'any' by defining an interface and using a type assertion to it.
+ */
+interface CartContextOptional {
+  orderMode?: "pickup" | "delivery";
+  setOrderMode?: (mode: "pickup" | "delivery") => void;
+  address?: string | null;
+  setAddress?: (addr: string | null) => void;
+  deliveryTime?: string | null;
+  setDeliveryTime?: (iso: string | null) => void;
+  setOrderConfirmed?: (b: boolean) => void;
+  addressPlace?: SelectedPlace | null;
+  setAddressPlace?: (p: SelectedPlace | null) => void;
+  setOrderMetadata?: (meta: OrderMetadata | null) => void;
+  setOrderType?: (t: OrderTypeTag) => void;
+  setDeliveryNotes?: (notes: { aptSuite?: string | null; instructions?: string | null }) => void;
+}
+
 export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
-  const {
-    orderMode,
-    setOrderMode,
-    address,
-    setAddress,
-    deliveryTime,
-    setDeliveryTime,
-    setOrderConfirmed,
-    addressPlace,
-    setAddressPlace,
-  } = useCart();
+  // get the cart context and treat it as the optional shape
+  const rawCart = useCart();
+  const cart = rawCart as unknown as CartContextOptional;
+
+  // destructure safely (may be undefined)
+  const orderMode = rawCart.orderMode ?? "delivery";
+  const setOrderMode = rawCart.setOrderMode;
+  const address = rawCart.address ?? "";
+  const setAddress = rawCart.setAddress;
+  const deliveryTime = rawCart.deliveryTime ?? "";
+  const setDeliveryTime = rawCart.setDeliveryTime;
+  const setOrderConfirmed = rawCart.setOrderConfirmed;
+  const addressPlace = rawCart.addressPlace ?? null;
+  const setAddressPlace = rawCart.setAddressPlace;
 
   // Modal-local drafts
   const [draftAddress, setDraftAddress] = useState<string>(address || "");
@@ -42,11 +74,13 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   );
   const [draftDeliveryTime, setDraftDeliveryTime] = useState<string>(deliveryTime || "");
 
+  // Delivery details (persisted to CartContext via setDeliveryNotes)
+  const [aptSuite, setAptSuite] = useState<string>("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState<string>("");
+
   // TimePicker control + opening hours (weekday_text)
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
-
-  // prefer explicit open_now from API when available
   const [fetchedOpenNow, setFetchedOpenNow] = useState<boolean | null>(null);
 
   // What flow opened the time picker — "pickup" or "delivery"
@@ -55,21 +89,30 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
   // Helper: normalize LocalSelectedPlace -> SelectedPlace (guarantee canDeliver boolean)
   function normalizeToSelectedPlace(p?: LocalSelectedPlace | null): SelectedPlace | null {
     if (!p) return null;
-
     const canDeliverValue = typeof p.canDeliver === "boolean" ? p.canDeliver : true;
-
-    // We assume other fields from p match SelectedPlace. Override canDeliver.
     return { ...(p as SelectedPlace), canDeliver: canDeliverValue } as SelectedPlace;
   }
 
-  // Initialize drafts and fetch opening hours when the modal opens
+  // Initialize apt/instructions from context when modal opens (preferred over sessionStorage direct read)
   useEffect(() => {
     if (!show) return;
-
     setDraftAddress(address || "");
     setDraftAddressPlace(addressPlace ? (addressPlace as LocalSelectedPlace) : null);
     setDraftDeliveryTime(deliveryTime || "");
 
+    // use cart deliveryNotes if available
+    if ((rawCart.deliveryNotes?.aptSuite ?? null) !== null) {
+      setAptSuite(rawCart.deliveryNotes!.aptSuite ?? "");
+    } else {
+      setAptSuite("");
+    }
+    if ((rawCart.deliveryNotes?.instructions ?? null) !== null) {
+      setDeliveryInstructions(rawCart.deliveryNotes!.instructions ?? "");
+    } else {
+      setDeliveryInstructions("");
+    }
+
+    // Fetch opening hours (same as before)
     (async () => {
       try {
         const res = await fetch("/api/google-reviews");
@@ -92,15 +135,58 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
         setFetchedOpenNow(null);
       }
     })();
-  }, [show, address, addressPlace, deliveryTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show]);
+
+  // Propagate edits immediately into context deliveryNotes so CheckoutPage sees updates
+  useEffect(() => {
+    if (typeof cart.setDeliveryNotes === "function") {
+      cart.setDeliveryNotes({ aptSuite: aptSuite || null, instructions: deliveryInstructions || null });
+    } else {
+      // fallback: if cart doesn't have setDeliveryNotes, try using setOrderMetadata to store notes
+      if (typeof cart.setOrderMetadata === "function") {
+        cart.setOrderMetadata({
+          type: (rawCart.orderType as OrderTypeTag) ?? "ASAP",
+          aptSuite: aptSuite || null,
+          instructions: deliveryInstructions || null,
+          address: draftAddress || null,
+          timeIso: draftDeliveryTime || null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aptSuite, deliveryInstructions]);
+
+  // If the selected place becomes non-deliverable, clear apt/instructions
+  useEffect(() => {
+    if (draftAddressPlace?.canDeliver === false) {
+      setAptSuite("");
+      setDeliveryInstructions("");
+    }
+  }, [draftAddressPlace?.canDeliver]);
 
   const handleModeChange = (mode: "pickup" | "delivery") => {
-    setOrderMode(mode);
+    if (typeof setOrderMode === "function") setOrderMode(mode);
   };
 
   const handleClearDraft = () => {
     setDraftAddress("");
     setDraftAddressPlace(null);
+    setAptSuite("");
+    setDeliveryInstructions("");
+    try {
+      sessionStorage.removeItem("orderMetadata");
+    } catch {
+      /* ignore */
+    }
+    // Also clear context delivery notes
+    if (typeof cart.setDeliveryNotes === "function") {
+      cart.setDeliveryNotes({ aptSuite: null, instructions: null });
+    }
+    if (typeof cart.setOrderMetadata === "function") {
+      cart.setOrderMetadata(null);
+    }
   };
 
   // confirm button disabled logic (used for schedule button enabling)
@@ -129,6 +215,25 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
     return /(\d{1,2}:\d{2}\s?[APMapm]+)/.test(todayLine);
   }, [draftAddressPlace, fetchedOpenNow, weekdayText]);
 
+  // Persist order metadata wrapper (ensures context is updated)
+  function persistOrderMetadata(meta: OrderMetadata) {
+    try {
+      const merged: OrderMetadata = { ...(meta as OrderMetadata), updatedAt: new Date().toISOString() };
+      if (typeof cart.setOrderMetadata === "function") {
+        cart.setOrderMetadata(merged);
+      }
+      if (typeof cart.setOrderType === "function") {
+        cart.setOrderType(merged.type);
+      }
+      if (typeof cart.setDeliveryNotes === "function") {
+        cart.setDeliveryNotes({ aptSuite: merged.aptSuite ?? null, instructions: merged.instructions ?? null });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("Could not persist order metadata:", e);
+    }
+  }
+
   // ---------- Schedule / ASAP flow ----------
   const openScheduleFlow = (forMode: "pickup" | "delivery") => {
     setTimePickerFor(forMode);
@@ -138,28 +243,57 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
       if (!deliverable) return;
 
       // commit address immediately so scheduling UI can rely on cart state
-      setAddress(draftAddress);
+      if (typeof setAddress === "function") setAddress(draftAddress);
       const normalized = normalizeToSelectedPlace(draftAddressPlace);
       if (typeof setAddressPlace === "function") setAddressPlace(normalized);
-      sessionStorage.setItem("deliveryAddress", draftAddress || "");
+      try {
+        sessionStorage.setItem("deliveryAddress", draftAddress || "");
+      } catch {
+        /* ignore */
+      }
     }
 
     onClose();
     setTimeout(() => setShowTimePicker(true), 120);
   };
 
-  const handleDeliverASAP = () => {
-    const deliverable = draftAddress.trim().length > 0 && draftAddressPlace?.canDeliver !== false;
-    if (!deliverable) return;
-    if (!placeOpenNow) return;
+  // unified ASAP handler for pickup & delivery (now stored as exact current time)
+  const handleASAP = (forMode: "pickup" | "delivery") => {
+    if (forMode === "delivery") {
+      const deliverable = draftAddress.trim().length > 0 && draftAddressPlace?.canDeliver !== false;
+      if (!deliverable) return; // can't ASAP without deliverable address
+      // commit address
+      if (typeof setAddress === "function") setAddress(draftAddress);
+      const normalized = normalizeToSelectedPlace(draftAddressPlace);
+      if (typeof setAddressPlace === "function") setAddressPlace(normalized);
+      try {
+        sessionStorage.setItem("deliveryAddress", draftAddress || "");
+      } catch {
+        /* ignore */
+      }
+    } else {
+      // pickup: ensure place is open
+      if (!placeOpenNow) return;
+    }
 
-    setAddress(draftAddress);
-    const normalized = normalizeToSelectedPlace(draftAddressPlace);
-    if (typeof setAddressPlace === "function") setAddressPlace(normalized);
-    sessionStorage.setItem("deliveryAddress", draftAddress || "");
+    // Save exact current time for ASAP
+    const nowIso = new Date().toISOString();
+    if (typeof setDeliveryTime === "function") setDeliveryTime(nowIso);
+    setDraftDeliveryTime(nowIso);
 
-    const asapDate = new Date(Date.now() + DEFAULT_ASAP_MINUTES * 60_000);
-    setDeliveryTime(asapDate.toISOString());
+    // Persist metadata: type ASAP + delivery details (only include notes if deliverable)
+    persistOrderMetadata({
+      type: "ASAP",
+      aptSuite: draftAddressPlace?.canDeliver === true ? aptSuite || null : null,
+      instructions: draftAddressPlace?.canDeliver === true ? deliveryInstructions || null : null,
+      address: draftAddress || null,
+      timeIso: nowIso,
+    });
+
+    // Optionally mark order confirmed in cart
+    if (typeof setOrderConfirmed === "function") setOrderConfirmed(true);
+
+    // Close modal
     onClose();
   };
 
@@ -168,11 +302,24 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
     setTimePickerFor(null);
   };
 
+  // Called when user picks a scheduled time in the TimePickerModal
   const onTimePicked = (iso: string) => {
-    setDeliveryTime(iso);
+    if (typeof setDeliveryTime === "function") setDeliveryTime(iso);
     setDraftDeliveryTime(iso);
     setShowTimePicker(false);
     setTimePickerFor(null);
+
+    // Persist metadata as scheduled (only include notes if deliverable)
+    persistOrderMetadata({
+      type: "SCHEDULED",
+      aptSuite: draftAddressPlace?.canDeliver === true ? aptSuite || null : null,
+      instructions: draftAddressPlace?.canDeliver === true ? deliveryInstructions || null : null,
+      address: draftAddress || null,
+      timeIso: iso,
+    });
+
+    // Optionally mark order confirmed in cart (you can change this behavior)
+    if (typeof setOrderConfirmed === "function") setOrderConfirmed(true);
   };
 
   return (
@@ -195,9 +342,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
             ))}
           </div>
 
-          {orderMode === "pickup" && (
-            <Address fontSize="fs-5" />
-          )}
+          {orderMode === "pickup" && <Address fontSize="fs-5" />}
 
           {orderMode === "delivery" && (
             <>
@@ -208,11 +353,46 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
                   initialPlace={normalizeToSelectedPlace(draftAddressPlace) ?? undefined}
                   onChange={(val: string) => setDraftAddress(val)}
                   onPlaceSelect={(place: SelectedPlace | null) => {
-                    // Accept null from picker; store draft as LocalSelectedPlace | null
                     setDraftAddressPlace(place ? (place as LocalSelectedPlace) : null);
+                    // also update context addressPlace immediately so other UI can use it
+                    if (typeof setAddressPlace === "function") {
+                      setAddressPlace(place ?? null);
+                    }
                   }}
                 />
               </Form.Group>
+
+              {/* Show additional delivery fields only when address is deliverable */}
+              {draftAddressPlace?.canDeliver === true && (
+                <>
+                  <div className="col-12 mb-3">
+                    <Form.Group>
+                      <Form.Label className="small fw-semibold text-dark">Apt / Suite / Floor</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Apt, Suite or Floor (optional)"
+                        value={aptSuite}
+                        onChange={(e) => setAptSuite(e.target.value)}
+                        className="form-control"
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <div className="col-12 mb-3">
+                    <Form.Group>
+                      <Form.Label className="small fw-semibold text-dark">Delivery instructions</Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder="Leave at door, call on arrival, etc. (optional)"
+                        value={deliveryInstructions}
+                        onChange={(e) => setDeliveryInstructions(e.target.value)}
+                        className="form-control"
+                      />
+                    </Form.Group>
+                  </div>
+                </>
+              )}
 
               {draftAddressPlace?.canDeliver === true && (
                 <Form.Group className="mb-3">
@@ -230,7 +410,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
                   <Button
                     variant="danger"
                     className="py-2 w-100"
-                    onClick={handleDeliverASAP}
+                    onClick={() => handleASAP("delivery")}
                     disabled={!canConfirmDelivery()}
                     title={canConfirmDelivery() ? `Deliver ASAP (~${DEFAULT_ASAP_MINUTES} min)` : undefined}
                   >
@@ -239,7 +419,6 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
                 )}
 
                 <Button
-                  // variant="outline-dark"
                   className="py-2 btn-brand-green w-100 fw-semibold border border-brand-green"
                   onClick={() => openScheduleFlow("delivery")}
                   disabled={!canConfirmDelivery()}
@@ -254,18 +433,28 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
         <Modal.Footer className="text-brand-green d-flex gap-2">
           {orderMode === "delivery" && draftAddress.trim().length > 0 && (
             <Button variant="outline-secondary" className="btn-sm" onClick={handleClearDraft}>
-              Clear address
+              Clear address & notes
             </Button>
           )}
 
           {orderMode === "pickup" && (
-            <Button
-              // variant="dark"
-              className="py-2 btn-brand-green w-100 fw-semibold border border-brand-green"
-              onClick={() => openScheduleFlow("pickup")}
-            >
-              Schedule Pickup
-            </Button>
+            <>
+              <Button
+                variant="danger"
+                className="py-2 w-100"
+                onClick={() => handleASAP("pickup")}
+                disabled={!placeOpenNow}
+                title={placeOpenNow ? `Pickup ASAP (~${DEFAULT_ASAP_MINUTES} min)` : undefined}
+              >
+                Pickup ASAP ({DEFAULT_ASAP_MINUTES} min)
+              </Button>
+              <Button
+                className="py-2 btn-brand-green w-100 fw-semibold border border-brand-green"
+                onClick={() => openScheduleFlow("pickup")}
+              >
+                Schedule Pickup
+              </Button>
+            </>
           )}
         </Modal.Footer>
       </Modal>
@@ -279,6 +468,7 @@ export default function OrderTypeModal({ show, onClose }: OrderTypeModalProps) {
         slotMinutes={15}
         daysAhead={9}
         onConfirm={onTimePicked}
+        asapEstimateMinutes={DEFAULT_ASAP_MINUTES}
       />
     </>
   );

@@ -9,7 +9,7 @@ const SQUARE_CURRENCY = process.env.SQUARE_CURRENCY || "USD";
 
 // Define a type for order items
 interface OrderItem {
-  title: string;
+  name: string;
   quantity: number;
   price: number;
 }
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
           order: {
             location_id: SQUARE_LOCATION_ID,
             line_items: items.map((item) => ({
-              name: item.title,
+              name: item.name,
               quantity: item.quantity.toString(),
               base_price_money: {
                 amount: Math.round(item.price * 100),

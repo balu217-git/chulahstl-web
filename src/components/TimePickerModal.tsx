@@ -1,4 +1,3 @@
-// components/TimePickerModal.tsx
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -15,6 +14,7 @@ interface TimePickerModalProps {
   slotMinutes?: number;
   daysAhead?: number;
   onConfirm: (isoDatetimeString: string) => void;
+  asapEstimateMinutes?: number; // optional estimate for display only
 }
 
 /* ---------- helpers ---------- */
@@ -74,40 +74,28 @@ function formatShortWeekday(date: Date) {
 }
 
 /* ---------- timezone abbrev helper (Intl + small fallback) ---------- */
-/**
- * Returns a timezone short label for a given date and IANA timezone, preferring
- * Intl.DateTimeFormat(..., { timeZoneName: "short" }). Falls back to a small mapping
- * (e.g. "America/Chicago" -> ["CST","CDT"]) if Intl doesn't provide a readable short name.
- */
 const tzFallbackMap: Record<string, [string, string]> = {
   "America/Chicago": ["CST", "CDT"],
   "America/New_York": ["EST", "EDT"],
   "America/Denver": ["MST", "MDT"],
   "America/Los_Angeles": ["PST", "PDT"],
   "Europe/London": ["GMT", "BST"],
-  // add more zones you need
 };
 
 function getTzAbbrevWithFallback(date: Date, timeZone?: string) {
   if (!timeZone) return "";
-  // 1) try Intl
   try {
     const formatted = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "short" }).format(date);
-    // formatted examples: "11/1/2025, 9:00 PM CST" or "9:00 PM GMT+2" depending on runtime
     const parts = formatted.split(" ");
     const last = parts[parts.length - 1].replace(/[.,]/g, "");
-    // Accept typical short alphabetic abbr like "CST", "CDT", "BST" or "GMT+2"
     if (/^[A-Za-z]{2,5}$/.test(last) || /^GMT/.test(last)) return last;
   } catch (e) {
     // fallthrough to fallback below
   }
 
-  // 2) fallback mapping if available
   const pair = tzFallbackMap[timeZone];
   if (pair) {
-    // determine whether this date is in DST in that timezone by comparing offsets
     try {
-      // compute offset (minutes) of the timezone for the date and for Jan/Jul to detect DST usage
       const offsetForDate = new Date(date.toLocaleString("en-US", { timeZone })).getTimezoneOffset();
       const jan = new Date(date.getFullYear(), 0, 1);
       const jul = new Date(date.getFullYear(), 6, 1);
@@ -115,13 +103,10 @@ function getTzAbbrevWithFallback(date: Date, timeZone?: string) {
       const julOffset = new Date(jul.toLocaleString("en-US", { timeZone })).getTimezoneOffset();
       const usesDST = janOffset !== julOffset;
       if (!usesDST) return pair[0];
-      // pick based on actual offset comparison (safer than month heuristic)
-      // If offsetForDate equals the smaller offset -> DST (because DST usually reduces offset minutes)
       const smallerOffset = Math.min(janOffset, julOffset);
       const inDST = offsetForDate === smallerOffset;
       return inDST ? pair[1] : pair[0];
-    } catch (e) {
-      // in case of any error, choose standard
+    } catch {
       return pair[0];
     }
   }
@@ -139,6 +124,7 @@ export default function TimePickerModal({
   slotMinutes = 15,
   daysAhead = 9, // Today + Tomorrow + up to 7 more when expanded
   onConfirm,
+  asapEstimateMinutes = 50,
 }: TimePickerModalProps) {
   // compute "now" in provided timezone for consistent comparisons
   const nowInTZ = useMemo(
@@ -265,16 +251,14 @@ export default function TimePickerModal({
 
   const handleConfirm = () => {
     if (!selectedSlot && !asapAvailable) return;
-    const chosen = selectedSlot ?? new Date();
-    onConfirm(chosen.toISOString());
+    // if selectedSlot is null, that indicates ASAP — send current time as ISO
+    const iso = selectedSlot ? selectedSlot.toISOString() : new Date().toISOString();
+    onConfirm(iso);
     onClose();
   };
 
-  // when user selects a date from the expanded list: collapse and scroll selected into view
   const handleSelectDate = (globalIndex: number) => {
-    // if the same date clicked, keep selection (no-op)
     if (globalIndex === selectedDateIndex) {
-      // if expanded, collapse so user can see compact highlight
       setExpandedDates(false);
       setTimeout(() => {
         const btn = buttonRefs.current[globalIndex];
@@ -283,26 +267,20 @@ export default function TimePickerModal({
       return;
     }
 
-    // date changed -> clear selected slot (prevent stale)
     setSelectedSlot(null);
     setSelectedDateIndex(globalIndex);
-
-    // collapse the list so compact view shows Today + selected
     setExpandedDates(false);
 
-    // scroll selected button into view after collapse
     setTimeout(() => {
       const btn = buttonRefs.current[globalIndex];
       if (btn && dateGridRef.current) {
         btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
       }
-    }, 220); // match collapse transition timing
+    }, 220);
   };
 
-  // toggle slot selection: clicking same slot deselects it
   const handleSlotClick = (slotDate: Date | null) => {
     if (slotDate === null) {
-      // selecting ASAP always sets selectedSlot to null (ASAP sentinel)
       setSelectedSlot(null);
       return;
     }
@@ -359,7 +337,6 @@ export default function TimePickerModal({
         .chev { width: 14px; height: 14px; display:inline-block; transition: transform 200ms ease; }
         .chev.rotated { transform: rotate(180deg); }
 
-        /* small responsiveness */
         @media (min-width: 768px) {
           .date-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -370,11 +347,9 @@ export default function TimePickerModal({
       </Modal.Header>
 
       <Modal.Body>
-        {/* animated date grid wrapper */}
         <div className={`date-grid-wrapper ${expandedDates ? "expanded" : ""}`}>
           <div className="date-grid" ref={dateGridRef}>
             {visibleDates.map((d) => {
-              // map visible date back to its global index in days[]
               const globalIndex = days.findIndex((x) => x.date.getTime() === d.date.getTime());
               return (
                 <button
@@ -409,7 +384,6 @@ export default function TimePickerModal({
           </div>
         </div>
 
-        {/* more/less toggle */}
         {days.length > 2 && (
           <div className="mb-3 text-center">
             <button
@@ -431,7 +405,6 @@ export default function TimePickerModal({
           </div>
         )}
 
-        {/* open/closed info */} 
         <div className="mb-2 small text-muted">
           {selectedWindow && selectedWindow.open ? (
             <span>Open: {selectedWindow.open} — {selectedWindow.close}</span>
@@ -440,23 +413,19 @@ export default function TimePickerModal({
           )}
         </div>
 
-        {/* slots area */}
         <div className="slots-scroll">
-          {/* ASAP */}
           {selectedDateIndex === 0 && asapAvailable && (
             <div className={`slot-row`} onClick={() => handleSlotClick(null)}>
               <div className={`slot-radio ${selectedSlot === null ? "checked" : ""}`} />
               <div>
-                <div className="slot-label">Order ASAP {timeZone ? ` ${getTzAbbrevWithFallback(new Date(), timeZone)}` : ""}</div>
+                <div className="slot-label">Order ASAP {asapEstimateMinutes ? ` (~${asapEstimateMinutes} min)` : ""} {timeZone ? ` ${getTzAbbrevWithFallback(new Date(), timeZone)}` : ""}</div>
                 <div className="small text-muted">{formatTime(new Date(), timeZone)}</div>
               </div>
             </div>
           )}
 
-          {/* slots */}
           {slots.map((s, i) => {
             const isSelected = selectedSlot && selectedSlot.getTime() === s.date.getTime();
-            // tz abbreviation for this slot (CST/CDT depending on date)
             const tzAbbrev = timeZone ? getTzAbbrevWithFallback(s.date, timeZone) : "";
             return (
               <div

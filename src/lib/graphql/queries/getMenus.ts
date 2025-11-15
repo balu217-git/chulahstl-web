@@ -49,6 +49,7 @@ export const GET_MENUS = gql`
           isavailable
           menuPrice
           menuDescription
+          menuType
           menuCategory(first: 20) {
             nodes {
               name

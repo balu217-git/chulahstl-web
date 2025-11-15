@@ -52,13 +52,13 @@ export default function CartDrawer() {
               <div className="d-flex align-items-center gap-3">
                 <Image
                   src={item.image || "/images/img-dish-icon-bg.webp"}
-                  alt={item.title}
+                  alt={item.name}
                   width={80}
                   height={80}
                   className="rounded"
                 />
                 <div>
-                  <h6 className="fw-semibold mb-2 font-family-body">{item.title}</h6>
+                  <h6 className="fw-semibold mb-2 font-family-body">{item.name}</h6>
                   <p className="mb-0">₹{item.price.toFixed(2)}</p>
                 </div>
               </div>

@@ -107,12 +107,12 @@ export async function POST(req: Request) {
       // 7️⃣ Determine WordPress orderStatus
       const orderStatus =
         mappedStatus === "success"
-          ? "Paid"
+          ? "Order Confirmed"
           : mappedStatus === "failed"
           ? "Failed"
           : mappedStatus === "canceled"
           ? "Canceled"
-          : "Pending";
+          : "Pending Order Confirmation";
 
       // 8️⃣ Update WordPress order
       await client.request(UPDATE_ORDER, {

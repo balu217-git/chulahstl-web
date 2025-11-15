@@ -1,14 +1,20 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+/* ----------------------------------------------------
+ * CART ITEM
+ * ---------------------------------------------------- */
 interface CartItem {
   id: string;
-  title: string;
+  name: string;
   price: number;
   quantity: number;
   image?: string;
 }
 
+/* ----------------------------------------------------
+ * ADDRESS PLACE
+ * ---------------------------------------------------- */
 export interface AddressPlace {
   place_id?: string;
   name?: string;
@@ -19,6 +25,28 @@ export interface AddressPlace {
   canDeliver?: boolean;
 }
 
+/* ----------------------------------------------------
+ * DELIVERY NOTES & ORDER TYPE
+ * ---------------------------------------------------- */
+export interface DeliveryNotes {
+  aptSuite?: string | null;
+  instructions?: string | null;
+}
+
+export type OrderTypeTag = "ASAP" | "SCHEDULED";
+
+export interface OrderMetadata {
+  type: OrderTypeTag;
+  aptSuite?: string | null;
+  instructions?: string | null;
+  address?: string | null;
+  timeIso?: string | null;
+  updatedAt?: string;
+}
+
+/* ----------------------------------------------------
+ * CONTEXT TYPE
+ * ---------------------------------------------------- */
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
@@ -29,31 +57,59 @@ interface CartContextType {
 
   orderMode: "pickup" | "delivery";
   setOrderMode: (mode: "pickup" | "delivery") => void;
+
   orderConfirmed: boolean;
   setOrderConfirmed: (val: boolean) => void;
+
   address: string;
   setAddress: (address: string) => void;
+
   deliveryTime: string;
   setDeliveryTime: (time: string) => void;
 
-  // NEW: persisted place metadata for selected address
   addressPlace: AddressPlace | null;
   setAddressPlace: (place: AddressPlace | null) => void;
+
+  orderType: OrderTypeTag;
+  setOrderType: (t: OrderTypeTag) => void;
+
+  deliveryNotes: DeliveryNotes;
+  setDeliveryNotes: (notes: DeliveryNotes) => void;
+
+  orderMetadata: OrderMetadata | null;
+  setOrderMetadata: (meta: OrderMetadata | null) => void;
 }
 
+/* ----------------------------------------------------
+ * CREATE CONTEXT
+ * ---------------------------------------------------- */
 const CartContext = createContext<CartContextType | null>(null);
 
+/* ----------------------------------------------------
+ * PROVIDER
+ * ---------------------------------------------------- */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderMode, setOrderMode] = useState<"pickup" | "delivery">("pickup");
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+
   const [address, setAddress] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
 
-  // NEW: selected place metadata
   const [addressPlace, setAddressPlace] = useState<AddressPlace | null>(null);
 
-  // Load from storage
+  const [orderType, setOrderType] = useState<OrderTypeTag>("ASAP");
+
+  const [deliveryNotes, setDeliveryNotes] = useState<DeliveryNotes>({
+    aptSuite: null,
+    instructions: null,
+  });
+
+  const [orderMetadata, setOrderMetadata] = useState<OrderMetadata | null>(null);
+
+  /* ----------------------------------------------------
+   * LOAD FROM STORAGE
+   * ---------------------------------------------------- */
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem("cart");
@@ -67,56 +123,108 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (savedAddress) setAddress(savedAddress);
       if (savedTime) setDeliveryTime(savedTime);
 
-      // NEW: load saved addressPlace (if any)
-      const savedPlaceJson = sessionStorage.getItem("deliveryAddressPlace");
-      if (savedPlaceJson) {
-        try {
-          const parsed = JSON.parse(savedPlaceJson);
-          // basic validation: ensure formatted_address exists
-          if (parsed && typeof parsed.formatted_address === "string") {
-            setAddressPlace(parsed);
-          }
-        } catch {}
+      const savedPlace = sessionStorage.getItem("deliveryAddressPlace");
+      if (savedPlace) {
+        const parsed = JSON.parse(savedPlace) as AddressPlace;
+        if (parsed?.formatted_address) setAddressPlace(parsed);
+      }
+
+      const savedMeta = sessionStorage.getItem("orderMetadata");
+      if (savedMeta) {
+        const parsed = JSON.parse(savedMeta) as OrderMetadata;
+        setOrderMetadata(parsed);
+        if (parsed.type) setOrderType(parsed.type);
+        setDeliveryNotes({
+          aptSuite: parsed.aptSuite ?? null,
+          instructions: parsed.instructions ?? null,
+        });
       }
     } catch (err) {
       console.error("Error loading storage:", err);
     }
   }, []);
 
-  // Save cart to localStorage
+  /* ----------------------------------------------------
+   * PERSIST TO STORAGE
+   * ---------------------------------------------------- */
+  // Cart
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    try {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    } catch {
+      /* ignore */
+    }
   }, [cart]);
 
-  // Save orderMode and reset confirmation whenever mode changes
+  // Order Mode
   useEffect(() => {
-    if (orderMode) {
+    try {
       sessionStorage.setItem("orderMode", orderMode);
-      setOrderConfirmed(false); // reset confirmation on mode change
+    } catch {
+      /* ignore */
     }
+    setOrderConfirmed(false);
   }, [orderMode]);
 
-  // Save address & deliveryTime
+  // Address + Delivery Time
   useEffect(() => {
-    if (address) sessionStorage.setItem("deliveryAddress", address);
-    else sessionStorage.removeItem("deliveryAddress");
-    if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
-    else sessionStorage.removeItem("deliveryTime");
+    try {
+      if (address) sessionStorage.setItem("deliveryAddress", address);
+      else sessionStorage.removeItem("deliveryAddress");
+
+      if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
+      else sessionStorage.removeItem("deliveryTime");
+    } catch {
+      /* ignore */
+    }
   }, [address, deliveryTime]);
 
-  // NEW: persist addressPlace
+  // Address Place
   useEffect(() => {
-    if (addressPlace) {
-      try {
-        sessionStorage.setItem("deliveryAddressPlace", JSON.stringify(addressPlace));
-      } catch (err) {
-        console.error("Error saving deliveryAddressPlace:", err);
-      }
-    } else {
-      sessionStorage.removeItem("deliveryAddressPlace");
+    try {
+      if (addressPlace) sessionStorage.setItem("deliveryAddressPlace", JSON.stringify(addressPlace));
+      else sessionStorage.removeItem("deliveryAddressPlace");
+    } catch {
+      /* ignore */
     }
   }, [addressPlace]);
 
+  // Delivery Notes: when deliveryNotes change, merge into orderMetadata (single source for storage)
+  useEffect(() => {
+    try {
+      setOrderMetadata((prev) => {
+        const merged: OrderMetadata = {
+          ...(prev ?? { type: orderType }),
+          type: prev?.type ?? orderType,
+          aptSuite: deliveryNotes.aptSuite ?? null,
+          instructions: deliveryNotes.instructions ?? null,
+          address: prev?.address ?? (address || null),
+          timeIso: prev?.timeIso ?? (deliveryTime || null),
+          updatedAt: new Date().toISOString(),
+        };
+        // persist whole orderMetadata to sessionStorage
+        sessionStorage.setItem("orderMetadata", JSON.stringify(merged));
+        return merged;
+      });
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryNotes]);
+
+  // Order Metadata: persist when it changes (keeps sessionStorage current)
+  useEffect(() => {
+    try {
+      if (orderMetadata) sessionStorage.setItem("orderMetadata", JSON.stringify(orderMetadata));
+      else sessionStorage.removeItem("orderMetadata");
+    } catch {
+      /* ignore */
+    }
+  }, [orderMetadata]);
+
+  /* ----------------------------------------------------
+   * CART OPERATIONS
+   * ---------------------------------------------------- */
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
@@ -144,6 +252,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const getTotalPrice = () =>
     cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
+  /* ----------------------------------------------------
+   * RETURN PROVIDER
+   * ---------------------------------------------------- */
   return (
     <CartContext.Provider
       value={{
@@ -153,16 +264,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         clearCart,
         getTotalPrice,
+
         orderMode,
         setOrderMode,
+
         orderConfirmed,
         setOrderConfirmed,
+
         address,
         setAddress,
+
         deliveryTime,
         setDeliveryTime,
+
         addressPlace,
         setAddressPlace,
+
+        orderType,
+        setOrderType,
+
+        deliveryNotes,
+        setDeliveryNotes,
+
+        orderMetadata,
+        setOrderMetadata,
       }}
     >
       {children}
@@ -170,6 +295,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+/* ----------------------------------------------------
+ * HOOK
+ * ---------------------------------------------------- */
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
