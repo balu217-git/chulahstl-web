@@ -43,11 +43,7 @@ export default async function MenuPage() {
   return (
    
     <>
-     <MenuClient
-      allCategories={allCategories}
-      groupedMenus={groupedMenus}
-    />
-    <div>Hello</div>
+     <MenuClient allCategories={allCategories} groupedMenus={groupedMenus} />
     </>
   );
 }

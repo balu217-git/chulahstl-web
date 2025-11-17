@@ -1,88 +1,126 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+
 import Image from "next/image";
-import { useCart } from "@/context/CartContext";
+import { Modal, Button, Form } from "react-bootstrap";
+import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/currency";
+import { useCart } from "@/context/CartContext";
 import { MenuItem } from "@/types/menu";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 
 interface MenuItemModalProps {
-    show: boolean;
-    onHide: () => void;
-    menu: MenuItem;
+  show: boolean;
+  onClose: () => void;
+  menu: MenuItem;
 }
 
-export default function MenuItemModal({ show, onHide, menu }: MenuItemModalProps) {
-    const { cart, addToCart } = useCart();
+interface MenuFields {
+  menuImage?: { node?: { sourceUrl?: string } };
+  menuPrice?: string | number;
+  menuDescription?: string;
+  isavailable?: boolean;
+  choiceOptions?: string[];
+}
 
-     const fields = menu.menuDetails;
-     const description = fields?.menuDescription;
-    const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
-    const price = Number(fields?.menuPrice) || 0;
-    const cartItem = cart.find((item) => item.id === menu.id);
-    const isAvailable = fields?.isavailable ?? true;
+export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProps) {
+  const { addToCart, cart, updateQuantity } = useCart();
 
+  const fields = (menu.menuDetails as MenuFields) || {};
+  const imageUrl = fields.menuImage?.node?.sourceUrl ?? "/images/img-dish-icon-bg.webp";
+  const basePrice = Number(fields.menuPrice ?? 0);
+  const cartItem = cart.find((c) => c.id === menu.id);
 
-    return (
-        <Modal show={show} onHide={onHide} centered scrollable className="text-brand-green">
-            <Modal.Header closeButton>
-                <Modal.Title className="text-brand-green fw-bold fs-5">{menu.title}</Modal.Title>
-            </Modal.Header>
+  const [qty, setQty] = useState(1);
+  const [choice, setChoice] = useState<string | null>(null);
 
-            <Modal.Body className="text-brand-green p-0">
-                <div style={{ position: "relative", width: "100%", height: 220 }}>
-                    <Image src={imageUrl} alt={menu.title} fill style={{ objectFit: "cover", borderRadius: 0 }} />
-                </div>
-                <div className="wrapper p-3">
-                    {description && <p className="mb-2">{description}</p>}
+  useEffect(() => {
+    if (cartItem) setQty(cartItem.quantity);
+  }, [cartItem]);
 
-                    
-                    <hr />
+  const handleAdd = () => {
+    addToCart({
+      id: menu.id,
+      name: menu.title,
+      price: basePrice,
+      quantity: qty,
+      image: imageUrl,
+      ...(choice ? { choice } : {}),
+    });
+    onClose();
+  };
 
-                    {/* Special requests */}
-                    <div className="mb-3">
-                        <h5 className="fw-semibold mb-2 font-family-body">Special Requests</h5>
-                        <p>We’ll try our best to accommodate requests, but can’t make changes that affect pricing.</p>
-                        <Form.Control
-                            as="textarea"
-                            rows={2}
-                            value={'0'}
-                            onChange={(e) => {}}
-                            placeholder="Add special request (e.g. no onion, extra spicy)"
-                            className="border-brand-green"
-                        />
-                    </div>
+  return (
+    <Modal show={show} onHide={onClose} centered size="md" backdrop="static">
+      <Modal.Body className="bg-brand-light  text-brand-green p-0">
 
+        {/* TOP IMAGE */}
+        <div style={{ position: "relative", height: 180 }}>
+          <Image
+            src={imageUrl}
+            alt={menu.title}
+            fill
+            style={{ objectFit: "cover" }}
+          />
+          <button
+            className="btn btn-cart btn-light position-absolute"
+            style={{ top: 10, right: 10 }}
+            onClick={onClose}
+          >
+            ✕
+          </button>
+        </div>
 
-                </div>
-            </Modal.Body>
-            <Modal.Footer className="d-block bg-brand-green-light">
-                {/* quantity + add */}
-                <div className="row gx-md-2 gx-0 align-items-center">
-                    <div className="col-auto">
-                        <div className="">
-                            <div className="d-flex  py-2 px-3">
-                                <button className="btn btn-cart btn-outline-light text-brand-gree" >
-                                <FontAwesomeIcon icon={faMinus} />
-                            </button>
-                            <span className="text-white fw-semibold" style={{ minWidth: 36, textAlign: "center" }}>{2}</span>
-                            <button className="btn btn-cart btn-outline-light text-brand-gree" >
-                                <FontAwesomeIcon icon={faPlus} />
-                            </button>
-                            </div>
-                        </div>
-                    </div>
+        <div className="p-4">
+          {/* TITLE */}
+          <h4 className="mb-2">{menu.title}</h4>
 
-                    <div className="col">
-                        <div className="d-flex align-items-center gap-3">
-                            <Button  className="btn btn-lg fs-6 btn-wide fw-semibold btn-brand-orange w-100 d-flex justify-content-between">Add item <span className="fw-normal">{formatPrice(0)}</span>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </Modal.Footer>
-        </Modal>
-    );
+          {/* DESCRIPTION */}
+          {fields.menuDescription && (
+            <p className="text-muted small">{fields.menuDescription}</p>
+          )}
+
+          <hr className="border-secondary" />
+
+          {/* CHOICE FIELD (if exists) */}
+          {fields.choiceOptions && fields.choiceOptions.length > 0 && (
+            <div className="mb-4">
+              <strong className="d-block mb-2">CHOICE</strong>
+
+              {fields.choiceOptions.map((opt) => (
+                <Form.Check
+                  key={opt}
+                  type="radio"
+                  name="menu-choice"
+                  label={opt}
+                  checked={choice === opt}
+                  onChange={() => setChoice(opt)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* QUANTITY + ADD BUTTON */}
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <Button
+                className="btn-cart"
+                onClick={() => setQty(Math.max(1, qty - 1))}
+              >
+                –
+              </Button>
+              <div className="text-white px-3">
+                {qty}
+              </div>
+              <Button className="btn-cart" onClick={() => setQty(qty + 1)}>
+                +
+              </Button>
+            </div>
+
+            <Button className="btn btn-wide btn-brand-orange d-flex w-100 justify-content-between" onClick={handleAdd}>
+              Add Item  <span className="fw-semibold">{formatPrice(qty * basePrice)}</span>
+            </Button>
+          </div>
+        </div>
+      </Modal.Body>
+    </Modal>
+  );
 }
