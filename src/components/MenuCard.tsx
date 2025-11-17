@@ -1,9 +1,12 @@
 "use client";
 import Image from "next/image";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 import { MenuItem } from "@/types/menu";
+import MenuItemModal from "@/components/MenuItemModal";
 
 interface MenuCardProps {
   menu: MenuItem;
@@ -11,7 +14,8 @@ interface MenuCardProps {
 }
 
 export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
-  const { addToCart, cart, updateQuantity, removeFromCart, orderMode, orderConfirmed } = useCart();
+  const { addToCart, cart, updateQuantity, removeFromCart, orderConfirmed } = useCart();
+  const [showModal, setShowModal] = useState(false);
 
   const fields = menu.menuDetails;
   const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
@@ -23,12 +27,18 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
     // ✅ force modal if not confirmed for current mode
     if (!orderConfirmed) {
       onAddressSelect();
+      openModal();
       return;
     }
     addToCart({ id: menu.id, name: menu.title, price, quantity: 1, image: imageUrl });
   };
 
+  function openModal() {
+    setShowModal(true);
+  }
+
   return (
+    <>
     <div className="card menu-card h-100 bg-white border-0 shadow-sm overflow-hidden">
       <div className="row g-0">
         <div className="col-4 position-relative">
@@ -47,7 +57,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
             {fields?.menuDescription && <p className="small mb-2">{fields.menuDescription}</p>}
 
             <div className="mt-auto d-flex justify-content-between align-items-center">
-              <span className="fw-semibold">₹{price.toFixed(2)}</span>
+              <span className="fw-semibold">{formatPrice(price)}</span>
 
               {!isAvailable ? (
                 <button className="btn px-3 w-auto btn-cart btn-secondary btn-sm small" disabled>
@@ -86,5 +96,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
         </div>
       </div>
     </div>
+     <MenuItemModal show={showModal} onHide={() => setShowModal(false)} menu={menu} />
+     </>
   );
 }

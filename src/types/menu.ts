@@ -18,6 +18,25 @@ export interface MenuItem {
   };
 }
 
+
+export type ChoiceOption = { 
+    id: string; 
+    label: string; 
+    price?: number 
+};
+export type ChoiceGroup = { 
+    id: string; 
+    name: string; 
+    required?: boolean; 
+    type?: "single" | "multiple"; 
+    options: ChoiceOption[] 
+};
+export type AddonItem = { 
+    id: string; 
+    label: string; 
+    price?: number 
+};
+
 export interface CategoryNode {
   id: string;
   name: string;
