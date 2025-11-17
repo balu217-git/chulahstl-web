@@ -8,10 +8,11 @@ import OrderModeSelector from "@/components/OrderModeSelector";
 import OrderTypeModal from "@/components/OrderTypeModal";
 import OrderModeAddress from "@/components/OrderModeAddress";
 import Address from "@/components/Address";
+import type { SelectedPlace } from "@/components/AddressPicker";
 import TimePickerModal from "@/components/TimePickerModal";
 import { useCart } from "@/context/CartContext";
 import { MenuItem, CategoryNode } from "@/types/menu";
-import type { SelectedPlace } from "@/components/AddressPicker";
+
 
 interface MenuClientProps {
   allCategories: CategoryNode[];
