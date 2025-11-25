@@ -34,7 +34,7 @@ export default function CheckoutPage() {
     setDeliveryNotes,
     orderMetadata,
     setOrderMetadata,
-    setDeliveryTime,
+    // removed setDeliveryTime (was unused)
   } = useCart();
 
   const [name, setName] = useState("");
@@ -258,7 +258,7 @@ export default function CheckoutPage() {
                       </div>
                     </Card.Body>
                     <Card.Footer className="text-center bg-brand-green-light">
-                      <small>You're saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
+                      <small>You&apos;re saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
                     </Card.Footer>
                   </Card>
                 </>
@@ -378,7 +378,7 @@ export default function CheckoutPage() {
                       </div>
                     </Card.Body>
                     <Card.Footer className="text-center bg-brand-green-light">
-                      <small>You're saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
+                      <small>You&apos;re saving <b>$1.87</b> by ordering directly from us vs. other websites</small>
                     </Card.Footer>
                   </Card>
                 </>

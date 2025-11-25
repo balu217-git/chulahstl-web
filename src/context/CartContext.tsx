@@ -93,6 +93,60 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | null>(null);
 
 /* ----------------------------------------------------
+ * Utility type guards & helpers for safe parsing
+ * ---------------------------------------------------- */
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+
+const toString = (v: unknown, fallback = ""): string => {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return fallback;
+};
+
+const toNumber = (v: unknown, fallback = 0): number => {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
+};
+
+const toArray = <T = unknown>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+
+const isChoiceLike = (v: unknown): v is Record<string, unknown> => {
+  if (!isRecord(v)) return false;
+  // require at least a label (string). price is optional but if present should be number/string.
+  return typeof v.label === "string" || typeof v.name === "string" || typeof v.option === "string";
+};
+
+const isAddressPlace = (v: unknown): v is AddressPlace => {
+  if (!isRecord(v)) return false;
+  // formatted_address is required in our AddressPlace
+  if (typeof v.formatted_address !== "string") return false;
+  // other fields if present should be correct types
+  if (v.place_id !== undefined && typeof v.place_id !== "string") return false;
+  if (v.name !== undefined && typeof v.name !== "string") return false;
+  if (v.lat !== undefined && typeof v.lat !== "number") return false;
+  if (v.lng !== undefined && typeof v.lng !== "number") return false;
+  if (v.distanceKm !== undefined && typeof v.distanceKm !== "number") return false;
+  if (v.canDeliver !== undefined && typeof v.canDeliver !== "boolean") return false;
+  return true;
+};
+
+const isOrderMetadataLike = (v: unknown): v is Partial<OrderMetadata> => {
+  if (!isRecord(v)) return false;
+  if (v.type !== undefined && v.type !== "ASAP" && v.type !== "SCHEDULED") return false;
+  if (v.aptSuite !== undefined && typeof v.aptSuite !== "string" && v.aptSuite !== null) return false;
+  if (v.instructions !== undefined && typeof v.instructions !== "string" && v.instructions !== null) return false;
+  if (v.address !== undefined && typeof v.address !== "string" && v.address !== null) return false;
+  if (v.timeIso !== undefined && typeof v.timeIso !== "string" && v.timeIso !== null) return false;
+  if (v.updatedAt !== undefined && typeof v.updatedAt !== "string") return false;
+  return true;
+};
+
+/* ----------------------------------------------------
  * Provider
  * ---------------------------------------------------- */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
@@ -126,31 +180,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const savedRaw = localStorage.getItem("cart");
       if (savedRaw) {
-        // parse and migrate entries that lack cartItemKey
-        let parsed: any = JSON.parse(savedRaw);
-        if (!Array.isArray(parsed)) parsed = [];
+        let parsedRaw: unknown;
+        try {
+          parsedRaw = JSON.parse(savedRaw);
+        } catch {
+          parsedRaw = [];
+        }
 
-        const migrated: CartItem[] = parsed.map((entry: any) => {
-          // Defensive extraction with fallback types
-          const id = entry.id ?? String(entry.menuId ?? "");
-          const name = entry.name ?? entry.title ?? entry.menuTitle ?? "Item";
-          const price = Number(entry.price ?? entry.menuPrice ?? 0) || 0;
-          const quantity = Number(entry.quantity ?? 1) || 1;
-          const image = entry.image ?? entry.menuImage ?? undefined;
-          // choices may be stored in different shapes in older versions; try to normalize
+        const parsedArray = Array.isArray(parsedRaw) ? (parsedRaw as unknown[]) : [];
+
+        const migrated: CartItem[] = parsedArray.map((entryRaw, entryIdx) => {
+          const entry = isRecord(entryRaw) ? entryRaw : {};
+
+          const id = toString(entry.id ?? entry.menuId ?? "", `migrated-${entryIdx}`);
+          const name = toString(entry.name ?? entry.title ?? entry.menuTitle ?? `Item ${entryIdx + 1}`, `Item ${entryIdx + 1}`);
+          const price = toNumber(entry.price ?? entry.menuPrice ?? 0, 0);
+          const quantity = Math.max(1, toNumber(entry.quantity ?? 1, 1));
+          const image = typeof entry.image === "string" ? entry.image : typeof entry.menuImage === "string" ? entry.menuImage : undefined;
+
+          // choices: handle possible old shapes safely
           const rawChoices = entry.choices ?? entry.choiceOptions ?? entry.selectedOptions ?? [];
-          const choices: ChoiceSelected[] = Array.isArray(rawChoices)
-            ? rawChoices.map((c: any, idx: number) => {
-                // If old shape had label & price, map them; otherwise try fallback
-                const label = c.label ?? c.name ?? c.option ?? `Option ${idx + 1}`;
-                const priceNum = Number(c.price ?? c.extraPrice ?? c.addonPrice ?? 0) || 0;
-                const cid = c.id ?? `${id}-choice-${idx}`;
-                return { id: cid, label, price: priceNum };
-              })
-            : [];
+          const rawChoicesArray = toArray<unknown>(rawChoices);
 
-          // If the saved entry already has cartItemKey use it; otherwise compute one
-          const cartItemKey = entry.cartItemKey ?? computeKey(id, choices);
+          const choices: ChoiceSelected[] = rawChoicesArray
+            .filter(isChoiceLike)
+            .map((cRaw, idx) => {
+              const c = isRecord(cRaw) ? cRaw : {};
+              const label = toString(c.label ?? c.name ?? c.option ?? `Option ${idx + 1}`, `Option ${idx + 1}`);
+              const priceNum = toNumber(c.price ?? c.extraPrice ?? c.addonPrice ?? 0, 0);
+              const cid = toString(c.id ?? `${id}-choice-${idx}`, `${id}-choice-${idx}`);
+              return { id: cid, label, price: priceNum };
+            });
+
+          const cartItemKey = toString(entry.cartItemKey ?? computeKey(id, choices.length ? choices : undefined), computeKey(id, choices.length ? choices : undefined));
 
           return {
             id,
@@ -166,36 +228,58 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         setCart(migrated);
       }
 
-      // load other sessionStorage fields similarly to previous implementation
-      const savedMode = sessionStorage.getItem("orderMode") as "pickup" | "delivery" | null;
-      if (savedMode) setOrderMode(savedMode);
+      // load other sessionStorage fields in a type-safe way
+      const savedMode = sessionStorage.getItem("orderMode");
+      if (savedMode === "pickup" || savedMode === "delivery") setOrderMode(savedMode);
 
       const savedAddress = sessionStorage.getItem("deliveryAddress");
       const savedTime = sessionStorage.getItem("deliveryTime");
-      if (savedAddress) setAddress(savedAddress);
-      if (savedTime) setDeliveryTime(savedTime);
+      if (typeof savedAddress === "string") setAddress(savedAddress);
+      if (typeof savedTime === "string") setDeliveryTime(savedTime);
 
       const savedPlace = sessionStorage.getItem("deliveryAddressPlace");
-      if (savedPlace) {
-        const parsedPlace = JSON.parse(savedPlace) as AddressPlace;
-        if (parsedPlace?.formatted_address) setAddressPlace(parsedPlace);
+      if (typeof savedPlace === "string") {
+        try {
+          const parsedPlace = JSON.parse(savedPlace);
+          if (isAddressPlace(parsedPlace)) {
+            // type guard verified; safe to set
+            setAddressPlace(parsedPlace);
+          }
+        } catch {
+          // ignore parse error
+        }
       }
 
       const savedMeta = sessionStorage.getItem("orderMetadata");
-      if (savedMeta) {
-        const parsedMeta = JSON.parse(savedMeta) as OrderMetadata;
-        setOrderMetadata(parsedMeta);
-        if (parsedMeta.type) setOrderType(parsedMeta.type);
-        setDeliveryNotes({
-          aptSuite: parsedMeta.aptSuite ?? null,
-          instructions: parsedMeta.instructions ?? null,
-        });
+      if (typeof savedMeta === "string") {
+        try {
+          const parsedMeta = JSON.parse(savedMeta);
+          if (isOrderMetadataLike(parsedMeta)) {
+            const metaObj = parsedMeta as Partial<OrderMetadata>;
+            const normalized: OrderMetadata = {
+              type: (metaObj.type as OrderTypeTag) ?? "ASAP",
+              aptSuite: metaObj.aptSuite ?? null,
+              instructions: metaObj.instructions ?? null,
+              address: metaObj.address ?? null,
+              timeIso: metaObj.timeIso ?? null,
+              updatedAt: metaObj.updatedAt ?? new Date().toISOString(),
+            };
+            setOrderMetadata(normalized);
+            if (metaObj.type === "ASAP" || metaObj.type === "SCHEDULED") setOrderType(metaObj.type);
+            setDeliveryNotes({
+              aptSuite: metaObj.aptSuite ?? null,
+              instructions: metaObj.instructions ?? null,
+            });
+          }
+        } catch {
+          // ignore parse error
+        }
       }
     } catch (err) {
-      // if JSON.parse fails or any migration error occurs, fall back to an empty cart but log the error
       // eslint-disable-next-line no-console
       console.error("Error loading/migrating cart from storage:", err);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount
 
   /* ----------------------------------------------------
@@ -361,6 +445,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 /* ----------------------------------------------------
  * Hook
  * ---------------------------------------------------- */
+ 
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
