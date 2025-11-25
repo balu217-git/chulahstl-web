@@ -55,31 +55,31 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                 {cartItem ? (
                   <div className="d-flex align-items-center gap-2">
                     <button
-                      className="btn btn-outline-secondary btn-sm"
+                      className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
                       onClick={() => updateQuantity(menu.id, cartItem.quantity - 1)}
                       disabled={cartItem.quantity <= 1}
                     >
                       <FontAwesomeIcon icon={faMinus} />
                     </button>
 
-                    <span>{cartItem.quantity}</span>
+                    <span className="fw-semibold">{cartItem.quantity}</span>
 
                     <button
-                      className="btn btn-outline-secondary btn-sm"
+                      className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
                       onClick={() => updateQuantity(menu.id, cartItem.quantity + 1)}
                     >
                       <FontAwesomeIcon icon={faPlus} />
                     </button>
 
                     <button
-                      className="btn btn-link text-danger btn-sm"
+                      className="btn btn-cart shadow-none text-danger btn-sm"
                       onClick={() => removeFromCart(menu.id)}
                     >
                       <FontAwesomeIcon icon={faTrash} />
                     </button>
                   </div>
                 ) : (
-                  <button className="btn btn-brand-orange btn-sm" onClick={openModal}>
+                  <button className="btn btn-cart btn-brand-orange btn-sm" onClick={openModal}>
                     <FontAwesomeIcon icon={faPlus} />
                   </button>
                 )}
