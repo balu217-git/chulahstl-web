@@ -1,3 +1,4 @@
+// src/app/checkout/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -7,14 +8,17 @@ import { faMapMarkerAlt, faClock, faStore, faClipboardList } from "@fortawesome/
 import Address from "@/components/Address";
 import { formatDateTimeForTZ } from "@/lib/formatDateTime";
 import type { SelectedPlace } from "@/components/AddressPicker";
-import { useCart } from "@/context/CartContext";
+import { useCart, ChoiceSelected } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 
-interface CartItem {
+interface InternalCartItem {
   id: string;
+  cartItemKey?: string;
   name: string;
   price: number;
   quantity: number;
   image?: string;
+  choices?: ChoiceSelected[];
 }
 
 export default function CheckoutPage() {
@@ -88,6 +92,15 @@ export default function CheckoutPage() {
     setEditingNotes(false);
   };
 
+  // compute per-line totals including choices
+  const computeChoicesTotal = (choices?: ChoiceSelected[]) =>
+    (choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
+
+  const lineTotal = (item: InternalCartItem) => {
+    const choicesTotal = computeChoicesTotal(item.choices);
+    return (Number(item.price || 0) + choicesTotal) * item.quantity;
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) return alert("Your cart is empty.");
     if (!name.trim() || !email.trim() || !phone.trim())
@@ -104,7 +117,7 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const total = getTotalPrice();
+      const total = getTotalPrice(); // already accounts choices
 
       // Build deliveryNotes payload consistently with context
       const notesPayload = {
@@ -115,15 +128,27 @@ export default function CheckoutPage() {
       // Build addressPlace payload (if exists)
       const addressPlacePayload = addressPlace ? { ...addressPlace } : null;
 
-      // ---------- NEW: normalize cart items to server shape ----------
-      const itemsPayload = cart.map((i: CartItem) => ({
-        id: String(i.id),
-        name: String(i.name),
-        price: Number(i.price) || 0,
-        quantity: Number(i.quantity) || 0,
-        image: String(i.image ?? ""),
-      }));
+      // ---------- NEW: normalize cart items to server shape, include choices ----------
+      const itemsPayload = cart.map((i: InternalCartItem) => {
+        // ensure numeric conversions
+        const priceNum = Number(i.price) || 0;
+        const qtyNum = Number(i.quantity) || 0;
+        return {
+          id: String(i.id),
+          cartItemKey: i.cartItemKey ?? null,
+          name: String(i.name),
+          price: priceNum,
+          quantity: qtyNum,
+          image: String(i.image ?? ""),
+          choices: (i.choices || []).map((c) => ({
+            id: String(c.id ?? ""),
+            label: String(c.label ?? ""),
+            price: Number(c.price || 0),
+          })),
+        };
+      });
 
+      // Validate itemsPayload
       for (const it of itemsPayload) {
         if (!it.id || !it.name || typeof it.price !== "number" || typeof it.quantity !== "number") {
           console.error("Invalid item payload:", it);
@@ -229,9 +254,7 @@ export default function CheckoutPage() {
                       </div>
                       <div className="d-flex align-items-start mb-3">
                         <FontAwesomeIcon icon={faClock} className="me-2 pt-1" />
-                        <p className="mb-0">
-                          {deliveryTime ? formattedDeliveryTime : "Delivery time not set"}
-                        </p>
+                        <p className="mb-0">{deliveryTime ? formattedDeliveryTime : "Delivery time not set"}</p>
                       </div>
                     </Card.Body>
                     <Card.Footer className="text-center bg-brand-green-light">
@@ -391,18 +414,48 @@ export default function CheckoutPage() {
             <Card className="shadow-sm font-family-body text-brand-green rounded-4 border-brand-orang">
               <Card.Body className="p-4">
                 <ul className="list-group mb-3">
-                  {cart.map((item) => (
-                    <li key={item.id} className="list-group-item d-flex justify-content-between text-brand-green align-items-center">
-                      <span>
-                        {item.name} × {item.quantity}
-                      </span>
-                      <span className="fw-bold">₹{(item.price * item.quantity).toFixed(2)}</span>
-                    </li>
-                  ))}
+                  {cart.map((itemRaw) => {
+                    // normalize item shape for safety
+                    const item = itemRaw as InternalCartItem;
+                    const key = item.cartItemKey ?? item.id;
+                    const perLine = lineTotal(item);
+                    const choicesTotal = computeChoicesTotal(item.choices);
+                    const perItemPrice = Number(item.price || 0) + choicesTotal;
+
+                    return (
+                      <li key={key} className="list-group-item">
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div style={{ maxWidth: "70%" }}>
+                            <div className="fw-semibold">{item.name} <small className="text-muted">× {item.quantity}</small></div>
+
+                            {/* show choices (if any) */}
+                            {item.choices && item.choices.length > 0 && (
+                              <div className="mt-2 small text-muted">
+                                {item.choices.map((c, idx) => (
+                                  <div key={`${key}-choice-${idx}`} className="d-flex justify-content-between">
+                                    <div>{c.label}</div>
+                                    <div>{formatPrice(Number(c.price || 0))}</div>
+                                  </div>
+                                ))}
+                                <div className="mt-1 d-flex justify-content-between">
+                                  <div className="small">Per item:</div>
+                                  <div className="small">{formatPrice(perItemPrice)}</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-end">
+                            <div className="fw-bold">{formatPrice(perLine)}</div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 <h4 className="text-end font-family-body">
-                  Total: <span className="fw-bold">₹{getTotalPrice().toFixed(2)}</span>
+                  Total: <span className="fw-bold">{formatPrice(getTotalPrice())}</span>
                 </h4>
 
                 <button className="btn btn-brand-orange w-100 mt-4" onClick={handleCheckout} disabled={loading}>

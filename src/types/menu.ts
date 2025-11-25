@@ -1,42 +1,4 @@
 // src/types/menu.ts
-
-export interface MenuItem {
-  id: string;
-  title: string;
-  menuDetails: {
-    isavailable?: boolean; // ✅ corrected name and type
-    menuPrice?: string | number;
-    menuDescription?: string;
-    menuImage?: {
-      node?: {
-        sourceUrl?: string;
-      };
-    };
-    menuCategory?: {
-      nodes: CategoryNode[];
-    };
-  };
-}
-
-
-export type ChoiceOption = { 
-    id: string; 
-    label: string; 
-    price?: number 
-};
-export type ChoiceGroup = { 
-    id: string; 
-    name: string; 
-    required?: boolean; 
-    type?: "single" | "multiple"; 
-    options: ChoiceOption[] 
-};
-export type AddonItem = { 
-    id: string; 
-    label: string; 
-    price?: number 
-};
-
 export interface CategoryNode {
   id: string;
   name: string;
@@ -48,4 +10,51 @@ export interface CategoryNode {
       slug: string;
     };
   };
+  count?: number;
+}
+
+export type ChoiceOptionFromAPI = {
+  isDefault?: boolean;
+  label: string;
+  price?: number | string | null;
+};
+
+export type ChoiceOption = {
+  id: string;
+  label: string;
+  price: number;
+  isDefault?: boolean;
+};
+
+export type ChoiceGroup = {
+  required?: boolean;
+  type?: "single" | "multiple" | "radio" | "checkbox";
+  options: ChoiceOption[];
+};
+
+export interface MenuDetails {
+  isavailable?: boolean;
+  menuPrice?: string | number;
+  menuDescription?: string;
+  menuImage?: {
+    node?: {
+      sourceUrl?: string;
+      altText?: string;
+      id?: string;
+      title?: string;
+    };
+  };
+  menuCategory?: {
+    nodes: CategoryNode[];
+  };
+  choiceRequired?: boolean;
+  choiceType?: "single" | "multiple" | "radio" | "checkbox";
+  choices?: ChoiceOptionFromAPI[];
+  menuType?: string | null;
+}
+
+export interface MenuItem {
+  id: string;
+  title: string;
+  menuDetails: MenuDetails;
 }

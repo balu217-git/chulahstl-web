@@ -1,20 +1,30 @@
+// src/context/CartContext.tsx
+// Uploaded image (reference): /mnt/data/2c4af857-55b0-4d30-8cef-2989854f992f.png
+
 "use client";
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 /* ----------------------------------------------------
- * CART ITEM
+ * Types
  * ---------------------------------------------------- */
-interface CartItem {
+export interface ChoiceSelected {
   id: string;
-  name: string;
+  label: string;
   price: number;
-  quantity: number;
-  image?: string;
 }
 
-/* ----------------------------------------------------
- * ADDRESS PLACE
- * ---------------------------------------------------- */
+export interface CartItem {
+  id: string; // menu id (menu.post ID or similar)
+  cartItemKey?: string; // computed unique key for this cart entry (id + sorted choices)
+  name: string;
+  price: number; // base price
+  quantity: number;
+  image?: string;
+  choices?: ChoiceSelected[]; // selected add-ons / options
+}
+
+/* Address / Order types */
 export interface AddressPlace {
   place_id?: string;
   name?: string;
@@ -25,9 +35,6 @@ export interface AddressPlace {
   canDeliver?: boolean;
 }
 
-/* ----------------------------------------------------
- * DELIVERY NOTES & ORDER TYPE
- * ---------------------------------------------------- */
 export interface DeliveryNotes {
   aptSuite?: string | null;
   instructions?: string | null;
@@ -45,13 +52,13 @@ export interface OrderMetadata {
 }
 
 /* ----------------------------------------------------
- * CONTEXT TYPE
+ * Context shape
  * ---------------------------------------------------- */
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeFromCart: (id: string) => void;
+  addToCart: (item: Omit<CartItem, "cartItemKey">) => void;
+  updateQuantity: (idOrKey: string, quantity: number) => void;
+  removeFromCart: (idOrKey: string) => void;
   clearCart: () => void;
   getTotalPrice: () => number;
 
@@ -81,12 +88,12 @@ interface CartContextType {
 }
 
 /* ----------------------------------------------------
- * CREATE CONTEXT
+ * Create context
  * ---------------------------------------------------- */
 const CartContext = createContext<CartContextType | null>(null);
 
 /* ----------------------------------------------------
- * PROVIDER
+ * Provider
  * ---------------------------------------------------- */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -95,26 +102,71 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const [address, setAddress] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
-
   const [addressPlace, setAddressPlace] = useState<AddressPlace | null>(null);
 
   const [orderType, setOrderType] = useState<OrderTypeTag>("ASAP");
-
-  const [deliveryNotes, setDeliveryNotes] = useState<DeliveryNotes>({
-    aptSuite: null,
-    instructions: null,
-  });
-
+  const [deliveryNotes, setDeliveryNotes] = useState<DeliveryNotes>({ aptSuite: null, instructions: null });
   const [orderMetadata, setOrderMetadata] = useState<OrderMetadata | null>(null);
 
   /* ----------------------------------------------------
-   * LOAD FROM STORAGE
+   * Helper: compute stable key for (id + choices)
+   * ---------------------------------------------------- */
+  const computeKey = (id: string, choices?: ChoiceSelected[]) => {
+    if (!choices || choices.length === 0) return id;
+    // create a stable, deterministic key by sorting choice labels
+    const sorted = [...choices].sort((a, b) => a.label.localeCompare(b.label));
+    const parts = sorted.map((c) => `${c.label}:${Number(c.price || 0)}`);
+    return `${id}|${parts.join("|")}`;
+  };
+
+  /* ----------------------------------------------------
+   * Load from storage + migration for old saved cart items
    * ---------------------------------------------------- */
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) setCart(JSON.parse(savedCart));
+      const savedRaw = localStorage.getItem("cart");
+      if (savedRaw) {
+        // parse and migrate entries that lack cartItemKey
+        let parsed: any = JSON.parse(savedRaw);
+        if (!Array.isArray(parsed)) parsed = [];
 
+        const migrated: CartItem[] = parsed.map((entry: any) => {
+          // Defensive extraction with fallback types
+          const id = entry.id ?? String(entry.menuId ?? "");
+          const name = entry.name ?? entry.title ?? entry.menuTitle ?? "Item";
+          const price = Number(entry.price ?? entry.menuPrice ?? 0) || 0;
+          const quantity = Number(entry.quantity ?? 1) || 1;
+          const image = entry.image ?? entry.menuImage ?? undefined;
+          // choices may be stored in different shapes in older versions; try to normalize
+          const rawChoices = entry.choices ?? entry.choiceOptions ?? entry.selectedOptions ?? [];
+          const choices: ChoiceSelected[] = Array.isArray(rawChoices)
+            ? rawChoices.map((c: any, idx: number) => {
+                // If old shape had label & price, map them; otherwise try fallback
+                const label = c.label ?? c.name ?? c.option ?? `Option ${idx + 1}`;
+                const priceNum = Number(c.price ?? c.extraPrice ?? c.addonPrice ?? 0) || 0;
+                const cid = c.id ?? `${id}-choice-${idx}`;
+                return { id: cid, label, price: priceNum };
+              })
+            : [];
+
+          // If the saved entry already has cartItemKey use it; otherwise compute one
+          const cartItemKey = entry.cartItemKey ?? computeKey(id, choices);
+
+          return {
+            id,
+            name,
+            price,
+            quantity,
+            image,
+            choices: choices.length > 0 ? choices : undefined,
+            cartItemKey,
+          } as CartItem;
+        });
+
+        setCart(migrated);
+      }
+
+      // load other sessionStorage fields similarly to previous implementation
       const savedMode = sessionStorage.getItem("orderMode") as "pickup" | "delivery" | null;
       if (savedMode) setOrderMode(savedMode);
 
@@ -125,48 +177,45 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       const savedPlace = sessionStorage.getItem("deliveryAddressPlace");
       if (savedPlace) {
-        const parsed = JSON.parse(savedPlace) as AddressPlace;
-        if (parsed?.formatted_address) setAddressPlace(parsed);
+        const parsedPlace = JSON.parse(savedPlace) as AddressPlace;
+        if (parsedPlace?.formatted_address) setAddressPlace(parsedPlace);
       }
 
       const savedMeta = sessionStorage.getItem("orderMetadata");
       if (savedMeta) {
-        const parsed = JSON.parse(savedMeta) as OrderMetadata;
-        setOrderMetadata(parsed);
-        if (parsed.type) setOrderType(parsed.type);
+        const parsedMeta = JSON.parse(savedMeta) as OrderMetadata;
+        setOrderMetadata(parsedMeta);
+        if (parsedMeta.type) setOrderType(parsedMeta.type);
         setDeliveryNotes({
-          aptSuite: parsed.aptSuite ?? null,
-          instructions: parsed.instructions ?? null,
+          aptSuite: parsedMeta.aptSuite ?? null,
+          instructions: parsedMeta.instructions ?? null,
         });
       }
     } catch (err) {
-      console.error("Error loading storage:", err);
+      // if JSON.parse fails or any migration error occurs, fall back to an empty cart but log the error
+      // eslint-disable-next-line no-console
+      console.error("Error loading/migrating cart from storage:", err);
     }
-  }, []);
+  }, []); // run once on mount
 
   /* ----------------------------------------------------
-   * PERSIST TO STORAGE
+   * Persist to storage (cart, order metadata, etc.)
    * ---------------------------------------------------- */
-  // Cart
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(cart));
     } catch {
-      /* ignore */
+      /* ignore storage errors */
     }
   }, [cart]);
 
-  // Order Mode
   useEffect(() => {
     try {
       sessionStorage.setItem("orderMode", orderMode);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     setOrderConfirmed(false);
   }, [orderMode]);
 
-  // Address + Delivery Time
   useEffect(() => {
     try {
       if (address) sessionStorage.setItem("deliveryAddress", address);
@@ -174,22 +223,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (deliveryTime) sessionStorage.setItem("deliveryTime", deliveryTime);
       else sessionStorage.removeItem("deliveryTime");
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [address, deliveryTime]);
 
-  // Address Place
   useEffect(() => {
     try {
       if (addressPlace) sessionStorage.setItem("deliveryAddressPlace", JSON.stringify(addressPlace));
       else sessionStorage.removeItem("deliveryAddressPlace");
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [addressPlace]);
 
-  // Delivery Notes: when deliveryNotes change, merge into orderMetadata (single source for storage)
   useEffect(() => {
     try {
       setOrderMetadata((prev) => {
@@ -202,58 +245,78 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           timeIso: prev?.timeIso ?? (deliveryTime || null),
           updatedAt: new Date().toISOString(),
         };
-        // persist whole orderMetadata to sessionStorage
         sessionStorage.setItem("orderMetadata", JSON.stringify(merged));
         return merged;
       });
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deliveryNotes]);
 
-  // Order Metadata: persist when it changes (keeps sessionStorage current)
   useEffect(() => {
     try {
       if (orderMetadata) sessionStorage.setItem("orderMetadata", JSON.stringify(orderMetadata));
       else sessionStorage.removeItem("orderMetadata");
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [orderMetadata]);
 
   /* ----------------------------------------------------
    * CART OPERATIONS
    * ---------------------------------------------------- */
-  const addToCart = (item: CartItem) => {
+  const addToCart = (item: Omit<CartItem, "cartItemKey">) => {
     setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
+      const key = computeKey(item.id, item.choices);
+      const existingIndex = prev.findIndex((i) => i.cartItemKey === key);
+      if (existingIndex >= 0) {
+        const copy = [...prev];
+        copy[existingIndex] = { ...copy[existingIndex], quantity: copy[existingIndex].quantity + item.quantity };
+        return copy;
       }
-      return [...prev, item];
+      const newItem: CartItem = { ...item, cartItemKey: key };
+      return [...prev, newItem];
     });
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
-    );
+  // updateQuantity: prefer cartItemKey match, fallback to first id match
+  const updateQuantity = (idOrKey: string, quantity: number) => {
+    setCart((prev) => {
+      if (prev.some((i) => i.cartItemKey === idOrKey)) {
+        return prev.map((item) => (item.cartItemKey === idOrKey ? { ...item, quantity } : item));
+      }
+      let done = false;
+      return prev.map((item) => {
+        if (!done && item.id === idOrKey) {
+          done = true;
+          return { ...item, quantity };
+        }
+        return item;
+      });
+    });
   };
 
-  const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  // removeFromCart: prefer cartItemKey, fallback to first id match
+  const removeFromCart = (idOrKey: string) => {
+    setCart((prev) => {
+      if (prev.some((i) => i.cartItemKey === idOrKey)) {
+        return prev.filter((i) => i.cartItemKey !== idOrKey);
+      }
+      const idx = prev.findIndex((i) => i.id === idOrKey);
+      if (idx === -1) return prev;
+      const copy = [...prev];
+      copy.splice(idx, 1);
+      return copy;
+    });
   };
 
   const clearCart = () => setCart([]);
 
   const getTotalPrice = () =>
-    cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    cart.reduce((total, item) => {
+      const choicesTotal = (item.choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
+      return total + (Number(item.price) + choicesTotal) * item.quantity;
+    }, 0);
 
   /* ----------------------------------------------------
-   * RETURN PROVIDER
+   * Provider return
    * ---------------------------------------------------- */
   return (
     <CartContext.Provider
@@ -296,7 +359,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 };
 
 /* ----------------------------------------------------
- * HOOK
+ * Hook
  * ---------------------------------------------------- */
 export const useCart = () => {
   const ctx = useContext(CartContext);

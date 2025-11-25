@@ -1,9 +1,9 @@
-// components/CartDrawer.tsx
+// src/components/CartDrawer.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/context/CartContext";
+import { useCart, ChoiceSelected } from "@/context/CartContext";
 import Image from "next/image";
 import { Offcanvas, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +14,7 @@ import OrderTypeModal from "@/components/OrderTypeModal";
 import TimePickerModal from "@/components/TimePickerModal";
 import type { SelectedPlace } from "@/components/AddressPicker";
 import Link from "next/link";
+import { formatPrice } from "@/lib/currency";
 
 interface CartDrawerProps {
   show?: boolean;
@@ -22,7 +23,6 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   const router = useRouter();
-  // Grab everything we need from context at top level (no hooks inside helpers)
   const {
     cart,
     getTotalPrice,
@@ -38,12 +38,9 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   } = useCart();
 
   const [showOrderModal, setShowOrderModal] = useState(false);
-
-  // TimePicker parent-controlled state
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [weekdayText, setWeekdayText] = useState<string[] | null>(null);
 
-  // small helper to open order modal above the offcanvas
   const openOrderModalAbove = () => {
     setTimeout(() => setShowOrderModal(true), 120);
   };
@@ -53,17 +50,13 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
     if (mode === "delivery") openOrderModalAbove();
   };
 
-  const handleDeliverySelect = () => {
-    openOrderModalAbove();
-  };
+  const handleDeliverySelect = () => openOrderModalAbove();
 
-  // fetch weekday_text when timepicker opens (on-demand)
   useEffect(() => {
     if (!showTimePicker) {
       setWeekdayText(null);
       return;
     }
-
     let mounted = true;
     (async () => {
       try {
@@ -83,23 +76,19 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
         setWeekdayText(null);
       }
     })();
-
     return () => {
       mounted = false;
     };
   }, [showTimePicker]);
 
-  // Called when user picks a time in TimePickerModal
   const handleTimeConfirm = (iso: string) => {
     setDeliveryTime(iso);
     setShowTimePicker(false);
   };
 
-  // timeZone for TimePicker: prefer selected place timezone, fallback to env default
   const ap = addressPlace as SelectedPlace | null | undefined;
   const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
-  // --- missing-field checks (use values from top-level useCart) ---
   const checkoutMissingFields = (): string[] => {
     const missing: string[] = [];
     if (!cart || cart.length === 0) missing.push("Add at least one item to the cart");
@@ -108,38 +97,44 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
       if (!address || address.trim().length === 0) missing.push("Set a delivery address");
       if (!deliveryTime || deliveryTime.trim().length === 0) missing.push("Choose a delivery time or select ASAP");
     } else {
-      // pickup flow - require pickup time too (if your flow needs it)
       if (!deliveryTime || deliveryTime.trim().length === 0) missing.push("Choose a pickup time");
     }
     return missing;
   };
 
-  // Handler for the Checkout button — opens modals for missing items or navigates when ready.
   const handleGoToCheckout = () => {
     const missing = checkoutMissingFields();
     if (missing.length > 0) {
-      // If delivery address is missing, open OrderTypeModal (address flow)
       if (orderMode === "delivery" && (!address || address.trim().length === 0)) {
         openOrderModalAbove();
         return;
       }
 
-      // If time missing (pickup or delivery), open TimePicker
       if (!deliveryTime || deliveryTime.trim().length === 0) {
-        // close order modal first (if open) then open timepicker above offcanvas
         setShowOrderModal(false);
         setTimeout(() => setShowTimePicker(true), 120);
         return;
       }
 
-      // fallback: show order modal
       openOrderModalAbove();
       return;
     }
 
-    // All good -> close offcanvas and navigate to /checkout
     if (onClose) onClose();
     router.push("/checkout");
+  };
+
+  const computeChoicesTotal = (choices?: ChoiceSelected[]) =>
+    (choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
+
+  const lineTotal = (item: { price: number; quantity: number; choices?: ChoiceSelected[] }) => {
+    const choicesTotal = computeChoicesTotal(item.choices);
+    return (Number(item.price || 0) + choicesTotal) * item.quantity;
+  };
+
+  const deriveKey = (item: { id: string; choices?: ChoiceSelected[] }) => {
+    const choicesKey = item.choices && item.choices.length > 0 ? `|${item.choices.map((c) => `${c.label}:${c.price}`).join(",")}` : "";
+    return `${item.id}${choicesKey}`;
   };
 
   return (
@@ -150,16 +145,13 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
         </Offcanvas.Header>
 
         <Offcanvas.Body className="d-flex flex-column justify-content-between h-100">
-          {/* --- Order Type Buttons --- */}
           <OrderModeSelector onAddressSelect={handleDeliverySelect} />
-          {/* Address box opens OrderTypeModal; Time box opens TimePickerModal */}
           <OrderModeAddress
             className="my-3"
             onAddressSelect={() => openOrderModalAbove()}
             onTimeSelect={() => setShowTimePicker(true)}
           />
 
-          {/* --- Cart Items --- */}
           <div className="cart-items flex-grow-1 overflow-auto">
             {cart.length === 0 ? (
               <div className="text-center py-5">
@@ -169,60 +161,83 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                 </Link>
               </div>
             ) : (
-              cart.map((item) => (
-                <div
-                  key={item.id}
-                  className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3"
-                >
-                  <div className="d-flex align-items-center gap-3">
-                    <Image
-                      src={item.image || "/images/img-dish-icon-bg.webp"}
-                      alt={item.name}
-                      width={60}
-                      height={60}
-                      className="rounded"
-                    />
-                    <div>
-                      <p className="mb-1 fw-semibold">{item.name}</p>
-                      <div className="d-flex align-items-center gap-2">
-                        <Button
-                          className="btn btn-cart btn-outline-secondary btn-sm btn-light"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
-                        >
-                          <FontAwesomeIcon icon={faMinus} />
-                        </Button>
-                        <span>{item.quantity}</span>
-                        <Button
-                          className="btn btn-cart btn-outline-secondary btn-sm btn-light"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        >
-                          <FontAwesomeIcon icon={faPlus} />
-                        </Button>
+              cart.map((item) => {
+                const choicesTotal = computeChoicesTotal(item.choices);
+                const perItemPrice = Number(item.price || 0) + choicesTotal;
+                const totalLine = lineTotal(item);
+                const key = item.cartItemKey ?? deriveKey(item);
+
+                return (
+                  <div
+                    key={key}
+                    className="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3"
+                  >
+                    <div className="d-flex align-items-start gap-3" style={{ maxWidth: "68%" }}>
+                      <Image
+                        src={item.image || "/images/img-dish-icon-bg.webp"}
+                        alt={item.name}
+                        width={60}
+                        height={60}
+                        className="rounded"
+                      />
+                      <div style={{ flex: 1 }}>
+                        <p className="mb-1 fw-semibold">{item.name}</p>
+
+                        {item.choices && item.choices.length > 0 && (
+                          <div className="mb-2">
+                            {item.choices.map((c, idx) => (
+                              <div key={`${item.id}-choice-${idx}`} className="small text-muted d-flex justify-content-between">
+                                <div>{c.label}</div>
+                                <div>{formatPrice(Number(c.price || 0))}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="d-flex align-items-center gap-2">
+                          <Button
+                            className="btn btn-cart btn-outline-secondary btn-sm btn-light"
+                            onClick={() => updateQuantity(key, Math.max(1, item.quantity - 1))}
+                            disabled={item.quantity <= 1}
+                          >
+                            <FontAwesomeIcon icon={faMinus} />
+                          </Button>
+                          <span>{item.quantity}</span>
+                          <Button
+                            className="btn btn-cart btn-outline-secondary btn-sm btn-light"
+                            onClick={() => updateQuantity(key, item.quantity + 1)}
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="text-end">
-                    <p className="fw-bold mb-1">₹{(item.price * item.quantity).toFixed(2)}</p>
-                    <Button
-                      className="btn btn-sm btn-link text-danger p-0 shadow-none"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
+                    <div className="text-end">
+                      <p className="fw-bold mb-1">{formatPrice(totalLine)}</p>
+                      <div className="small text-muted mb-2">
+                        <div>Per item: {formatPrice(perItemPrice)}</div>
+                        <div>× {item.quantity}</div>
+                      </div>
+
+                      <Button
+                        className="btn btn-sm btn-link text-danger p-0 shadow-none"
+                        onClick={() => removeFromCart(key)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
-          {/* --- Cart Footer --- */}
           {cart.length > 0 && (
             <div className="border-top pt-3 sticky-bottom bg-white">
               <div className="d-flex justify-content-between mb-3 fw-semibold align-items-end">
                 <span>Subtotal</span>
-                <span className="fw-bold fs-5">₹{getTotalPrice().toFixed(2)}</span>
+                <span className="fw-bold fs-5">{formatPrice(getTotalPrice())}</span>
               </div>
 
               <button
@@ -243,10 +258,8 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
         </Offcanvas.Body>
       </Offcanvas>
 
-      {/* --- Order Modal --- */}
       <OrderTypeModal show={showOrderModal} onClose={() => setShowOrderModal(false)} />
 
-      {/* --- TimePicker Modal (parent-controlled) --- */}
       <TimePickerModal
         show={showTimePicker}
         onClose={() => setShowTimePicker(false)}

@@ -1,44 +1,6 @@
-// import { gql } from "@apollo/client";
-
+// src/lib/graphql/queries/getMenus.ts
 import { gql } from "graphql-request";
 
-// export interface MenuItem {
-//   id: string;
-//   title: string;
-//   menuDetails: {
-//     isavailable: boolean;
-//     menuPrice: number;
-//     menuDescription: string;
-//     menuCategory: {
-//       nodes: {
-//         id: string;
-//         name: string;
-//         slug: string;
-//         parent?: {
-//           node: {
-//             id: string;
-//             name: string;
-//             slug: string;
-//           };
-//         };
-//       }[];
-//     };
-//     menuImage: {
-//       node: {
-//         altText: string;
-//         sourceUrl: string;
-//       };
-//     };
-//   };
-// }
-
-// export interface MenuQueryResult {
-//   foodMenus: {
-//     nodes: MenuItem[];
-//   };
-// }
-
-// ✅ Added `$where` argument for filtering (optional)
 export const GET_MENUS = gql`
  query GetMenus($where: RootQueryToFoodMenuConnectionWhereArgs) {
     foodMenus(first: 20, where: $where) {
@@ -50,6 +12,13 @@ export const GET_MENUS = gql`
           menuPrice
           menuDescription
           menuType
+          choiceRequired
+          choiceType
+          choices {
+            isDefault
+            label
+            price
+          }
           menuCategory(first: 20) {
             nodes {
               name
