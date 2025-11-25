@@ -3,7 +3,7 @@ import { gql } from "graphql-request";
 
 export const GET_MENUS = gql`
  query GetMenus($where: RootQueryToFoodMenuConnectionWhereArgs) {
-    foodMenus(first: 20, where: $where) {
+    foodMenus(first: 500, where: $where) {
       nodes {
         id
         title

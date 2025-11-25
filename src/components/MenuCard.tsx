@@ -60,7 +60,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
           </div>
 
           <div className="col-8">
-            <div className="card-body d-flex flex-column">
+            <div className="card-body d-flex flex-column" style={{minHeight: "150px",maxHeight: "150px",}}>
               <p className="fw-bold mb-1">{menu.title}</p>
 
               {fields?.menuDescription && <p className="small mb-2">{fields.menuDescription}</p>}
