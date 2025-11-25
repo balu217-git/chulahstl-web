@@ -33,6 +33,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const details = menu.menuDetails || {};
   const imageUrl = details.menuImage?.node?.sourceUrl ?? "/images/img-dish-icon-bg.webp";
   const basePrice = Number(details.menuPrice ?? 0);
+  const isAvailable = details.isAvailable ?? false; // <-- single boolean source
 
   const normalizedChoices: NormalizedChoice[] = useMemo(() => {
     const arr = (details.choices || []) as ChoiceOptionFromAPI[];
@@ -95,6 +96,12 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const setSingle = (label: string) => setChoiceState({ single: label });
 
   const handleAdd = () => {
+    // Don't allow add if not available
+    if (!isAvailable) {
+      setError("This item is currently unavailable.");
+      return;
+    }
+
     if (required) {
       if (!isMultiple && !choiceState.single) {
         setError("Please choose an option.");
@@ -119,6 +126,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
       quantity: qty,
       image: imageUrl,
       choices: choicePayload,
+      available: isAvailable, // store availability on the cart row
     });
 
     onClose();
@@ -139,7 +147,10 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
         </div>
 
         <div className="form-container p-4">
-          <h4 className="mb-2 font-family-body fw-bold">{menu.title}</h4>
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <h4 className="mb-0 font-family-body fw-bold">{menu.title}</h4>
+            {!isAvailable && <span className="badge bg-danger">Unavailable</span>}
+          </div>
 
           {details.menuDescription && <p className="">{details.menuDescription}</p>}
 
@@ -160,6 +171,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
                         label={`${opt.label} ${opt.price ? `(+ ${formatPrice(opt.price)})` : ""}`}
                         checked={checked}
                         onChange={() => toggleMultiple(opt.label)}
+                        disabled={!isAvailable}
                       />
                     );
                   } else {
@@ -173,6 +185,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
                         label={`${opt.label} ${opt.price ? `(+ ${formatPrice(opt.price)})` : ""}`}
                         checked={checked}
                         onChange={() => setSingle(opt.label)}
+                        disabled={!isAvailable}
                       />
                     );
                   }
@@ -190,7 +203,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
           </div>
 
           <Form.Group>
-            <Form.Control as="textarea" rows={3} placeholder="Leave at door, call on arrival, etc. (optional)" />
+            <Form.Control as="textarea" rows={3} placeholder="Leave at door, call on arrival, etc. (optional)" disabled={!isAvailable} />
           </Form.Group>
 
           {error && <div className="text-danger mt-2 small">{error}</div>}
@@ -203,6 +216,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
             <Button
               className="btn p-3 btn-cart btn-light border border-brand-yellow text-brand-yellow bg-transparent"
               onClick={() => setQty(Math.max(1, qty - 1))}
+              disabled={!isAvailable || qty <= 1}
             >
               <FontAwesomeIcon icon={faMinus} />
             </Button>
@@ -210,13 +224,24 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
             <Button
               className="btn p-3 btn-cart btn-light border border-brand-yellow bg-transparent text-brand-yellow"
               onClick={() => setQty(qty + 1)}
+              disabled={!isAvailable}
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
           </div>
 
-          <Button className="btn btn-wide btn-brand-orange d-flex w-100 justify-content-between" onClick={handleAdd}>
-            Add Item <span className="fw-semibold">{formatPrice(totalPrice)}</span>
+          <Button
+            className="btn btn-wide btn-brand-orange d-flex w-100 justify-content-between"
+            onClick={handleAdd}
+            disabled={!isAvailable}
+          >
+            {isAvailable ? (
+              <>
+                Add Item <span className="fw-semibold">{formatPrice(totalPrice)}</span>
+              </>
+            ) : (
+              <>Unavailable</>
+            )}
           </Button>
         </div>
       </Modal.Footer>

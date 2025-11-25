@@ -8,7 +8,7 @@ export const GET_MENUS = gql`
         id
         title
         menuDetails{
-          isavailable
+          isAvailable
           menuPrice
           menuDescription
           menuType

@@ -22,21 +22,27 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
   const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
   const price = Number(fields?.menuPrice ?? 0);
 
-  // find all variants in cart for this menu id
+  // use the single canonical field isAvailable (boolean) per your last instruction
+  const isAvailable = fields?.isAvailable ?? false;
+
+  // find all cart rows that relate to this menu id
   const variants = cart.filter((c) => c.id === menu.id);
   const totalQty = variants.reduce((s, v) => s + v.quantity, 0);
-
-  // singleVariant if exactly one variant exists
   const singleVariant = variants.length === 1 ? variants[0] : null;
 
   const openModal = () => {
+    if (!isAvailable) return; // block for unavailable items
     if (!orderConfirmed) onAddressSelect();
     setShowModal(true);
   };
 
   return (
     <>
-      <div className="card menu-card h-100 shadow-sm" onClick={openModal}>
+      <div
+        className={`card menu-card h-100 shadow-sm ${!isAvailable ? "opacity-75" : ""}`}
+        onClick={openModal}
+        style={{ cursor: isAvailable ? "pointer" : "not-allowed" }}
+      >
         <div className="row g-0">
           <div className="col-4 position-relative">
             <Image
@@ -46,6 +52,11 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
               height={600}
               className="img-fluid position-absolute w-100 h-100"
             />
+            {!isAvailable && (
+              <span className="badge bg-danger position-absolute" style={{ top: 8, left: 8 }}>
+                Unavailable
+              </span>
+            )}
           </div>
 
           <div className="col-8">
@@ -65,7 +76,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                         onClick={() =>
                           updateQuantity(singleVariant.cartItemKey ?? singleVariant.id, Math.max(1, singleVariant.quantity - 1))
                         }
-                        disabled={singleVariant.quantity <= 1}
+                        disabled={singleVariant.quantity <= 1 || singleVariant.available === false}
                       >
                         <FontAwesomeIcon icon={faMinus} />
                       </button>
@@ -77,6 +88,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                         onClick={() =>
                           updateQuantity(singleVariant.cartItemKey ?? singleVariant.id, singleVariant.quantity + 1)
                         }
+                        disabled={singleVariant.available === false}
                       >
                         <FontAwesomeIcon icon={faPlus} />
                       </button>
@@ -91,13 +103,21 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                   ) : (
                     <div className="d-flex align-items-center gap-2" onClick={(e) => { e.stopPropagation(); openModal(); }}>
                       <span className="badge bg-secondary text-white">Items: {totalQty}</span>
-                      <button className="btn btn-cart btn-brand-orange btn-sm" onClick={(e) => { e.stopPropagation(); openModal(); }}>
+                      <button
+                        className="btn btn-cart btn-brand-orange btn-sm"
+                        onClick={(e) => { e.stopPropagation(); openModal(); }}
+                        disabled={!isAvailable}
+                      >
                         <FontAwesomeIcon icon={faPlus} />
                       </button>
                     </div>
                   )
                 ) : (
-                  <button className="btn btn-cart btn-brand-orange btn-sm" onClick={(e) => { e.stopPropagation(); openModal(); }}>
+                  <button
+                    className="btn btn-cart btn-brand-orange btn-sm"
+                    onClick={(e) => { e.stopPropagation(); openModal(); }}
+                    disabled={!isAvailable}
+                  >
                     <FontAwesomeIcon icon={faPlus} />
                   </button>
                 )}

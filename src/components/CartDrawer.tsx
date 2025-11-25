@@ -166,6 +166,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                 const perItemPrice = Number(item.price || 0) + choicesTotal;
                 const totalLine = lineTotal(item);
                 const key = item.cartItemKey ?? deriveKey(item);
+                const available = item.available !== false; // default true if undefined
 
                 return (
                   <div
@@ -181,7 +182,10 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                         className="rounded"
                       />
                       <div style={{ flex: 1 }}>
-                        <p className="mb-1 fw-semibold">{item.name}</p>
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <p className="mb-0 fw-semibold">{item.name}</p>
+                          {!available && <span className="badge bg-danger small">Unavailable</span>}
+                        </div>
 
                         {item.choices && item.choices.length > 0 && (
                           <div className="mb-2">
@@ -197,15 +201,16 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                         <div className="d-flex align-items-center gap-2">
                           <Button
                             className="btn btn-cart btn-outline-secondary btn-sm btn-light"
-                            onClick={() => updateQuantity(key, Math.max(1, item.quantity - 1))}
-                            disabled={item.quantity <= 1}
+                            onClick={() => updateQuantity(item.cartItemKey ?? item.id, Math.max(1, item.quantity - 1))}
+                            disabled={item.quantity <= 1 || !available}
                           >
                             <FontAwesomeIcon icon={faMinus} />
                           </Button>
                           <span>{item.quantity}</span>
                           <Button
                             className="btn btn-cart btn-outline-secondary btn-sm btn-light"
-                            onClick={() => updateQuantity(key, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.cartItemKey ?? item.id, item.quantity + 1)}
+                            disabled={!available}
                           >
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
@@ -222,7 +227,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
 
                       <Button
                         className="btn btn-sm btn-link text-danger p-0 shadow-none"
-                        onClick={() => removeFromCart(key)}
+                        onClick={() => removeFromCart(item.cartItemKey ?? item.id)}
                       >
                         <FontAwesomeIcon icon={faTrash} />
                       </Button>

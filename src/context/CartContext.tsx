@@ -1,6 +1,4 @@
 // src/context/CartContext.tsx
-// Uploaded image (reference): /mnt/data/2c4af857-55b0-4d30-8cef-2989854f992f.png
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
@@ -15,13 +13,14 @@ export interface ChoiceSelected {
 }
 
 export interface CartItem {
-  id: string; // menu id (menu.post ID or similar)
+  id: string; // menu id
   cartItemKey?: string; // computed unique key for this cart entry (id + sorted choices)
   name: string;
   price: number; // base price
   quantity: number;
   image?: string;
   choices?: ChoiceSelected[]; // selected add-ons / options
+  available?: boolean; // NEW - availability captured at time of add
 }
 
 /* Address / Order types */
@@ -117,15 +116,12 @@ const toArray = <T = unknown>(v: unknown): T[] => (Array.isArray(v) ? (v as T[])
 
 const isChoiceLike = (v: unknown): v is Record<string, unknown> => {
   if (!isRecord(v)) return false;
-  // require at least a label (string). price is optional but if present should be number/string.
   return typeof v.label === "string" || typeof v.name === "string" || typeof v.option === "string";
 };
 
 const isAddressPlace = (v: unknown): v is AddressPlace => {
   if (!isRecord(v)) return false;
-  // formatted_address is required in our AddressPlace
   if (typeof v.formatted_address !== "string") return false;
-  // other fields if present should be correct types
   if (v.place_id !== undefined && typeof v.place_id !== "string") return false;
   if (v.name !== undefined && typeof v.name !== "string") return false;
   if (v.lat !== undefined && typeof v.lat !== "number") return false;
@@ -167,7 +163,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
    * ---------------------------------------------------- */
   const computeKey = (id: string, choices?: ChoiceSelected[]) => {
     if (!choices || choices.length === 0) return id;
-    // create a stable, deterministic key by sorting choice labels
     const sorted = [...choices].sort((a, b) => a.label.localeCompare(b.label));
     const parts = sorted.map((c) => `${c.label}:${Number(c.price || 0)}`);
     return `${id}|${parts.join("|")}`;
@@ -198,7 +193,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           const quantity = Math.max(1, toNumber(entry.quantity ?? 1, 1));
           const image = typeof entry.image === "string" ? entry.image : typeof entry.menuImage === "string" ? entry.menuImage : undefined;
 
-          // choices: handle possible old shapes safely
           const rawChoices = entry.choices ?? entry.choiceOptions ?? entry.selectedOptions ?? [];
           const rawChoicesArray = toArray<unknown>(rawChoices);
 
@@ -212,6 +206,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
               return { id: cid, label, price: priceNum };
             });
 
+          // if saved entry includes available flag, use it; otherwise default true
+          const available = (entry.available !== undefined) ? Boolean(entry.available) : true;
+
           const cartItemKey = toString(entry.cartItemKey ?? computeKey(id, choices.length ? choices : undefined), computeKey(id, choices.length ? choices : undefined));
 
           return {
@@ -222,13 +219,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             image,
             choices: choices.length > 0 ? choices : undefined,
             cartItemKey,
+            available,
           } as CartItem;
         });
 
         setCart(migrated);
       }
 
-      // load other sessionStorage fields in a type-safe way
       const savedMode = sessionStorage.getItem("orderMode");
       if (savedMode === "pickup" || savedMode === "delivery") setOrderMode(savedMode);
 
@@ -242,7 +239,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         try {
           const parsedPlace = JSON.parse(savedPlace);
           if (isAddressPlace(parsedPlace)) {
-            // type guard verified; safe to set
             setAddressPlace(parsedPlace);
           }
         } catch {
@@ -280,7 +276,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error loading/migrating cart from storage:", err);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once on mount
+  }, []);
 
   /* ----------------------------------------------------
    * Persist to storage (cart, order metadata, etc.)
@@ -348,19 +344,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
    * ---------------------------------------------------- */
   const addToCart = (item: Omit<CartItem, "cartItemKey">) => {
     setCart((prev) => {
+      // include available flag in key computation: choice-based key already encodes choices,
+      // but we want different rows for same id+choices even if availability differs (rare).
       const key = computeKey(item.id, item.choices);
-      const existingIndex = prev.findIndex((i) => i.cartItemKey === key);
+      const existingIndex = prev.findIndex((i) => i.cartItemKey === key && i.available === (item.available ?? true));
       if (existingIndex >= 0) {
         const copy = [...prev];
         copy[existingIndex] = { ...copy[existingIndex], quantity: copy[existingIndex].quantity + item.quantity };
         return copy;
       }
-      const newItem: CartItem = { ...item, cartItemKey: key };
+      const newItem: CartItem = { ...item, cartItemKey: key, available: item.available ?? true };
       return [...prev, newItem];
     });
   };
 
-  // updateQuantity: prefer cartItemKey match, fallback to first id match
   const updateQuantity = (idOrKey: string, quantity: number) => {
     setCart((prev) => {
       if (prev.some((i) => i.cartItemKey === idOrKey)) {
@@ -377,7 +374,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // removeFromCart: prefer cartItemKey, fallback to first id match
   const removeFromCart = (idOrKey: string) => {
     setCart((prev) => {
       if (prev.some((i) => i.cartItemKey === idOrKey)) {
@@ -445,7 +441,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 /* ----------------------------------------------------
  * Hook
  * ---------------------------------------------------- */
- 
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");

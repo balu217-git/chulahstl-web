@@ -33,7 +33,7 @@ export type ChoiceGroup = {
 };
 
 export interface MenuDetails {
-  isavailable?: boolean;
+  isAvailable?: boolean;
   menuPrice?: string | number;
   menuDescription?: string;
   menuImage?: {
