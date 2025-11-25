@@ -53,7 +53,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
               className="img-fluid position-absolute w-100 h-100"
             />
             {!isAvailable && (
-              <span className="badge bg-danger position-absolute" style={{ top: 8, left: 8 }}>
+              <span className="badge bg-danger position-absolute small fw-light" style={{ top: 8, left: 8 }}>
                 Unavailable
               </span>
             )}
