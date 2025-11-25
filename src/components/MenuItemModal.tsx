@@ -125,7 +125,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered scrollable size="md" backdrop="static">
+    <Modal show={show} onHide={onClose} centered scrollable backdrop="static">
       <Modal.Body className="bg-brand-light text-brand-green p-0">
         <div style={{ position: "relative", height: 280 }}>
           <Image src={imageUrl} alt={menu.title} fill style={{ objectFit: "cover" }} />
@@ -186,7 +186,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
 
           <div className="flex flex-col gap-4">
             <h5 className="font-family-body fw-semibold">Special Requests</h5>
-            <p className="small">We’ll try our best to accommodate requests, but can’t make changes that affect pricing.</p>
+            <p className="small">We&apos;ll try our best to accommodate requests, but can&apos;t make changes that affect pricing.</p>
           </div>
 
           <Form.Group>
