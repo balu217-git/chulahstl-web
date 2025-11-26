@@ -1,0 +1,61 @@
+/* ======================================
+   Scroll Shadows (Desktop)
+====================================== */
+/* .scroll-shadow-top,
+.scroll-shadow-bottom {
+  position: sticky;
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 10;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-shadow-top {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2),
+    transparent
+  );
+  opacity: 0;
+}
+
+.scroll-shadow-bottom {
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.2),
+    transparent
+  );
+  opacity: 0;
+} */
+
+/* ======================================
+   Animated Underline for Active Pill
+====================================== */
+.nav-pill {
+  position: relative;
+  padding-bottom: 6px !important;
+}
+
+/* .nav-pill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  width: 0;
+  height: 2px;
+  background: var(--brand-green, #1a8035);
+  transition: all 0.35s ease;
+  transform: translateX(-50%);
+} */
+
+.nav-pill.active-pill {
+  color: #fff !important;
+  background-color: #e8841e;
+}
+.nav-pill.active-pill:hover {
+  background-color: #00282a !important;
+}

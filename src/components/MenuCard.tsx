@@ -39,7 +39,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
   return (
     <>
       <div
-        className={`card menu-card h-100 shadow-sm ${!isAvailable ? "opacity-75" : ""}`}
+        className={`card menu-card h-100 shadow-sm overflow-hidden ${!isAvailable ? "opacity-75" : ""}`}
         onClick={openModal}
         style={{ cursor: isAvailable ? "pointer" : "not-allowed" }}
       >
@@ -50,7 +50,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
               alt={menu.title}
               width={600}
               height={600}
-              className="img-fluid position-absolute w-100 h-100"
+              className="img-fluid position-absolute w-100 h-100" style={{objectFit: 'cover'}}
             />
             {!isAvailable && (
               <span className="badge bg-danger position-absolute small fw-light" style={{ top: 8, left: 8 }}>
