@@ -55,9 +55,9 @@ export default function Address({
 
   return (
     <div className="mb-3">
-      {/* ⭐ NAME */}
+      {/* ⭐ 🍴 NAME */}
       {showName && (
-        <h5 className={`fw-bold font-family-body ${fontSize}`}>🍴 {place.name}</h5>
+        <h5 className={`fw-bold font-family-body ${fontSize}`}>{place.name}</h5>
       )}
 
       {/* 📍 ADDRESS + STATUS + TIMINGS */}

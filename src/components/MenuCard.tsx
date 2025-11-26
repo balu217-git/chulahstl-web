@@ -1,5 +1,6 @@
 // src/components/MenuCard.tsx
 "use client";
+
 import Image from "next/image";
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -18,20 +19,21 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
   const { cart, updateQuantity, removeFromCart, orderConfirmed } = useCart();
   const [showModal, setShowModal] = useState(false);
 
-  const fields = menu.menuDetails;
-  const imageUrl = fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
-  const price = Number(fields?.menuPrice ?? 0);
+  // skeleton loader state
+  const [imgLoaded, setImgLoaded] = useState(false);
 
-  // use the single canonical field isAvailable (boolean) per your last instruction
+  const fields = menu.menuDetails;
+  const imageUrl =
+    fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
+  const price = Number(fields?.menuPrice ?? 0);
   const isAvailable = fields?.isAvailable ?? false;
 
-  // find all cart rows that relate to this menu id
   const variants = cart.filter((c) => c.id === menu.id);
   const totalQty = variants.reduce((s, v) => s + v.quantity, 0);
   const singleVariant = variants.length === 1 ? variants[0] : null;
 
   const openModal = () => {
-    if (!isAvailable) return; // block for unavailable items
+    if (!isAvailable) return;
     if (!orderConfirmed) onAddressSelect();
     setShowModal(true);
   };
@@ -39,87 +41,176 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
   return (
     <>
       <div
-        className={`card menu-card h-100 shadow-sm overflow-hidden ${!isAvailable ? "opacity-75" : ""}`}
+        className={`card menu-card h-100 shadow-sm overflow-hidden ${
+          !isAvailable ? "opacity-75" : ""
+        }`}
         onClick={openModal}
         style={{ cursor: isAvailable ? "pointer" : "not-allowed" }}
       >
         <div className="row g-0">
+          {/* ---------------- IMAGE + SKELETON ---------------- */}
           <div className="col-4 position-relative">
+
+            {/* Skeleton Loader */}
+            {!imgLoaded && (
+              <div
+                className="position-absolute w-100 h-100 placeholder-glow bg-light"
+                style={{ top: 0, left: 0 }}
+              >
+                <div
+                  className="placeholder w-100 h-100"
+                  style={{ borderRadius: "0" }}
+                ></div>
+              </div>
+            )}
+
             <Image
               src={imageUrl}
               alt={menu.title}
               width={600}
               height={600}
-              className="img-fluid position-absolute w-100 h-100" style={{objectFit: 'cover'}}
+              className="img-fluid position-absolute w-100 h-100"
+              style={{ objectFit: "cover", opacity: imgLoaded ? 1 : 0 }}
+              onLoadingComplete={() => setImgLoaded(true)}
             />
+
             {!isAvailable && (
-              <span className="badge bg-danger position-absolute small fw-light" style={{ top: 8, left: 8 }}>
+              <span
+                className="badge bg-danger position-absolute small fw-light"
+                style={{ top: 8, left: 8 }}
+              >
                 Unavailable
               </span>
             )}
           </div>
 
+          {/* ---------------- CONTENT + SKELETON ---------------- */}
           <div className="col-8">
-            <div className="card-body d-flex flex-column" style={{minHeight: "150px",maxHeight: "150px",}}>
-              <p className="fw-bold mb-1">{menu.title}</p>
+            <div
+              className="card-body d-flex flex-column"
+              style={{ minHeight: "150px", maxHeight: "150px" }}
+            >
+              {/* Title skeleton */}
+              {!imgLoaded ? (
+                <div className="placeholder-glow mb-2">
+                  <span className="placeholder col-8"></span>
+                </div>
+              ) : (
+                <p className="fw-bold mb-1">{menu.title}</p>
+              )}
 
-              {fields?.menuDescription && <p className="small mb-2">{fields.menuDescription}</p>}
+              {/* Description skeleton */}
+              {!imgLoaded ? (
+                <div className="placeholder-glow mb-2">
+                  <span className="placeholder col-10"></span>
+                  <span className="placeholder col-7"></span>
+                </div>
+              ) : (
+                fields?.menuDescription && (
+                  <p className="small mb-2">{fields.menuDescription}</p>
+                )
+              )}
 
+              {/* Price + Qty */}
               <div className="mt-auto d-flex justify-content-between align-items-center">
-                <span className="fw-semibold">{formatPrice(price)}</span>
 
-                {totalQty > 0 ? (
-                  singleVariant ? (
-                    <div className="d-flex align-items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
-                        onClick={() =>
-                          updateQuantity(singleVariant.cartItemKey ?? singleVariant.id, Math.max(1, singleVariant.quantity - 1))
-                        }
-                        disabled={singleVariant.quantity <= 1 || singleVariant.available === false}
-                      >
-                        <FontAwesomeIcon icon={faMinus} />
-                      </button>
+                {!imgLoaded ? (
+                  <div className="placeholder-glow w-50">
+                    <span className="placeholder col-4"></span>
+                  </div>
+                ) : (
+                  <span className="fw-semibold">{formatPrice(price)}</span>
+                )}
 
-                      <span className="fw-semibold">{singleVariant.quantity}</span>
+                {/* ----- CART BUTTONS AFTER LOADED ----- */}
+                {imgLoaded && (
+                  <>
+                    {totalQty > 0 ? (
+                      singleVariant ? (
+                        <div
+                          className="d-flex align-items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
+                            onClick={() =>
+                              updateQuantity(
+                                singleVariant.cartItemKey ?? singleVariant.id,
+                                Math.max(1, singleVariant.quantity - 1)
+                              )
+                            }
+                            disabled={
+                              singleVariant.quantity <= 1 ||
+                              singleVariant.available === false
+                            }
+                          >
+                            <FontAwesomeIcon icon={faMinus} />
+                          </button>
 
-                      <button
-                        className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
-                        onClick={() =>
-                          updateQuantity(singleVariant.cartItemKey ?? singleVariant.id, singleVariant.quantity + 1)
-                        }
-                        disabled={singleVariant.available === false}
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
-                      </button>
+                          <span className="fw-semibold">
+                            {singleVariant.quantity}
+                          </span>
 
-                      <button
-                        className="btn btn-cart shadow-none text-danger btn-sm"
-                        onClick={() => removeFromCart(singleVariant.cartItemKey ?? singleVariant.id)}
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="d-flex align-items-center gap-2" onClick={(e) => { e.stopPropagation(); openModal(); }}>
-                      <span className="badge bg-secondary text-white">Items: {totalQty}</span>
+                          <button
+                            className="btn btn-cart btn-outline-dark btn-sm border-brand-green"
+                            onClick={() =>
+                              updateQuantity(
+                                singleVariant.cartItemKey ?? singleVariant.id,
+                                singleVariant.quantity + 1
+                              )
+                            }
+                            disabled={singleVariant.available === false}
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </button>
+
+                          <button
+                            className="btn btn-cart shadow-none text-danger btn-sm"
+                            onClick={() =>
+                              removeFromCart(
+                                singleVariant.cartItemKey ?? singleVariant.id
+                              )
+                            }
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          className="d-flex align-items-center gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal();
+                          }}
+                        >
+                          <span className="badge bg-secondary text-white">
+                            Items: {totalQty}
+                          </span>
+                          <button
+                            className="btn btn-cart btn-brand-orange btn-sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal();
+                            }}
+                            disabled={!isAvailable}
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </button>
+                        </div>
+                      )
+                    ) : (
                       <button
                         className="btn btn-cart btn-brand-orange btn-sm"
-                        onClick={(e) => { e.stopPropagation(); openModal(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal();
+                        }}
                         disabled={!isAvailable}
                       >
                         <FontAwesomeIcon icon={faPlus} />
                       </button>
-                    </div>
-                  )
-                ) : (
-                  <button
-                    className="btn btn-cart btn-brand-orange btn-sm"
-                    onClick={(e) => { e.stopPropagation(); openModal(); }}
-                    disabled={!isAvailable}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -127,7 +218,11 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
         </div>
       </div>
 
-      <MenuItemModal show={showModal} onClose={() => setShowModal(false)} menu={menu} />
+      <MenuItemModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        menu={menu}
+      />
     </>
   );
 }

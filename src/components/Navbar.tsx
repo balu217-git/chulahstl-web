@@ -183,9 +183,9 @@ export default function Navbar() {
                       <CartIcon mode="page" />
                     </li>
                     )} */}
-                    {/* <li className="nav-item">
+                    <li className="nav-item">
                       <CartIcon mode="drawer" onOpenDrawer={() => setShowDrawer(true)} />
-                    </li> */}
+                    </li>
                 </ul>
               </div>
             </div>

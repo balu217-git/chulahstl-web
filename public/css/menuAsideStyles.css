@@ -37,7 +37,7 @@
 ====================================== */
 .nav-pill {
   position: relative;
-  padding-bottom: 6px !important;
+  /* padding-bottom: 6px !important; */
 }
 
 /* .nav-pill::after {
@@ -58,4 +58,18 @@
 }
 .nav-pill.active-pill:hover {
   background-color: #00282a !important;
+}
+
+.scrollbars-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+@media (max-width:1199) {
+    .nav-pill{
+        font-size: .8rem;
+    }
+    .nav-pills .nav-link {
+        padding: 0.4rem 1rem;
+    }
 }

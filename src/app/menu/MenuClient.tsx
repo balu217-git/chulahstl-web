@@ -131,16 +131,12 @@ export default function MenuClient({
       <section className="info bg-brand-light">
         <div className="container">
           <div className="info-container mt-4">
-            <div className="row g-4">
-              
-              {/* LEFT ASIDE CATEGORY NAV */}
-              <MenuCategoriesAside categories={allCategories} />
 
-              {/* RIGHT CONTENT AREA */}
-              <div className="col-lg-9 col-md-8">
-                <div className="mb-2">
+            <div className="row align-items-end">
+              <div className="col-xl-9 col-lg-9">
+                <div>
                   <Address />
-                  <div className="row gx-2">
+                  <div className="row gx-2 gy-lg-0 gy-3">
                     <div className="col-md-auto">
                       <OrderModeSelector
                         onAddressSelect={handleDeliverySelect}
@@ -154,7 +150,24 @@ export default function MenuClient({
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="col-xl-3 col-lg-3 order-lg-first">
+                <div className="d-flex justify-content-between align-items-center mb-3 mt-lg-0 mt-3">
+                  <h1 className="fs-5 fw-bold mb-0 ps-lg-3">Our Menu</h1>
+                </div>
+              </div>
+            </div>
 
+            <div className="row gx-lg-4">
+
+              {/* LEFT ASIDE CATEGORY NAV */}
+              <div className="col-xl-3 col-lg-3">
+                <MenuCategoriesAside categories={allCategories} />
+              </div>
+             
+              {/* RIGHT CONTENT AREA */}
+              <div className="col-xl-9 col-lg-9">
+                
                 {/* PARENT + CHILD CATEGORY SECTIONS */}
                 {Object.entries(groupedMenus).map(
                   ([parentSlug, parentGroup]) => (
@@ -184,7 +197,7 @@ export default function MenuClient({
                               {childGroup.items.map((menu) => (
                                 <div
                                   key={menu.id}
-                                  className="col-xl-6 col-md-12"
+                                  className="col-xl-6 col-md-6 col-sm-12"
                                 >
                                   <MenuCard
                                     onAddressSelect={handleDeliverySelect}

@@ -117,8 +117,8 @@ export async function POST(req: Request) {
     const deliveryTime = body.deliveryTime ?? null;
     const address = body.address ?? null;
     const paymentOrderId = body.paymentOrderId ?? "";
-    const paymentStatus = body.paymentStatus ?? "pending";
-    const orderStatus = body.orderStatus ?? "new";
+    const paymentStatus = body.paymentStatus ?? "Pending";
+    const orderStatus = body.orderStatus ?? "New";
 
     // New metadata - convert to strings for GraphQL ACF if needed
     const orderType = body.orderType ?? null; // "ASAP" | "SCHEDULED" | null

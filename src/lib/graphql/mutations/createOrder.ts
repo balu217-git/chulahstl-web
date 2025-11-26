@@ -76,7 +76,6 @@ export const CREATE_ORDER = gql`
           deliveryInstructions
           orderNotes
           addressPlaceJson
-
           orderItems
         }
       }
