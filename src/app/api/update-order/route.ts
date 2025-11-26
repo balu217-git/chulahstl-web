@@ -83,10 +83,14 @@ export async function POST(req: Request) {
         break;
     }
 
+    // Format paymentStatus -> first letter uppercase, rest lowercase
+   const formattedPaymentStatus =
+  paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1).toLowerCase();
+
     // 🧾 Execute GraphQL Mutation
     const response = await client.request(UPDATE_ORDER, {
       id: Number(id),
-      paymentStatus: orderStatus.toLowerCase(),
+      paymentStatus: formattedPaymentStatus,
       orderStatus,
       paymentId,
       paymentOrderId: orderId,
