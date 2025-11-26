@@ -113,11 +113,6 @@ function getTzAbbrevWithFallback(date: Date, timeZone?: string) {
 
 /* ---------- Robust timezone helpers (works for any IANA zone) ---------- */
 
-/**
- * Return timezone offset in minutes for `date` at `timeZone`.
- * Implementation: format `date` in the timeZone with formatToParts, then compute difference
- * between the UTC instant of that formatted local parts and date.getTime().
- */
 function getOffsetMinutesForInstant(date: Date, timeZone: string) {
   const fmt = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -134,7 +129,6 @@ function getOffsetMinutesForInstant(date: Date, timeZone: string) {
   for (const p of parts) {
     if (p.type !== "literal") map[p.type] = p.value;
   }
-  // parts give the representation of `date` in `timeZone`. Compute UTC milliseconds of that wall-clock:
   const y = Number(map.year);
   const mo = Number(map.month) - 1;
   const d = Number(map.day);
@@ -142,25 +136,15 @@ function getOffsetMinutesForInstant(date: Date, timeZone: string) {
   const mm = Number(map.minute);
   const ss = Number(map.second);
   const utcOfLocal = Date.UTC(y, mo, d, hh, mm, ss);
-  // offsetMinutes = (utcOfLocal - date.getTime()) / 60000
   return (utcOfLocal - date.getTime()) / 60000;
 }
 
-/**
- * Create a Date (UTC instant) that corresponds to the wall-clock Y/M/D H:M in `timeZone`.
- * We iteratively solve:
- *   utc = Date.UTC(y,m,d,h,min) - offsetMinutes(utc)
- * offsetMinutes depends on utc, so iterate a couple times; this converges quickly.
- */
 function zonedDate(year: number, month: number, day: number, hour = 0, minute = 0, timeZone?: string) {
-  // if no timeZone, return local-wall-clock instant (consistent with previous behavior)
   if (!timeZone) {
     return new Date(year, month, day, hour, minute, 0, 0);
   }
-
-  const localUtcMillis = Date.UTC(year, month, day, hour, minute, 0, 0); // UTC ms for those fields
+  const localUtcMillis = Date.UTC(year, month, day, hour, minute, 0, 0);
   let utc = localUtcMillis;
-  // iterate 3 times max (typical convergence)
   for (let i = 0; i < 3; i++) {
     const offsetMinutes = getOffsetMinutesForInstant(new Date(utc), timeZone);
     const newUtc = localUtcMillis - offsetMinutes * 60_000;
@@ -173,14 +157,38 @@ function zonedDate(year: number, month: number, day: number, hour = 0, minute = 
   return new Date(utc);
 }
 
-/**
- * Given a Date `base` (should represent midnight of calendar day in timeZone), return Date for that day+hour:minute in timeZone.
- */
 function makeInTZFromBase(base: Date, hour: number, minute: number, timeZone?: string) {
   const y = base.getFullYear();
   const m = base.getMonth();
   const d = base.getDate();
   return zonedDate(y, m, d, hour, minute, timeZone);
+}
+
+/* ---------- helper: get year/month/day in target tz for an instant ---------- */
+function getDatePartsInTZ(instant: Date, timeZone?: string) {
+  if (!timeZone) {
+    return {
+      year: instant.getFullYear(),
+      month: instant.getMonth(),
+      day: instant.getDate(),
+    };
+  }
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(instant);
+  let year = 0;
+  let month = 0;
+  let day = 0;
+  for (const p of parts) {
+    if (p.type === "year") year = Number(p.value);
+    if (p.type === "month") month = Number(p.value) - 1;
+    if (p.type === "day") day = Number(p.value);
+  }
+  return { year, month, day };
 }
 
 /* ---------- component ---------- */
@@ -189,17 +197,14 @@ export default function TimePickerModal({
   onClose,
   mode,
   weekdayText,
-  timeZone = "America/Chicago", // default to Chicago
+  timeZone = "America/Chicago",
   slotMinutes = 15,
   daysAhead = 9,
   onConfirm,
   asapEstimateMinutes = 50,
 }: TimePickerModalProps) {
-  // nowInTZ is the current instant (Date) expressed for comparisons but representing the same absolute moment
-  const nowInTZ = useMemo(
-    () => (timeZone ? new Date(new Date().toLocaleString("en-US", { timeZone })) : new Date()),
-    [timeZone, show]
-  );
+  // absolute now instant (UTC instant) — used for accurate comparisons
+  const now = useMemo(() => new Date(), [show]);
 
   const dayMap = useMemo(() => weekdayTextToMap(weekdayText), [weekdayText]);
 
@@ -228,12 +233,16 @@ export default function TimePickerModal({
   // Build days anchored to midnight in the target timezone
   const days = useMemo(() => {
     const list: { label: string; date: Date; jsDay: number }[] = [];
+
+    // Find today's calendar date fields in the target tz
+    const todayParts = getDatePartsInTZ(now, timeZone);
     for (let i = 0; i < daysAhead; i++) {
-      // Reference date based on nowInTZ
-      const temp = new Date(nowInTZ);
-      temp.setDate(nowInTZ.getDate() + i);
-      // Create midnight in target timezone for that calendar day
-      const midnightInTZ = zonedDate(temp.getFullYear(), temp.getMonth(), temp.getDate(), 0, 0, timeZone);
+      const tempDate = new Date(Date.UTC(todayParts.year, todayParts.month, todayParts.day));
+      tempDate.setUTCDate(tempDate.getUTCDate() + i);
+      const y = tempDate.getUTCFullYear();
+      const m = tempDate.getUTCMonth();
+      const d = tempDate.getUTCDate();
+      const midnightInTZ = zonedDate(y, m, d, 0, 0, timeZone);
       list.push({
         label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : formatShortWeekday(midnightInTZ),
         date: midnightInTZ,
@@ -241,7 +250,7 @@ export default function TimePickerModal({
       });
     }
     return list;
-  }, [nowInTZ, daysAhead, timeZone]);
+  }, [now, daysAhead, timeZone]);
 
   const visibleDates = useMemo(() => {
     if (expandedDates) {
@@ -274,16 +283,19 @@ export default function TimePickerModal({
       cur = addMinutes(cur, slotMinutes);
     }
 
-    // hide past slots for today (compared in timezone-aware nowInTZ)
+    // hide past slots for today (compare against absolute now instant)
     const selectedDate = days[selectedDateIndex].date;
-    const isSelectedDayToday =
-      selectedDate.getFullYear() === nowInTZ.getFullYear() &&
-      selectedDate.getMonth() === nowInTZ.getMonth() &&
-      selectedDate.getDate() === nowInTZ.getDate();
 
-    if (isSelectedDayToday) return out.filter((s) => s.date.getTime() > nowInTZ.getTime());
+    const todayParts = getDatePartsInTZ(now, timeZone);
+    const todayMidnightInTZ = zonedDate(todayParts.year, todayParts.month, todayParts.day, 0, 0, timeZone);
+
+    const isSelectedDayToday = selectedDate.getFullYear() === todayMidnightInTZ.getFullYear()
+      && selectedDate.getMonth() === todayMidnightInTZ.getMonth()
+      && selectedDate.getDate() === todayMidnightInTZ.getDate();
+
+    if (isSelectedDayToday) return out.filter((s) => s.date.getTime() > now.getTime());
     return out;
-  }, [selectedWindow, days, selectedDateIndex, slotMinutes, timeZone, nowInTZ]);
+  }, [selectedWindow, days, selectedDateIndex, slotMinutes, timeZone, now]);
 
   const asapAvailable = useMemo(() => {
     if (!selectedWindow || !selectedWindow.open || !selectedWindow.close) return false;
@@ -293,19 +305,31 @@ export default function TimePickerModal({
     let close = makeInTZFromBase(days[selectedDateIndex].date, ch, cm, timeZone);
     if (close.getTime() <= open.getTime()) close = addMinutes(close, 24 * 60);
 
+    const todayParts = getDatePartsInTZ(now, timeZone);
+    const todayMidnightInTZ = zonedDate(todayParts.year, todayParts.month, todayParts.day, 0, 0, timeZone);
+
     const selectedDate = days[selectedDateIndex].date;
     const isToday =
-      selectedDate.getFullYear() === nowInTZ.getFullYear() &&
-      selectedDate.getMonth() === nowInTZ.getMonth() &&
-      selectedDate.getDate() === nowInTZ.getDate();
+      selectedDate.getFullYear() === todayMidnightInTZ.getFullYear() &&
+      selectedDate.getMonth() === todayMidnightInTZ.getMonth() &&
+      selectedDate.getDate() === todayMidnightInTZ.getDate();
 
-    return isToday && nowInTZ.getTime() >= open.getTime() && nowInTZ.getTime() <= close.getTime();
-  }, [selectedWindow, days, selectedDateIndex, nowInTZ, timeZone]);
+    return isToday && now.getTime() >= open.getTime() && now.getTime() <= close.getTime();
+  }, [selectedWindow, days, selectedDateIndex, now, timeZone]);
+
+  // NEW: whether ASAP is currently selected (ASAP is represented by selectedSlot === null)
+  const isAsapSelected = selectedSlot === null && asapAvailable && selectedDateIndex === 0;
+
+  // NEW: footer label based on selection
+  const footerLabel = isAsapSelected
+    ? "Order ASAP"
+    : mode === "pickup"
+    ? "Schedule Pickup"
+    : "Schedule Delivery";
 
   const handleConfirm = () => {
-    if (!selectedSlot && !asapAvailable) return;
-    // when ASAP, use nowInTZ (an absolute instant consistent with the displayed timezone)
-    const iso = selectedSlot ? selectedSlot.toISOString() : nowInTZ.toISOString();
+    if (!isAsapSelected && !selectedSlot) return;
+    const iso = isAsapSelected ? now.toISOString() : (selectedSlot ? selectedSlot.toISOString() : now.toISOString());
     onConfirm(iso);
     onClose();
   };
@@ -331,8 +355,9 @@ export default function TimePickerModal({
   };
 
   const handleSlotClick = (slotDate: Date | null) => {
+    // null === ASAP selection; toggle only if not already selected
     if (slotDate === null) {
-      setSelectedSlot(null);
+      setSelectedSlot((prev) => (prev === null ? prev : null));
       return;
     }
     setSelectedSlot((prev) => (prev && prev.getTime() === slotDate.getTime() ? null : new Date(slotDate)));
@@ -422,8 +447,8 @@ export default function TimePickerModal({
             <div className={`slot-row`} onClick={() => handleSlotClick(null)}>
               <div className={`slot-radio ${selectedSlot === null ? "checked" : ""}`} />
               <div>
-                <div className="slot-label">Order ASAP {asapEstimateMinutes ? ` (~${asapEstimateMinutes} min)` : ""} {timeZone ? ` ${getTzAbbrevWithFallback(nowInTZ, timeZone)}` : ""}</div>
-                <div className="small text-muted">{formatTime(nowInTZ, timeZone)}</div>
+                <div className="slot-label">Order ASAP {asapEstimateMinutes ? ` (~${asapEstimateMinutes} min)` : ""} {timeZone ? ` ${getTzAbbrevWithFallback(now, timeZone)}` : ""}</div>
+                <div className="small text-muted">{formatTime(now, timeZone)}</div>
               </div>
             </div>
           )}
@@ -447,8 +472,13 @@ export default function TimePickerModal({
 
       <Modal.Footer className="sticky">
         <div style={{ width: "100%" }}>
-          <Button className="schedule-btn btn-brand-green btn-wide" onClick={handleConfirm} disabled={!asapAvailable && !selectedSlot}>
-            {mode === "pickup" ? "Schedule Pickup" : "Schedule Delivery"}
+          <Button
+            className="schedule-btn btn-brand-green btn-wide"
+            onClick={handleConfirm}
+            disabled={!isAsapSelected && !selectedSlot}
+            aria-pressed={isAsapSelected}
+          >
+            {footerLabel}
           </Button>
         </div>
       </Modal.Footer>
