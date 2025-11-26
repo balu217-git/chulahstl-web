@@ -13,7 +13,7 @@ import type { Settings } from "react-slick";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import "../../public/css/menuAsideStyles.css"; // <-- custom animations + shadows
+import "../../public/css/menuAsideStyles.css"; // your CSS for shadows + underline
 
 interface Category {
   id: string;
@@ -34,20 +34,26 @@ interface MenuCategoriesAsideProps {
 }
 
 /**
- * Minimal interface for the react-slick instance methods we use.
- * Keeps typing strict and avoids `any`.
+ * Minimal interface describing the slider methods we call.
+ * Keeps typing explicit and avoids using `any` all over the file.
  */
 interface SlickRef {
   slickGoTo?: (index: number) => void;
 }
 
-const Slider = dynamic(() => import("react-slick"), { ssr: false });
+/**
+ * dynamic import of react-slick for client-only render.
+ * We'll cast the imported component to a ComponentType that accepts a `ref` callback
+ * so we can safely attach our sliderRef without TypeScript complaining.
+ */
+const RawSlider = dynamic(() => import("react-slick"), { ssr: false });
+const Slider = (RawSlider as unknown) as React.ComponentType<Settings & { ref?: (node: unknown) => void }>;
 
 export default function MenuCategoriesAside({
   categories,
 }: MenuCategoriesAsideProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  // `isWide` here follows your existing logic: slider when window width <= 1024
+  // slider mode when width <= 1024 (matches your prior logic)
   const [isWide, setIsWide] = useState<boolean>(
     typeof window !== "undefined" ? window.innerWidth <= 1024 : false
   );
@@ -103,10 +109,11 @@ export default function MenuCategoriesAside({
   }, []);
 
   /* -------------------------------------------------------------------
-     SCROLL SHADOW LOGIC (desktop only)
+     SCROLL SHADOW LOGIC (desktop vertical aside only)
   ------------------------------------------------------------------- */
   useEffect(() => {
-    if (isWide) return; // no shadows on mobile/tablet (slider mode)
+    // only apply shadows when not in slider mode (i.e., desktop vertical nav)
+    if (isWide) return;
 
     const el = asideRef.current;
     if (!el) return;
@@ -128,8 +135,7 @@ export default function MenuCategoriesAside({
   }, [isWide]);
 
   /* -------------------------------------------------------------------
-     SCROLL SPY
-     (activates when section is ~25% down the viewport)
+     SCROLL SPY (25% from top activation)
   ------------------------------------------------------------------- */
   useEffect(() => {
     if (observerRef.current) {
@@ -137,15 +143,12 @@ export default function MenuCategoriesAside({
       observerRef.current = null;
     }
 
-    const sections = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-menu-section]")
-    );
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-menu-section]"));
     if (!sections.length) return;
 
     const options: IntersectionObserverInit = {
       root: null,
-      // trigger when section's midpoint crosses ~25% from top (using -50% margins)
-      rootMargin: "-50% 0px -50% 0px",
+      rootMargin: "-50% 0px -50% 0px", // triggers when section crosses ~25% vertical point
       threshold: 0,
     };
 
@@ -161,32 +164,18 @@ export default function MenuCategoriesAside({
 
       setSelectedCategory(id);
 
-      /* Scroll active pill into view (desktop vertical nav) */
+      // For desktop vertical nav, scroll the active pill into view in the aside container
       if (!isWide) {
-        const activeEl = document.querySelector(
-          `.nav-link[data-slug="${id}"]`
-        ) as HTMLElement | null;
-
+        const activeEl = document.querySelector(`.nav-link[data-slug="${id}"]`) as HTMLElement | null;
         if (activeEl) {
-          activeEl.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
+          activeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       }
 
-      /* Sync slider (mobile/tablet slider mode) */
-      if (
-        isWide &&
-        sliderRef.current &&
-        typeof sliderRef.current.slickGoTo === "function"
-      ) {
-        const slideEls = Array.from(
-          document.querySelectorAll<HTMLElement>(".menu-cats-slider .nav-link")
-        );
-        const index = slideEls.findIndex(
-          (s) => s.getAttribute("data-slug") === id
-        );
+      // For slider mode (mobile/tablet), sync the slide index
+      if (isWide && sliderRef.current && typeof sliderRef.current.slickGoTo === "function") {
+        const slideEls = Array.from(document.querySelectorAll<HTMLElement>(".menu-cats-slider .nav-link"));
+        const index = slideEls.findIndex((s) => s.getAttribute("data-slug") === id);
         if (index >= 0) sliderRef.current.slickGoTo(index);
       }
     }, options);
@@ -210,7 +199,7 @@ export default function MenuCategoriesAside({
   };
 
   /* -------------------------------------------------------------------
-     HANDLE CLICK => scroll content to section
+     HANDLE CLICK => scroll to section
   ------------------------------------------------------------------- */
   const handleClick = (e: MouseEvent, slug: string) => {
     e.preventDefault();
@@ -234,7 +223,7 @@ export default function MenuCategoriesAside({
         overflowY: isWide ? "visible" : "auto",
       }}
     >
-      {/* SCROLL SHADOWS (desktop only) */}
+      {/* scroll shadows for desktop vertical aside */}
       {!isWide && <div className="scroll-shadow-top" />}
       {!isWide && <div className="scroll-shadow-bottom" />}
 
@@ -243,13 +232,12 @@ export default function MenuCategoriesAside({
       </div>
 
       {isWide ? (
-        /* MOBILE/TABLET SLIDER */
+        // Slider (mobile/tablet) - pass a ref-callback that stores the instance in sliderRef
         <div className="menu-cats-slider nav-pills">
-          {/* react-slick will mount client-side only (dynamic import) */}
-          {/* cast to unknown then to SlickRef to keep typing safe when assigning ref */}
-          {/* sliderRef expected shape is SlickRef (slickGoTo) */}
           <Slider
             ref={(node: unknown) => {
+              // node is the react-slick instance; we only need slickGoTo
+              // store with a narrow type (SlickRef)
               sliderRef.current = (node as unknown) as SlickRef | null;
             }}
             {...sliderSettings}
@@ -259,9 +247,7 @@ export default function MenuCategoriesAside({
                 <a
                   href={`#${group.slug}`}
                   data-slug={group.slug}
-                  className={`nav-link nav-pill ${
-                    selectedCategory === group.slug ? "active-pill" : ""
-                  }`}
+                  className={`nav-link nav-pill ${selectedCategory === group.slug ? "active-pill" : ""}`}
                   onClick={(e) => handleClick(e, group.slug)}
                 >
                   {group.name}
@@ -271,16 +257,14 @@ export default function MenuCategoriesAside({
           </Slider>
         </div>
       ) : (
-        /* DESKTOP VERTICAL NAV */
+        // Desktop vertical nav
         <nav className="nav flex-column nav-pills">
           {groupedCategories.map(([id, group]) => (
             <div key={id} className="mb-3">
               <a
                 href={`#${group.slug}`}
                 data-slug={group.slug}
-                className={`nav-link nav-pill ${
-                  selectedCategory === group.slug ? "active-pill" : ""
-                }`}
+                className={`nav-link nav-pill ${selectedCategory === group.slug ? "active-pill" : ""}`}
                 onClick={(e) => handleClick(e, group.slug)}
               >
                 {group.name}
