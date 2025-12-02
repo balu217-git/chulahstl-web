@@ -1,11 +1,10 @@
-// src/components/MenuItemModal.tsx
 "use client";
 import Image from "next/image";
 import { Modal, Button, Form } from "react-bootstrap";
 import React, { useEffect, useMemo, useState } from "react";
 import { formatPrice } from "@/lib/currency";
 import { useCart, ChoiceSelected } from "@/context/CartContext";
-import { MenuItem, ChoiceOptionFromAPI } from "@/types/menu";
+import { MenuItem, ChoiceOptionFromAPI, AddOnFromAPI } from "@/types/menu";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faClose } from "@fortawesome/free-solid-svg-icons";
 
@@ -16,6 +15,14 @@ interface MenuItemModalProps {
 }
 
 type NormalizedChoice = {
+  id: string;
+  label: string;
+  price: number;
+  isDefault?: boolean;
+  isAvailable?: boolean;
+};
+
+type NormalizedAddOn = {
   id: string;
   label: string;
   price: number;
@@ -34,7 +41,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const details = menu.menuDetails || {};
   const imageUrl = details.menuImage?.node?.sourceUrl ?? "/images/img-dish-icon-bg.webp";
   const basePrice = Number(details.menuPrice ?? 0);
-  const isAvailable = details.isAvailable ?? false; // global availability for the menu item
+  const isAvailable = details.isAvailable ?? false; // <-- global menu-item availability
 
   // Normalize choices and preserve per-option isAvailable (default true)
   const normalizedChoices: NormalizedChoice[] = useMemo(() => {
@@ -44,50 +51,80 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
       label: c.label,
       price: Number(c.price ?? 0) || 0,
       isDefault: !!c.isDefault,
-      // default to true unless API explicitly sets false
       isAvailable: "isAvailable" in c ? Boolean((c as unknown as Record<string, unknown>).isAvailable) : true,
     }));
   }, [details.choices, menu.id]);
+
+  // Normalize add-ons (try common fields: addOns, add_ons, addons)
+  const normalizedAddOns: NormalizedAddOn[] = useMemo(() => {
+    const raw = (details.addOns || []) as AddOnFromAPI[];
+    return (raw || []).map((a, idx) => {
+      const isAvailable = isRecord(a) && "isAvailable" in a ? Boolean((a as unknown as Record<string, unknown>).isAvailable) : true;
+      const label = isRecord(a) ? (a.label ?? `Addon ${idx + 1}`) as string : `Addon ${idx + 1}`;
+      const price = isRecord(a) ? Number((a as unknown as Record<string, unknown>).price ?? 0) : 0;
+      return {
+        id: `${menu.id}-addon-${idx}`,
+        label,
+        price: Number(price) || 0,
+        isDefault: isRecord(a) ? !!(a as Record<string, unknown>).isDefault : false,
+        isAvailable,
+      };
+    });
+  }, [details.addOns, menu.id]);
 
   const rawChoiceType = (details.choiceType || "radio") as string;
   const isMultiple = rawChoiceType === "multiple" || rawChoiceType === "checkbox";
   const required = !!details.choiceRequired;
 
-  // initial selection: only include defaults that are available (per-option)
+  // initial selection for choices (respect per-option availability)
   const initialSelection = useMemo<ChoiceState>(() => {
     if (isMultiple) {
       const s = new Set<string>();
       normalizedChoices.forEach((opt) => {
-        const optAvailable = opt.isAvailable !== false; // treat undefined as available (but we default to true above)
-        if (opt.isDefault && optAvailable) s.add(opt.label);
+        if (opt.isDefault && opt.isAvailable !== false) s.add(opt.label);
       });
       return { multiple: s };
     } else {
-      const def = normalizedChoices.find((o) => o.isDefault && (o.isAvailable !== false));
+      const def = normalizedChoices.find((o) => o.isDefault && o.isAvailable !== false);
       return { single: def ? def.label : null };
     }
   }, [normalizedChoices, isMultiple]);
 
+  // initial selection for addons (always multi-select)
+  const initialAddOnSelection = useMemo<Set<string>>(() => {
+    const s = new Set<string>();
+    normalizedAddOns.forEach((a) => {
+      if (a.isDefault && a.isAvailable !== false) s.add(a.label);
+    });
+    return s;
+  }, [normalizedAddOns]);
+
   const [qty, setQty] = useState<number>(1);
   const [choiceState, setChoiceState] = useState<ChoiceState>(initialSelection);
+  const [addonState, setAddonState] = useState<Set<string>>(initialAddOnSelection);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setQty(1);
     setChoiceState(initialSelection);
+    setAddonState(initialAddOnSelection);
     setError(null);
-  }, [show, menu.id, initialSelection]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, menu.id]);
 
-  // Clear, explicit availability check for an option
-  const isOptionAvailable = (opt: NormalizedChoice) => {
-    // If the whole menu item is unavailable, option is unavailable
+  // helper: safe record check
+  function isRecord(v: unknown): v is Record<string, unknown> {
+    return typeof v === "object" && v !== null && !Array.isArray(v);
+  }
+
+  // returns true only when both global menu and per-option allow selection
+  const isOptionAvailable = (opt: NormalizedChoice | NormalizedAddOn) => {
     if (!isAvailable) return false;
-    // If the option explicitly has isAvailable === false, it's unavailable
     if (opt.isAvailable === false) return false;
-    // Otherwise available
     return true;
   };
 
+  // Selected choices (only count available ones)
   const selectedOptions = useMemo(() => {
     if (isMultiple) {
       const labels = choiceState.multiple ? Array.from(choiceState.multiple) : [];
@@ -97,15 +134,21 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
     }
   }, [choiceState, normalizedChoices, isMultiple, isAvailable]);
 
-  const choicesTotal = selectedOptions.reduce((s, c) => s + (Number(c.price) || 0), 0);
-  const totalPrice = (basePrice + choicesTotal) * qty;
+  // Selected add-ons (only count available ones)
+  const selectedAddOns = useMemo(() => {
+    const labels = Array.from(addonState ?? []);
+    return normalizedAddOns.filter((a) => labels.includes(a.label) && isOptionAvailable(a));
+  }, [addonState, normalizedAddOns, isAvailable]);
 
-  // Handlers ignore interaction for unavailable options
+  const choicesTotal = selectedOptions.reduce((s, c) => s + (Number(c.price) || 0), 0);
+  const addonsTotal = selectedAddOns.reduce((s, a) => s + (Number(a.price) || 0), 0);
+  const totalPrice = (basePrice + choicesTotal + addonsTotal) * qty;
+
+  // toggle handlers ignore unavailable options
   const toggleMultiple = (label: string) => {
     setChoiceState((prev) => {
       const opt = normalizedChoices.find((o) => o.label === label);
       if (!opt || !isOptionAvailable(opt)) return prev;
-
       const next = new Set(prev.multiple ?? []);
       if (next.has(label)) next.delete(label);
       else next.add(label);
@@ -119,8 +162,21 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
     setChoiceState({ single: label });
   };
 
+  // addons toggle (multi)
+  const toggleAddOn = (label: string) => {
+    setAddonState((prev) => {
+      const opt = normalizedAddOns.find((o) => o.label === label);
+      if (!opt || !isOptionAvailable(opt)) return prev;
+      const next = new Set(prev ?? []);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
+
   const handleAdd = () => {
-    // Don't allow add if the whole item is unavailable
+    setError(null);
+
     if (!isAvailable) {
       setError("This item is currently unavailable.");
       return;
@@ -154,10 +210,19 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
       }
     }
 
+    // Build separate payloads with kind
     const choicePayload: ChoiceSelected[] = selectedOptions.map((o) => ({
       id: o.id,
       label: o.label,
       price: o.price,
+      kind: "choice",
+    }));
+
+    const addonPayload: ChoiceSelected[] = selectedAddOns.map((a) => ({
+      id: a.id,
+      label: a.label,
+      price: a.price,
+      kind: "addon",
     }));
 
     addToCart({
@@ -166,7 +231,8 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
       price: basePrice,
       quantity: qty,
       image: imageUrl,
-      choices: choicePayload,
+      choices: choicePayload.length > 0 ? choicePayload : undefined,
+      addons: addonPayload.length > 0 ? addonPayload : undefined,
       available: isAvailable,
     });
 
@@ -198,6 +264,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
 
           <hr className="border-secondary" />
 
+          {/* CHOICES */}
           {normalizedChoices.length > 0 && (
             <>
               <div className="mb-3">
@@ -205,8 +272,6 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
                 {normalizedChoices.map((opt) => {
                   const checked = isMultiple ? choiceState.multiple?.has(opt.label) ?? false : choiceState.single === opt.label;
                   const disabled = !isOptionAvailable(opt);
-
-                  // label text — price + optional Unavailable suffix
                   const labelText = `${opt.label}${opt.price ? ` (+ ${formatPrice(opt.price)})` : ""}${disabled ? " (Unavailable)" : ""}`;
 
                   if (isMultiple) {
@@ -237,6 +302,35 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
                   }
                 })}
                 {required && <div className="small text-muted mt-1">Selection required</div>}
+              </div>
+
+              <hr className="border-secondary" />
+            </>
+          )}
+
+          {/* ADD ONS */}
+          {normalizedAddOns.length > 0 && (
+            <>
+              <div className="mb-3">
+                <strong className="d-block mb-2">ADD ONS</strong>
+                {normalizedAddOns.map((a) => {
+                  const checked = addonState ? addonState.has(a.label) : false;
+                  const disabled = !isOptionAvailable(a);
+                  const labelText = `${a.label}${a.price ? ` (+ ${formatPrice(a.price)})` : ""}${disabled ? " (Unavailable)" : ""}`;
+
+                  return (
+                    <Form.Check
+                      key={a.id}
+                      type="checkbox"
+                      id={a.id}
+                      label={labelText}
+                      checked={checked}
+                      onChange={() => toggleAddOn(a.label)}
+                      disabled={disabled}
+                    />
+                  );
+                })}
+                <div className="small text-muted mt-1">You can select multiple add ons.</div>
               </div>
 
               <hr className="border-secondary" />

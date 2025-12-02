@@ -1,4 +1,3 @@
-// src/context/CartContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
@@ -6,21 +5,25 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 /* ----------------------------------------------------
  * Types
  * ---------------------------------------------------- */
+export type ChoiceKind = "choice" | "addon";
+
 export interface ChoiceSelected {
   id: string;
   label: string;
   price: number;
+  kind?: ChoiceKind;
 }
 
 export interface CartItem {
   id: string; // menu id
-  cartItemKey?: string; // computed unique key for this cart entry (id + sorted choices)
+  cartItemKey?: string; // computed unique key for this cart entry (id + sorted choices + addons)
   name: string;
   price: number; // base price
   quantity: number;
   image?: string;
-  choices?: ChoiceSelected[]; // selected add-ons / options
-  available?: boolean; // NEW - availability captured at time of add
+  choices?: ChoiceSelected[]; // selected options
+  addons?: ChoiceSelected[]; // selected add-ons (separate)
+  available?: boolean; // availability captured at time of add
 }
 
 /* Address / Order types */
@@ -159,12 +162,35 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [orderMetadata, setOrderMetadata] = useState<OrderMetadata | null>(null);
 
   /* ----------------------------------------------------
-   * Helper: compute stable key for (id + choices)
+   * Helper: compute stable key for (id + choices + addons)
    * ---------------------------------------------------- */
-  const computeKey = (id: string, choices?: ChoiceSelected[]) => {
-    if (!choices || choices.length === 0) return id;
-    const sorted = [...choices].sort((a, b) => a.label.localeCompare(b.label));
-    const parts = sorted.map((c) => `${c.label}:${Number(c.price || 0)}`);
+  const computeKey = (id: string, choices?: ChoiceSelected[], addons?: ChoiceSelected[]) => {
+    const parts: string[] = [];
+
+    if (!choices || choices.length === 0) {
+      parts.push("no-choices");
+    } else {
+      const sorted = [...choices].sort((a, b) => a.label.localeCompare(b.label));
+      parts.push(
+        "choices:" +
+          sorted
+            .map((c) => `${c.label}:${Number(c.price || 0)}`)
+            .join("|")
+      );
+    }
+
+    if (!addons || addons.length === 0) {
+      parts.push("no-addons");
+    } else {
+      const sortedA = [...addons].sort((a, b) => a.label.localeCompare(b.label));
+      parts.push(
+        "addons:" +
+          sortedA
+            .map((a) => `${a.label}:${Number(a.price || 0)}`)
+            .join("|")
+      );
+    }
+
     return `${id}|${parts.join("|")}`;
   };
 
@@ -188,10 +214,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           const entry = isRecord(entryRaw) ? entryRaw : {};
 
           const id = toString(entry.id ?? entry.menuId ?? "", `migrated-${entryIdx}`);
-          const name = toString(entry.name ?? entry.title ?? entry.menuTitle ?? `Item ${entryIdx + 1}`, `Item ${entryIdx + 1}`);
+          const name = toString(
+            entry.name ?? entry.title ?? entry.menuTitle ?? `Item ${entryIdx + 1}`,
+            `Item ${entryIdx + 1}`
+          );
           const price = toNumber(entry.price ?? entry.menuPrice ?? 0, 0);
           const quantity = Math.max(1, toNumber(entry.quantity ?? 1, 1));
-          const image = typeof entry.image === "string" ? entry.image : typeof entry.menuImage === "string" ? entry.menuImage : undefined;
+          const image =
+            typeof entry.image === "string"
+              ? entry.image
+              : typeof entry.menuImage === "string"
+              ? entry.menuImage
+              : undefined;
 
           const rawChoices = entry.choices ?? entry.choiceOptions ?? entry.selectedOptions ?? [];
           const rawChoicesArray = toArray<unknown>(rawChoices);
@@ -203,13 +237,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
               const label = toString(c.label ?? c.name ?? c.option ?? `Option ${idx + 1}`, `Option ${idx + 1}`);
               const priceNum = toNumber(c.price ?? c.extraPrice ?? c.addonPrice ?? 0, 0);
               const cid = toString(c.id ?? `${id}-choice-${idx}`, `${id}-choice-${idx}`);
-              return { id: cid, label, price: priceNum };
+              return { id: cid, label, price: priceNum, kind: "choice" as ChoiceKind };
+            });
+
+          // Try several fields for addons in saved schema
+          const rawAddons = entry.addons ?? entry.addOns ?? entry.add_ons ?? entry.addonOptions ?? [];
+          const rawAddonsArray = toArray<unknown>(rawAddons);
+
+          const addons: ChoiceSelected[] = rawAddonsArray
+            .filter(isChoiceLike)
+            .map((aRaw, idx) => {
+              const a = isRecord(aRaw) ? aRaw : {};
+              const label = toString(a.label ?? a.name ?? a.option ?? `Addon ${idx + 1}`, `Addon ${idx + 1}`);
+              const priceNum = toNumber(a.price ?? a.extraPrice ?? a.addonPrice ?? 0, 0);
+              const aid = toString(a.id ?? `${id}-addon-${idx}`, `${id}-addon-${idx}`);
+              return { id: aid, label, price: priceNum, kind: "addon" as ChoiceKind };
             });
 
           // if saved entry includes available flag, use it; otherwise default true
-          const available = (entry.available !== undefined) ? Boolean(entry.available) : true;
+          const available = entry.available !== undefined ? Boolean(entry.available) : true;
 
-          const cartItemKey = toString(entry.cartItemKey ?? computeKey(id, choices.length ? choices : undefined), computeKey(id, choices.length ? choices : undefined));
+          const cartItemKey = toString(
+            entry.cartItemKey ?? computeKey(id, choices.length ? choices : undefined, addons.length ? addons : undefined),
+            computeKey(id, choices.length ? choices : undefined, addons.length ? addons : undefined)
+          );
 
           return {
             id,
@@ -218,6 +269,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             quantity,
             image,
             choices: choices.length > 0 ? choices : undefined,
+            addons: addons.length > 0 ? addons : undefined,
             cartItemKey,
             available,
           } as CartItem;
@@ -344,9 +396,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
    * ---------------------------------------------------- */
   const addToCart = (item: Omit<CartItem, "cartItemKey">) => {
     setCart((prev) => {
-      // include available flag in key computation: choice-based key already encodes choices,
-      // but we want different rows for same id+choices even if availability differs (rare).
-      const key = computeKey(item.id, item.choices);
+      const key = computeKey(item.id, item.choices, item.addons);
       const existingIndex = prev.findIndex((i) => i.cartItemKey === key && i.available === (item.available ?? true));
       if (existingIndex >= 0) {
         const copy = [...prev];
@@ -392,7 +442,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const getTotalPrice = () =>
     cart.reduce((total, item) => {
       const choicesTotal = (item.choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
-      return total + (Number(item.price) + choicesTotal) * item.quantity;
+      const addonsTotal = (item.addons || []).reduce((s, a) => s + (Number(a.price) || 0), 0);
+      return total + (Number(item.price) + choicesTotal + addonsTotal) * item.quantity;
     }, 0);
 
   /* ----------------------------------------------------

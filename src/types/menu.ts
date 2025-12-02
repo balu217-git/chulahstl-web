@@ -14,22 +14,17 @@ export interface CategoryNode {
 }
 
 export type ChoiceOptionFromAPI = {
+  isAvailable?: boolean;
   isDefault?: boolean;
   label: string;
   price?: number | string | null;
 };
 
-export type ChoiceOption = {
-  id: string;
-  label: string;
-  price: number;
+export type AddOnFromAPI = {
+  isAvailable?: boolean;
   isDefault?: boolean;
-};
-
-export type ChoiceGroup = {
-  required?: boolean;
-  type?: "single" | "multiple" | "radio" | "checkbox";
-  options: ChoiceOption[];
+  label: string;
+  price?: number | string | null;
 };
 
 export interface MenuDetails {
@@ -50,6 +45,7 @@ export interface MenuDetails {
   choiceRequired?: boolean;
   choiceType?: "single" | "multiple" | "radio" | "checkbox";
   choices?: ChoiceOptionFromAPI[];
+  addOns: AddOnFromAPI[];
   menuType?: string | null;
 }
 

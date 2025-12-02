@@ -15,6 +15,13 @@ export const GET_MENUS = gql`
           choiceRequired
           choiceType
           choices {
+            isAvailable
+            isDefault
+            label
+            price
+          }
+          addOns {
+            isAvailable
             isDefault
             label
             price

@@ -1,4 +1,3 @@
-// src/app/checkout/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -19,6 +18,7 @@ interface InternalCartItem {
   quantity: number;
   image?: string;
   choices?: ChoiceSelected[];
+  addons?: ChoiceSelected[];
 }
 
 export default function CheckoutPage() {
@@ -34,7 +34,6 @@ export default function CheckoutPage() {
     setDeliveryNotes,
     orderMetadata,
     setOrderMetadata,
-    // removed setDeliveryTime (was unused)
   } = useCart();
 
   const [name, setName] = useState("");
@@ -43,22 +42,18 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  // Local state for editing delivery notes inline on checkout
   const [editingNotes, setEditingNotes] = useState(false);
   const [localApt, setLocalApt] = useState<string>(deliveryNotes?.aptSuite ?? "");
   const [localInstructions, setLocalInstructions] = useState<string>(deliveryNotes?.instructions ?? "");
 
-  // Keep local fields in sync when context deliveryNotes change
   useEffect(() => {
     setLocalApt(deliveryNotes?.aptSuite ?? "");
     setLocalInstructions(deliveryNotes?.instructions ?? "");
   }, [deliveryNotes?.aptSuite, deliveryNotes?.instructions]);
 
-  // --- timeZone: prefer selected place timezone ---
   const ap = addressPlace as SelectedPlace | null | undefined;
   const timeZone = ap?.timeZoneId ?? process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE ?? "America/Chicago";
 
-  // 🕒 Format delivery time display (use your helper)
   const formattedDeliveryTime = useMemo(() => {
     return deliveryTime ? formatDateTimeForTZ(deliveryTime, timeZone) : "";
   }, [deliveryTime, timeZone]);
@@ -71,14 +66,12 @@ export default function CheckoutPage() {
   };
 
   const saveDeliveryNotes = () => {
-    // persist into context
     const notes = {
       aptSuite: localApt || null,
       instructions: localInstructions || null,
     };
     setDeliveryNotes(notes);
 
-    // also build orderMetadata and set it so sessionStorage gets updated
     const meta = {
       type: orderType ?? (orderMetadata?.type ?? "ASAP"),
       aptSuite: notes.aptSuite,
@@ -92,13 +85,16 @@ export default function CheckoutPage() {
     setEditingNotes(false);
   };
 
-  // compute per-line totals including choices
   const computeChoicesTotal = (choices?: ChoiceSelected[]) =>
     (choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
 
+  const computeAddonsTotal = (addons?: ChoiceSelected[]) =>
+    (addons || []).reduce((s, a) => s + (Number(a.price) || 0), 0);
+
   const lineTotal = (item: InternalCartItem) => {
     const choicesTotal = computeChoicesTotal(item.choices);
-    return (Number(item.price || 0) + choicesTotal) * item.quantity;
+    const addonsTotal = computeAddonsTotal(item.addons);
+    return (Number(item.price || 0) + choicesTotal + addonsTotal) * item.quantity;
   };
 
   const handleCheckout = async () => {
@@ -117,20 +113,17 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const total = getTotalPrice(); // already accounts choices
+      const total = getTotalPrice();
 
-      // Build deliveryNotes payload consistently with context
       const notesPayload = {
         aptSuite: deliveryNotes?.aptSuite ?? localApt ?? null,
         instructions: deliveryNotes?.instructions ?? localInstructions ?? null,
       };
 
-      // Build addressPlace payload (if exists)
       const addressPlacePayload = addressPlace ? { ...addressPlace } : null;
 
-      // ---------- NEW: normalize cart items to server shape, include choices ----------
+      // normalize cart items to server shape, include choices & addons
       const itemsPayload = cart.map((i: InternalCartItem) => {
-        // ensure numeric conversions
         const priceNum = Number(i.price) || 0;
         const qtyNum = Number(i.quantity) || 0;
         return {
@@ -144,11 +137,17 @@ export default function CheckoutPage() {
             id: String(c.id ?? ""),
             label: String(c.label ?? ""),
             price: Number(c.price || 0),
+            kind: c.kind ?? "choice",
+          })),
+          addons: (i.addons || []).map((a) => ({
+            id: String(a.id ?? ""),
+            label: String(a.label ?? ""),
+            price: Number(a.price || 0),
+            kind: a.kind ?? "addon",
           })),
         };
       });
 
-      // Validate itemsPayload
       for (const it of itemsPayload) {
         if (!it.id || !it.name || typeof it.price !== "number" || typeof it.quantity !== "number") {
           console.error("Invalid item payload:", it);
@@ -156,7 +155,7 @@ export default function CheckoutPage() {
         }
       }
 
-      // 1️⃣ Create order in WordPress - include new metadata fields
+      // Create order in WordPress - include new metadata fields
       const orderRes = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -173,7 +172,6 @@ export default function CheckoutPage() {
           paymentStatus: "pending",
           orderStatus: "pending",
 
-          // new metadata
           orderType: orderType ?? (orderMetadata?.type ?? "ASAP"),
           deliveryNotes: notesPayload,
           addressPlace: addressPlacePayload,
@@ -188,7 +186,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 2️⃣ Generate Square payment link
+      // Generate payment link
       const paymentRes = await fetch("/api/square", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -237,7 +235,6 @@ export default function CheckoutPage() {
           {/* Left Column: Customer Info */}
           <div className="col-lg-6">
             <div className="mb-md-5 mb-4">
-              {/* Delivery Option */}
               {orderMode === "pickup" ? (
                 <>
                   <h5 className="mb-3 fw-semibold font-family-body">Pickup details</h5>
@@ -415,12 +412,12 @@ export default function CheckoutPage() {
               <Card.Body className="p-4">
                 <ul className="list-group mb-3">
                   {cart.map((itemRaw) => {
-                    // normalize item shape for safety
                     const item = itemRaw as InternalCartItem;
                     const key = item.cartItemKey ?? item.id;
                     const perLine = lineTotal(item);
                     const choicesTotal = computeChoicesTotal(item.choices);
-                    const perItemPrice = Number(item.price || 0) + choicesTotal;
+                    const addonsTotal = computeAddonsTotal(item.addons);
+                    const perItemPrice = Number(item.price || 0) + choicesTotal + addonsTotal;
 
                     return (
                       <li key={key} className="list-group-item">
@@ -428,7 +425,7 @@ export default function CheckoutPage() {
                           <div style={{ maxWidth: "70%" }}>
                             <div className="fw-semibold">{item.name} <small className="text-muted">× {item.quantity}</small></div>
 
-                            {/* show choices (if any) */}
+                            {/* choices */}
                             {item.choices && item.choices.length > 0 && (
                               <div className="mt-2 small text-muted">
                                 {item.choices.map((c, idx) => (
@@ -437,12 +434,28 @@ export default function CheckoutPage() {
                                     <div>{formatPrice(Number(c.price || 0))}</div>
                                   </div>
                                 ))}
-                                <div className="mt-1 d-flex justify-content-between">
-                                  <div className="small">Per item:</div>
-                                  <div className="small">{formatPrice(perItemPrice)}</div>
-                                </div>
                               </div>
                             )}
+
+                            {/* addons */}
+                            {item.addons && item.addons.length > 0 && (
+                              <div className="mt-2 small text-muted">
+                                <div className="small text-muted">Add-ons</div>
+                                {item.addons.map((a, idx) => (
+                                  <div key={`${key}-addon-${idx}`} className="d-flex justify-content-between">
+                                    <div>{a.label}</div>
+                                    <div>{formatPrice(Number(a.price || 0))}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            { (item.choices && item.choices.length > 0) || (item.addons && item.addons.length > 0) ? (
+                              <div className="mt-1 d-flex justify-content-between">
+                                <div className="small">Per item:</div>
+                                <div className="small">{formatPrice(perItemPrice)}</div>
+                              </div>
+                            ) : null }
                           </div>
 
                           <div className="text-end">

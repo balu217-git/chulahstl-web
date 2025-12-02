@@ -1,4 +1,3 @@
-// src/components/CartDrawer.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -127,14 +126,19 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
   const computeChoicesTotal = (choices?: ChoiceSelected[]) =>
     (choices || []).reduce((s, c) => s + (Number(c.price) || 0), 0);
 
-  const lineTotal = (item: { price: number; quantity: number; choices?: ChoiceSelected[] }) => {
+  const computeAddonsTotal = (addons?: ChoiceSelected[]) =>
+    (addons || []).reduce((s, a) => s + (Number(a.price) || 0), 0);
+
+  const lineTotal = (item: { price: number; quantity: number; choices?: ChoiceSelected[]; addons?: ChoiceSelected[] }) => {
     const choicesTotal = computeChoicesTotal(item.choices);
-    return (Number(item.price || 0) + choicesTotal) * item.quantity;
+    const addonsTotal = computeAddonsTotal(item.addons);
+    return (Number(item.price || 0) + choicesTotal + addonsTotal) * item.quantity;
   };
 
-  const deriveKey = (item: { id: string; choices?: ChoiceSelected[] }) => {
-    const choicesKey = item.choices && item.choices.length > 0 ? `|${item.choices.map((c) => `${c.label}:${c.price}`).join(",")}` : "";
-    return `${item.id}${choicesKey}`;
+  const deriveKey = (item: { id: string; choices?: ChoiceSelected[]; addons?: ChoiceSelected[] }) => {
+    const choicesKey = item.choices && item.choices.length > 0 ? `|choices:${item.choices.map((c) => `${c.label}:${c.price}`).join(",")}` : "";
+    const addonsKey = item.addons && item.addons.length > 0 ? `|addons:${item.addons.map((a) => `${a.label}:${a.price}`).join(",")}` : "";
+    return `${item.id}${choicesKey}${addonsKey}`;
   };
 
   return (
@@ -163,7 +167,8 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
             ) : (
               cart.map((item) => {
                 const choicesTotal = computeChoicesTotal(item.choices);
-                const perItemPrice = Number(item.price || 0) + choicesTotal;
+                const addonsTotal = computeAddonsTotal(item.addons);
+                const perItemPrice = Number(item.price || 0) + choicesTotal + addonsTotal;
                 const totalLine = lineTotal(item);
                 const key = item.cartItemKey ?? deriveKey(item);
                 const available = item.available !== false; // default true if undefined
@@ -180,6 +185,7 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                         width={60}
                         height={60}
                         className="rounded"
+                        style={{objectFit: 'cover'}}
                       />
                       <div style={{ flex: 1 }}>
                         <div className="d-flex align-items-center gap-2 mb-1">
@@ -187,12 +193,26 @@ export default function CartDrawer({ show, onClose }: CartDrawerProps) {
                           {!available && <span className="badge bg-danger small">Unavailable</span>}
                         </div>
 
+                        {/* choices */}
                         {item.choices && item.choices.length > 0 && (
                           <div className="mb-2">
                             {item.choices.map((c, idx) => (
                               <div key={`${item.id}-choice-${idx}`} className="small text-muted d-flex justify-content-between">
                                 <div>{c.label}</div>
                                 <div>{formatPrice(Number(c.price || 0))}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* addons */}
+                        {item.addons && item.addons.length > 0 && (
+                          <div className="mb-2">
+                            <div className="small text-muted">Add-ons</div>
+                            {item.addons.map((a, idx) => (
+                              <div key={`${item.id}-addon-${idx}`} className="small text-muted d-flex justify-content-between">
+                                <div>{a.label}</div>
+                                <div>{formatPrice(Number(a.price || 0))}</div>
                               </div>
                             ))}
                           </div>

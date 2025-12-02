@@ -1,4 +1,3 @@
-// src/components/MenuCard.tsx
 "use client";
 
 import Image from "next/image";
@@ -48,10 +47,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
         style={{ cursor: isAvailable ? "pointer" : "not-allowed" }}
       >
         <div className="row g-0">
-          {/* ---------------- IMAGE + SKELETON ---------------- */}
           <div className="col-4 position-relative">
-
-            {/* Skeleton Loader */}
             {!imgLoaded && (
               <div
                 className="position-absolute w-100 h-100 placeholder-glow bg-light"
@@ -84,13 +80,11 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
             )}
           </div>
 
-          {/* ---------------- CONTENT + SKELETON ---------------- */}
           <div className="col-8">
             <div
               className="card-body d-flex flex-column"
               style={{ minHeight: "150px", maxHeight: "150px" }}
             >
-              {/* Title skeleton */}
               {!imgLoaded ? (
                 <div className="placeholder-glow mb-2">
                   <span className="placeholder col-8"></span>
@@ -99,7 +93,6 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                 <p className="fw-bold mb-1">{menu.title}</p>
               )}
 
-              {/* Description skeleton */}
               {!imgLoaded ? (
                 <div className="placeholder-glow mb-2">
                   <span className="placeholder col-10"></span>
@@ -111,9 +104,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                 )
               )}
 
-              {/* Price + Qty */}
               <div className="mt-auto d-flex justify-content-between align-items-center">
-
                 {!imgLoaded ? (
                   <div className="placeholder-glow w-50">
                     <span className="placeholder col-4"></span>
@@ -122,7 +113,6 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                   <span className="fw-semibold">{formatPrice(price)}</span>
                 )}
 
-                {/* ----- CART BUTTONS AFTER LOADED ----- */}
                 {imgLoaded && (
                   <>
                     {totalQty > 0 ? (
