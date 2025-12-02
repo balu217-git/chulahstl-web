@@ -20,6 +20,7 @@ type NormalizedChoice = {
   label: string;
   price: number;
   isDefault?: boolean;
+  isAvailable?: boolean;
 };
 
 type ChoiceState = {
@@ -33,8 +34,9 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const details = menu.menuDetails || {};
   const imageUrl = details.menuImage?.node?.sourceUrl ?? "/images/img-dish-icon-bg.webp";
   const basePrice = Number(details.menuPrice ?? 0);
-  const isAvailable = details.isAvailable ?? false; // <-- single boolean source
+  const isAvailable = details.isAvailable ?? false; // global availability for the menu item
 
+  // Normalize choices and preserve per-option isAvailable
   const normalizedChoices: NormalizedChoice[] = useMemo(() => {
     const arr = (details.choices || []) as ChoiceOptionFromAPI[];
     return arr.map((c, idx) => ({
@@ -42,6 +44,8 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
       label: c.label,
       price: Number(c.price ?? 0) || 0,
       isDefault: !!c.isDefault,
+      isAvailable: "isAvailable" in c ? Boolean(c.isAvailable) : undefined,
+
     }));
   }, [details.choices, menu.id]);
 
@@ -49,15 +53,17 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const isMultiple = rawChoiceType === "multiple" || rawChoiceType === "checkbox";
   const required = !!details.choiceRequired;
 
+  // initial selection: only include defaults that are available (per-option) and global availability must be true to allow defaults
   const initialSelection = useMemo<ChoiceState>(() => {
     if (isMultiple) {
       const s = new Set<string>();
       normalizedChoices.forEach((opt) => {
-        if (opt.isDefault) s.add(opt.label);
+        const optAvailable = opt.isAvailable !== false; // treat undefined as available
+        if (opt.isDefault && optAvailable) s.add(opt.label);
       });
       return { multiple: s };
     } else {
-      const def = normalizedChoices.find((o) => o.isDefault);
+      const def = normalizedChoices.find((o) => o.isDefault && (o.isAvailable !== false));
       return { single: def ? def.label : null };
     }
   }, [normalizedChoices, isMultiple]);
@@ -72,20 +78,32 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
     setError(null);
   }, [show, menu.id, initialSelection]);
 
+  // Only treat an option as selectable/part of selectedOptions when both global and per-option availability allow it
+  const optionIsSelectable = (opt: NormalizedChoice) => {
+    if (!isAvailable) return false; // global menu item unavailable
+    if (opt.isAvailable === false) return false; // per-option explicitly unavailable
+    return true;
+  };
+
   const selectedOptions = useMemo(() => {
     if (isMultiple) {
       const labels = choiceState.multiple ? Array.from(choiceState.multiple) : [];
-      return normalizedChoices.filter((c) => labels.includes(c.label));
+      return normalizedChoices.filter((c) => labels.includes(c.label) && optionIsSelectable(c));
     } else {
-      return normalizedChoices.filter((c) => c.label === choiceState.single);
+      return normalizedChoices.filter((c) => c.label === choiceState.single && optionIsSelectable(c));
     }
-  }, [choiceState, normalizedChoices, isMultiple]);
+  }, [choiceState, normalizedChoices, isMultiple, isAvailable]);
 
   const choicesTotal = selectedOptions.reduce((s, c) => s + (Number(c.price) || 0), 0);
   const totalPrice = (basePrice + choicesTotal) * qty;
 
+  // Handlers ignore interaction for unavailable options
   const toggleMultiple = (label: string) => {
     setChoiceState((prev) => {
+      // find option to check availability
+      const opt = normalizedChoices.find((o) => o.label === label);
+      if (!opt || !optionIsSelectable(opt)) return prev; // ignore if not selectable
+
       const next = new Set(prev.multiple ?? []);
       if (next.has(label)) next.delete(label);
       else next.add(label);
@@ -93,23 +111,47 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
     });
   };
 
-  const setSingle = (label: string) => setChoiceState({ single: label });
+  const setSingle = (label: string) => {
+    const opt = normalizedChoices.find((o) => o.label === label);
+    if (!opt || !optionIsSelectable(opt)) return; // ignore
+    setChoiceState({ single: label });
+  };
 
   const handleAdd = () => {
-    // Don't allow add if not available
+    // Don't allow add if the whole item is unavailable
     if (!isAvailable) {
       setError("This item is currently unavailable.");
       return;
     }
 
+    // Validate required choices — count only selectable ones
     if (required) {
-      if (!isMultiple && !choiceState.single) {
-        setError("Please choose an option.");
-        return;
-      }
-      if (isMultiple && (!choiceState.multiple || choiceState.multiple.size === 0)) {
-        setError("Please choose at least one option.");
-        return;
+      if (!isMultiple) {
+        // single choice required
+        if (!choiceState.single) {
+          setError("Please choose an option.");
+          return;
+        }
+        const opt = normalizedChoices.find((o) => o.label === choiceState.single);
+        if (!opt || !optionIsSelectable(opt)) {
+          setError("Please choose an available option.");
+          return;
+        }
+      } else {
+        // multiple required
+        if (!choiceState.multiple || choiceState.multiple.size === 0) {
+          setError("Please choose at least one option.");
+          return;
+        }
+        // ensure at least one selected is actually selectable
+        const anySelectable = Array.from(choiceState.multiple).some((label) => {
+          const o = normalizedChoices.find((n) => n.label === label);
+          return !!o && optionIsSelectable(o);
+        });
+        if (!anySelectable) {
+          setError("Please choose at least one available option.");
+          return;
+        }
       }
     }
 
@@ -141,6 +183,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
             className="btn btn-cart btn-light position-absolute"
             style={{ top: 10, right: 10 }}
             onClick={onClose}
+            aria-label="Close"
           >
             <FontAwesomeIcon icon={faClose} />
           </button>
@@ -161,8 +204,10 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
               <div className="mb-3">
                 <strong className="d-block mb-2">CHOICES</strong>
                 {normalizedChoices.map((opt) => {
+                  const checked = isMultiple ? choiceState.multiple?.has(opt.label) ?? false : choiceState.single === opt.label;
+                  // disabled when global menu item is unavailable OR this specific option is explicitly unavailable
+                  const disabled = !optionIsSelectable(opt);
                   if (isMultiple) {
-                    const checked = choiceState.multiple ? choiceState.multiple.has(opt.label) : false;
                     return (
                       <Form.Check
                         key={opt.id}
@@ -171,21 +216,20 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
                         label={`${opt.label} ${opt.price ? `(+ ${formatPrice(opt.price)})` : ""}`}
                         checked={checked}
                         onChange={() => toggleMultiple(opt.label)}
-                        disabled={!isAvailable}
+                        disabled={disabled}
                       />
                     );
                   } else {
-                    const checked = choiceState.single === opt.label;
                     return (
                       <Form.Check
                         key={opt.id}
                         type="radio"
                         id={opt.id}
-                        name="menu-choice"
+                        name={`menu-choice-${menu.id}`}
                         label={`${opt.label} ${opt.price ? `(+ ${formatPrice(opt.price)})` : ""}`}
                         checked={checked}
                         onChange={() => setSingle(opt.label)}
-                        disabled={!isAvailable}
+                        disabled={disabled}
                       />
                     );
                   }
