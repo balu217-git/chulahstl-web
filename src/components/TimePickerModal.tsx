@@ -201,7 +201,7 @@ export default function TimePickerModal({
   slotMinutes = 15,
   daysAhead = 9,
   onConfirm,
-  asapEstimateMinutes = 50,
+  asapEstimateMinutes = 30,
 }: TimePickerModalProps) {
   // absolute now instant (UTC instant) — used for accurate comparisons
   const now = useMemo(() => new Date(), [show]);
@@ -317,6 +317,12 @@ export default function TimePickerModal({
     return isToday && now.getTime() >= open.getTime() && now.getTime() <= close.getTime();
   }, [selectedWindow, days, selectedDateIndex, now, timeZone]);
 
+  // NEW: compute asapTime = now + asapEstimateMinutes (memoized)
+  const asapTime = useMemo(() => {
+    const mins = typeof asapEstimateMinutes === "number" ? asapEstimateMinutes : 0;
+    return addMinutes(now, mins);
+  }, [now, asapEstimateMinutes]);
+
   // NEW: whether ASAP is currently selected (ASAP is represented by selectedSlot === null)
   const isAsapSelected = selectedSlot === null && asapAvailable && selectedDateIndex === 0;
 
@@ -329,7 +335,8 @@ export default function TimePickerModal({
 
   const handleConfirm = () => {
     if (!isAsapSelected && !selectedSlot) return;
-    const iso = isAsapSelected ? now.toISOString() : (selectedSlot ? selectedSlot.toISOString() : now.toISOString());
+    // If ASAP is selected, send now + asapEstimateMinutes
+    const iso = isAsapSelected ? asapTime.toISOString() : (selectedSlot ? selectedSlot.toISOString() : now.toISOString());
     onConfirm(iso);
     onClose();
   };
@@ -355,9 +362,10 @@ export default function TimePickerModal({
   };
 
   const handleSlotClick = (slotDate: Date | null) => {
-    // null === ASAP selection; toggle only if not already selected
+    // null === ASAP selection
     if (slotDate === null) {
-      setSelectedSlot((prev) => (prev === null ? prev : null));
+      // select ASAP
+      setSelectedSlot(null);
       return;
     }
     setSelectedSlot((prev) => (prev && prev.getTime() === slotDate.getTime() ? null : new Date(slotDate)));
@@ -447,8 +455,11 @@ export default function TimePickerModal({
             <div className={`slot-row`} onClick={() => handleSlotClick(null)}>
               <div className={`slot-radio ${selectedSlot === null ? "checked" : ""}`} />
               <div>
-                <div className="slot-label">Order ASAP {asapEstimateMinutes ? ` (~${asapEstimateMinutes} min)` : ""} {timeZone ? ` ${getTzAbbrevWithFallback(now, timeZone)}` : ""}</div>
-                <div className="small text-muted">{formatTime(now, timeZone)}</div>
+                {/* display asapTime (now + estimate) */}
+                <div className="slot-label">
+                  Order ASAP {asapEstimateMinutes ? ` (~${asapEstimateMinutes} min)` : ""} {timeZone ? ` ${getTzAbbrevWithFallback(asapTime, timeZone)}` : ""}
+                </div>
+                <div className="small text-mute">{formatTime(asapTime, timeZone)}</div>
               </div>
             </div>
           )}
@@ -466,7 +477,7 @@ export default function TimePickerModal({
             );
           })}
 
-          {slots.length === 0 && <div className="text-center text-muted py-4">No available slots for this date</div>}
+          {slots.length === 0 && <div className="text-center text-mute py-4">No available slots for this date</div>}
         </div>
       </Modal.Body>
 

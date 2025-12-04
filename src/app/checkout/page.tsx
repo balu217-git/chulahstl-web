@@ -3,12 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMapMarkerAlt, faClock, faStore, faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import { faMapMarkerAlt, faClock, faStore, faClipboardList, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import Address from "@/components/Address";
 import { formatDateTimeForTZ } from "@/lib/formatDateTime";
 import type { SelectedPlace } from "@/components/AddressPicker";
 import { useCart, ChoiceSelected } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import CustomTipModal from "@/components/CustomTipModal";
 
 interface InternalCartItem {
   id: string;
@@ -20,6 +21,13 @@ interface InternalCartItem {
   choices?: ChoiceSelected[];
   addons?: ChoiceSelected[];
 }
+
+/**
+ * CONFIGURABLE RATES — adjust to your real values
+ */
+const TAX_RATE = 0.091; // 9.1%
+const PROCESSING_FEE_RATE = 0.061; // 6.1%
+const PLATFORM_FEE_RATE = 0.05; // 5.0%
 
 export default function CheckoutPage() {
   const {
@@ -97,6 +105,55 @@ export default function CheckoutPage() {
     return (Number(item.price || 0) + choicesTotal + addonsTotal) * item.quantity;
   };
 
+  /** TIP state & modal */
+  const TIP_OPTIONS = [0.10, 0.15, 0.20];
+  const [selectedTipPercent, setSelectedTipPercent] = useState<number | null>(0.20); // default 20%
+  const [customTipValue, setCustomTipValue] = useState<string>(""); // stored as dollars string like "2.99"
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+
+  const selectPercentTip = (p: number) => {
+    setSelectedTipPercent(p);
+    setCustomTipValue("");
+  };
+  const openCustomTipModal = () => {
+    setSelectedTipPercent(null);
+    setCustomModalOpen(true);
+  };
+  const handleSaveCustomTip = (amount: number) => {
+    setCustomTipValue(amount.toFixed(2));
+    setCustomModalOpen(false);
+  };
+
+  /** ---------------------
+   * Subtotal, taxes, fees, tip, total
+   * --------------------- */
+  const subtotal = useMemo(() => {
+    return cart.reduce((s, raw) => {
+      const item = raw as InternalCartItem;
+      return s + lineTotal(item);
+    }, 0);
+  }, [cart]);
+
+  const taxes = useMemo(() => +(subtotal * TAX_RATE), [subtotal]);
+  const processingFee = useMemo(() => +(subtotal * PROCESSING_FEE_RATE), [subtotal]);
+  const platformFee = useMemo(() => +(subtotal * PLATFORM_FEE_RATE), [subtotal]);
+
+  const tipAmount = useMemo(() => {
+    if (selectedTipPercent !== null && typeof selectedTipPercent === "number") {
+      return +(subtotal * selectedTipPercent);
+    }
+    const parsed = parseFloat((customTipValue || "").replace(/[^\d.-]/g, ""));
+    if (!isFinite(parsed) || parsed <= 0) return 0;
+    return +parsed;
+  }, [subtotal, selectedTipPercent, customTipValue]);
+
+  const total = useMemo(() => {
+    const t = subtotal + taxes + processingFee + platformFee + tipAmount;
+    return Math.round(t * 100) / 100;
+  }, [subtotal, taxes, processingFee, platformFee, tipAmount]);
+
+  const [taxesExpanded, setTaxesExpanded] = useState(false);
+
   const handleCheckout = async () => {
     if (cart.length === 0) return alert("Your cart is empty.");
     if (!name.trim() || !email.trim() || !phone.trim())
@@ -113,16 +170,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const total = getTotalPrice();
-
-      const notesPayload = {
-        aptSuite: deliveryNotes?.aptSuite ?? localApt ?? null,
-        instructions: deliveryNotes?.instructions ?? localInstructions ?? null,
-      };
-
-      const addressPlacePayload = addressPlace ? { ...addressPlace } : null;
-
-      // normalize cart items to server shape, include choices & addons
       const itemsPayload = cart.map((i: InternalCartItem) => {
         const priceNum = Number(i.price) || 0;
         const qtyNum = Number(i.quantity) || 0;
@@ -155,7 +202,22 @@ export default function CheckoutPage() {
         }
       }
 
-      // Create order in WordPress - include new metadata fields
+      const totalPayload = {
+        subtotal: Math.round(subtotal * 100) / 100,
+        taxes: Math.round(taxes * 100) / 100,
+        processingFee: Math.round(processingFee * 100) / 100,
+        platformFee: Math.round(platformFee * 100) / 100,
+        tip: Math.round(tipAmount * 100) / 100,
+        total: Math.round(total * 100) / 100,
+      };
+
+      const notesPayload = {
+        aptSuite: deliveryNotes?.aptSuite ?? localApt ?? null,
+        instructions: deliveryNotes?.instructions ?? localInstructions ?? null,
+      };
+
+      const addressPlacePayload = addressPlace ? { ...addressPlace } : null;
+
       const orderRes = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -167,11 +229,10 @@ export default function CheckoutPage() {
           address,
           deliveryTime,
           items: itemsPayload,
-          total,
+          totals: totalPayload,
           paymentOrderId: "N/A",
           paymentStatus: "pending",
           orderStatus: "pending",
-
           orderType: orderType ?? (orderMetadata?.type ?? "ASAP"),
           deliveryNotes: notesPayload,
           addressPlace: addressPlacePayload,
@@ -186,15 +247,15 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Generate payment link
       const paymentRes = await fetch("/api/square", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: total,
+          amount: Math.round(total * 100),
           items: itemsPayload,
           orderId: orderData.order.id,
           databaseId: orderData.order.databaseId,
+          totals: totalPayload,
         }),
       });
 
@@ -232,7 +293,7 @@ export default function CheckoutPage() {
         <h1 className="fw-bold mb-5 text-center">Checkout</h1>
 
         <div className="row">
-          {/* Left Column: Customer Info */}
+          {/* Left Column: Customer Info + Tip Picker */}
           <div className="col-lg-6">
             <div className="mb-md-5 mb-4">
               {orderMode === "pickup" ? (
@@ -382,6 +443,38 @@ export default function CheckoutPage() {
               )}
             </div>
 
+            {/* Tip picker (10/15/20 + custom) */}
+            <div className="mb-4">
+              <h5 className="mb-3 fw-semibold font-family-body">Tip</h5>
+              <div className="d-flex gap-2 flex-wrap">
+                {TIP_OPTIONS.map((p) => {
+                  const amount = Math.round(subtotal * p * 100) / 100;
+                  const active = selectedTipPercent === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      className={`btn ${active ? "btn-brand-brown" : "btn-outline-dark"} rounded-3`}
+                      onClick={() => selectPercentTip(p)}
+                      style={{ minWidth: 120, padding: "14px" }}
+                    >
+                      <div className="fw-semibold">{formatPrice(amount)}</div>
+                      <div className="small text-mute">{Math.round(p * 100)}%</div>
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  className={`btn ${selectedTipPercent === null ? "btn-brand-brown" : "btn-outline-dark"} rounded-3`}
+                  onClick={() => openCustomTipModal()}
+                  style={{ minWidth: 120, padding: "14px" }}
+                >
+                  <div className="fw-semibold">{customTipValue ? formatPrice(Number(customTipValue)) : "Custom"}</div>
+                </button>
+              </div>
+            </div>
+
             <div className="mb-md-5 mb-4 form-container">
               <h5 className="mb-3 fw-semibold font-family-body">Customer Information</h5>
               <Card className="bg-transparent border-brand-green border-1 rounded-4 text-brand-green">
@@ -405,12 +498,12 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Right Column: Cart Summary */}
+          {/* Right Column: Cart Summary + taxes/fees breakdown */}
           <div className="col-lg-6">
-            <h5 className="mb-3 font-family-body fw-semibold">Your Order</h5>
+            <h5 className="mb-3 font-family-body fw-semibold">Order summary</h5>
             <Card className="shadow-sm font-family-body text-brand-green rounded-4 border-brand-orang">
               <Card.Body className="p-4">
-                <ul className="list-group mb-3">
+                <ul className="list-group mb-3 info-brand">
                   {cart.map((itemRaw) => {
                     const item = itemRaw as InternalCartItem;
                     const key = item.cartItemKey ?? item.id;
@@ -467,8 +560,65 @@ export default function CheckoutPage() {
                   })}
                 </ul>
 
+                {/* Totals breakdown */}
+                <div className="mb-2 d-flex justify-content-between">
+                  <div>Subtotal</div>
+                  <div className="fw-bold">{formatPrice(subtotal)}</div>
+                </div>
+
+                <div className="mb-2">
+                  <div className="d-flex justify-content-between">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-link p-0 shadow-none text-brand-green fw-semibold text-decoration-none"
+                      onClick={() => setTaxesExpanded((s) => !s)}
+                      aria-expanded={taxesExpanded}
+                    >
+                      Taxes & fees 
+                      <FontAwesomeIcon
+                        icon={taxesExpanded ? faChevronUp : faChevronDown}
+                        className="ms-1"
+                        style={{ fontSize: "0.85rem" }}
+                      />
+                    </button>
+
+                    <div className="d-flex justify-content-between">
+                      <div></div>
+                      <div className="fw-bold">{formatPrice(taxes + processingFee + platformFee)}</div>
+                    </div>
+                  </div>
+                  <div>
+                    {taxesExpanded && (
+                      <div className="mt-2 small text-mute ps-2">
+                        <div className="d-flex justify-content-between">
+                          <div>Taxes</div>
+                          <div>{formatPrice(taxes)}</div>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <div>Credit card processing fee</div>
+                          <div>{formatPrice(processingFee)}</div>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                          <div>Online platform fee</div>
+                          <div>{formatPrice(platformFee)}</div>
+                        </div>
+                        <div className="mt-2 text-mute">
+                          Our online provider charges a small fee. This helps cover costs related to your order including 24/7 support.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-2 d-flex justify-content-between">
+                  <div>Tip</div>
+                  <div className="fw-bold">{formatPrice(tipAmount)}</div>
+                </div>
+
+                <hr />
+
                 <h4 className="text-end font-family-body">
-                  Total: <span className="fw-bold">{formatPrice(getTotalPrice())}</span>
+                  Total: <span className="fw-bold">{formatPrice(total)}</span>
                 </h4>
 
                 <button className="btn btn-brand-orange w-100 mt-4" onClick={handleCheckout} disabled={loading}>
@@ -481,6 +631,15 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Custom tip modal */}
+      <CustomTipModal
+        show={customModalOpen}
+        onClose={() => setCustomModalOpen(false)}
+        subtotal={subtotal}
+        initialAmount={customTipValue ? Number(customTipValue) : 0}
+        onSave={(amount) => handleSaveCustomTip(amount)}
+      />
     </section>
   );
 }
