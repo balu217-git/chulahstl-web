@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import { MenuItem } from "@/types/menu";
 import MenuItemModal from "./MenuItemModal";
+import { MenuTypePill } from "@/components/MenuTypePill";
 
 interface MenuCardProps {
   menu: MenuItem;
@@ -26,10 +27,30 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
     fields?.menuImage?.node?.sourceUrl || "/images/img-dish-icon-bg.webp";
   const price = Number(fields?.menuPrice ?? 0);
   const isAvailable = fields?.isAvailable ?? false;
+  const menuType = fields?.menuType;
 
   const variants = cart.filter((c) => c.id === menu.id);
   const totalQty = variants.reduce((s, v) => s + v.quantity, 0);
   const singleVariant = variants.length === 1 ? variants[0] : null;
+
+  const categories = fields?.menuCategory?.nodes ?? [];
+
+  const isDrinkCategory = categories.some((cat) => {
+    const name = cat?.name?.toLowerCase().trim() ?? "";
+    const slug = cat?.slug?.toLowerCase().trim() ?? "";
+
+    return (
+      name === "beverages" ||
+      name === "soda" ||
+      name === "fountains" ||
+      slug === "beverages" ||
+      slug === "soda" ||
+      slug === "fountains"
+    );
+  });
+
+  const effectiveMenuType = isDrinkCategory ? undefined : menuType;
+
 
   const openModal = () => {
     if (!isAvailable) return;
@@ -78,6 +99,7 @@ export default function MenuCard({ menu, onAddressSelect }: MenuCardProps) {
                 Unavailable
               </span>
             )}
+            <MenuTypePill menuType={effectiveMenuType} />
           </div>
 
           <div className="col-8">

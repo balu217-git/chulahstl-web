@@ -7,6 +7,7 @@ import { useCart, ChoiceSelected } from "@/context/CartContext";
 import { MenuItem, ChoiceOptionFromAPI, AddOnFromAPI } from "@/types/menu";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faMinus, faClose } from "@fortawesome/free-solid-svg-icons";
+import { MenuTypePill } from "@/components/MenuTypePill";
 
 interface MenuItemModalProps {
   show: boolean;
@@ -42,6 +43,25 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
   const imageUrl = details.menuImage?.node?.sourceUrl ?? "/images/img-dish-icon-bg.webp";
   const basePrice = Number(details.menuPrice ?? 0);
   const isAvailable = details.isAvailable ?? false; // <-- global menu-item availability
+
+   const menuType = details?.menuType;
+   const categories = details?.menuCategory?.nodes ?? [];
+
+  const isDrinkCategory = categories.some((cat) => {
+    const name = cat?.name?.toLowerCase().trim() ?? "";
+    const slug = cat?.slug?.toLowerCase().trim() ?? "";
+
+    return (
+      name === "beverages" ||
+      name === "soda" ||
+      name === "fountains" ||
+      slug === "beverages" ||
+      slug === "soda" ||
+      slug === "fountains"
+    );
+  });
+
+  const effectiveMenuType = isDrinkCategory ? undefined : menuType;
 
   // Normalize choices and preserve per-option isAvailable (default true)
   const normalizedChoices: NormalizedChoice[] = useMemo(() => {
@@ -252,6 +272,7 @@ export default function MenuItemModal({ show, onClose, menu }: MenuItemModalProp
           >
             <FontAwesomeIcon icon={faClose} />
           </button>
+          <MenuTypePill menuType={effectiveMenuType} />
         </div>
 
         <div className="form-container p-4">
